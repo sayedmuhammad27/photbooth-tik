@@ -1,0 +1,239 @@
+[
+  {
+    "slug": "night-city-strip",
+    "name": "Night City Strip",
+    "description": "Dua strip identik berisi 4 foto. Gunting di tengah dan bagikan ke teman.",
+    "category": "strip",
+    "tags": [
+      "strip",
+      "4 foto",
+      "cetak 4R",
+      "night city"
+    ],
+    "slot_count": 4,
+    "bg_color": "#131947",
+    "sort_order": 1,
+    "frame_file": "night-city-strip.png",
+    "layout_config": [
+      {
+        "x": 40,
+        "y": 250,
+        "width": 520,
+        "height": 330,
+        "photo": 0
+      },
+      {
+        "x": 640,
+        "y": 250,
+        "width": 520,
+        "height": 330,
+        "photo": 0
+      },
+      {
+        "x": 40,
+        "y": 605,
+        "width": 520,
+        "height": 330,
+        "photo": 1
+      },
+      {
+        "x": 640,
+        "y": 605,
+        "width": 520,
+        "height": 330,
+        "photo": 1
+      },
+      {
+        "x": 40,
+        "y": 960,
+        "width": 520,
+        "height": 330,
+        "photo": 2
+      },
+      {
+        "x": 640,
+        "y": 960,
+        "width": 520,
+        "height": 330,
+        "photo": 2
+      },
+      {
+        "x": 40,
+        "y": 1315,
+        "width": 520,
+        "height": 330,
+        "photo": 3
+      },
+      {
+        "x": 640,
+        "y": 1315,
+        "width": 520,
+        "height": 330,
+        "photo": 3
+      }
+    ]
+  },
+  {
+    "slug": "night-city-grid",
+    "name": "Night City Grid",
+    "description": "Empat foto dalam kisi 2×2 dengan latar skyline malam.",
+    "category": "grid",
+    "tags": [
+      "grid",
+      "4 foto",
+      "cetak 4R",
+      "night city"
+    ],
+    "slot_count": 4,
+    "bg_color": "#131947",
+    "sort_order": 2,
+    "frame_file": "night-city-grid.png",
+    "layout_config": [
+      {
+        "x": 50,
+        "y": 330,
+        "width": 530,
+        "height": 600,
+        "photo": 0
+      },
+      {
+        "x": 620,
+        "y": 330,
+        "width": 530,
+        "height": 600,
+        "photo": 1
+      },
+      {
+        "x": 50,
+        "y": 960,
+        "width": 530,
+        "height": 600,
+        "photo": 2
+      },
+      {
+        "x": 620,
+        "y": 960,
+        "width": 530,
+        "height": 600,
+        "photo": 3
+      }
+    ]
+  },
+  {
+    "slug": "moonlight-trio",
+    "name": "Moonlight Trio",
+    "description": "Dua strip identik berisi 3 foto, bertema bulan sabit.",
+    "category": "strip",
+    "tags": [
+      "strip",
+      "3 foto",
+      "cetak 4R",
+      "bulan"
+    ],
+    "slot_count": 3,
+    "bg_color": "#131947",
+    "sort_order": 3,
+    "frame_file": "moonlight-trio.png",
+    "layout_config": [
+      {
+        "x": 40,
+        "y": 250,
+        "width": 520,
+        "height": 450,
+        "photo": 0
+      },
+      {
+        "x": 640,
+        "y": 250,
+        "width": 520,
+        "height": 450,
+        "photo": 0
+      },
+      {
+        "x": 40,
+        "y": 725,
+        "width": 520,
+        "height": 450,
+        "photo": 1
+      },
+      {
+        "x": 640,
+        "y": 725,
+        "width": 520,
+        "height": 450,
+        "photo": 1
+      },
+      {
+        "x": 40,
+        "y": 1200,
+        "width": 520,
+        "height": 450,
+        "photo": 2
+      },
+      {
+        "x": 640,
+        "y": 1200,
+        "width": 520,
+        "height": 450,
+        "photo": 2
+      }
+    ]
+  },
+  {
+    "slug": "duo-skyline",
+    "name": "Duo Skyline",
+    "description": "Dua foto lebar berurutan, pas untuk berdua.",
+    "category": "duo",
+    "tags": [
+      "duo",
+      "2 foto",
+      "cetak 4R",
+      "skyline"
+    ],
+    "slot_count": 2,
+    "bg_color": "#131947",
+    "sort_order": 4,
+    "frame_file": "duo-skyline.png",
+    "layout_config": [
+      {
+        "x": 50,
+        "y": 260,
+        "width": 1100,
+        "height": 620,
+        "photo": 0
+      },
+      {
+        "x": 50,
+        "y": 920,
+        "width": 1100,
+        "height": 620,
+        "photo": 1
+      }
+    ]
+  },
+  {
+    "slug": "poster-tunggal",
+    "name": "Poster Tunggal",
+    "description": "Satu foto besar bergaya poster Expo Wisuda.",
+    "category": "single",
+    "tags": [
+      "tunggal",
+      "1 foto",
+      "cetak 4R",
+      "poster"
+    ],
+    "slot_count": 1,
+    "bg_color": "#131947",
+    "sort_order": 5,
+    "frame_file": "poster-tunggal.png",
+    "layout_config": [
+      {
+        "x": 50,
+        "y": 260,
+        "width": 1100,
+        "height": 1200,
+        "photo": 0
+      }
+    ]
+  }
+]

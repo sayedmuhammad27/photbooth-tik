@@ -1,0 +1,178 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\PhotoSession;
+use App\Models\Template;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Throwable;
+
+class SessionController extends Controller
+{
+    /** Halaman kamera untuk template yang dipilih. */
+    public function create(Template $template)
+    {
+        if (! $template->is_active) {
+            return redirect()->route('photobooth.setup')
+                ->with('error', 'Template tersebut sedang tidak aktif. Pilih template lain.');
+        }
+
+        return view('photobooth.camera', [
+            'template'    => $template,
+            'boothConfig' => [
+                'template'    => $template->toBoothArray(),
+                'process_url' => route('photobooth.process', $template),
+                'token_url'   => route('csrf'),
+                'csrf'        => csrf_token(),
+                'countdown'   => (int) config('photobooth.countdown', 3),
+            ],
+        ]);
+    }
+
+    /**
+     * Terima foto (multipart), susun ke template di server, simpan, balas JSON.
+     * Foto sudah dipotong sesuai rasio slot oleh browser; server memotong ulang (cover)
+     * ke ukuran slot tepat sehingga tidak pernah ada foto yang digepengkan.
+     */
+    public function process(Request $request, Template $template): JsonResponse
+    {
+        abort_unless($template->is_active, 404);
+
+        $slotCount = (int) $template->slot_count;
+
+        $request->validate([
+            'photos'   => ['required', 'array', 'size:' . $slotCount],
+            'photos.*' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:12288'],
+        ], [
+            'photos.required' => 'Foto belum dikirim.',
+            'photos.array'    => 'Format foto tidak valid.',
+            'photos.size'     => 'Jumlah foto harus tepat ' . $slotCount . ' untuk template ini.',
+            'photos.*.image'  => 'Berkas harus berupa gambar.',
+            'photos.*.mimes'  => 'Foto harus berformat JPG atau PNG.',
+            'photos.*.max'    => 'Ukuran satu foto maksimal 12 MB.',
+        ]);
+
+        $files = array_values($request->file('photos'));
+        $token = Str::random(24);
+        $disk = Storage::disk('public');
+        $written = [];
+
+        try {
+            $width = Template::CANVAS_WIDTH;
+            $height = Template::CANVAS_HEIGHT;
+
+            $manager = new ImageManager(new Driver());
+            $canvas = $manager->create($width, $height)->fill($template->bg_color ?: '#131947');
+
+            foreach ($template->normalizedSlots() as $slot) {
+                $file = $files[$slot['photo']] ?? null;
+                if ($file === null) {
+                    continue;
+                }
+                $photo = $manager->read($file->getRealPath())->cover($slot['width'], $slot['height']);
+                $canvas->place($photo, 'top-left', $slot['x'], $slot['y']);
+            }
+
+            if ($template->frame_asset && $disk->exists($template->frame_asset)) {
+                $frame = $manager->read($disk->path($template->frame_asset));
+                if ($frame->width() !== $width || $frame->height() !== $height) {
+                    $frame = $frame->resize($width, $height);
+                }
+                $canvas->place($frame, 'top-left', 0, 0);
+            }
+
+            $finalPath = "results/{$token}_final.jpg";
+            $disk->put($finalPath, (string) $canvas->toJpeg(92));
+            $written[] = $finalPath;
+
+            $rawPaths = [];
+            foreach ($files as $i => $file) {
+                $ext = $file->guessExtension() === 'png' ? 'png' : 'jpg';
+                $stored = $disk->putFileAs('results', $file, "{$token}_raw_" . ($i + 1) . ".{$ext}");
+                if ($stored === false) {
+                    throw new \RuntimeException('Gagal menyimpan foto satuan.');
+                }
+                $written[] = $stored;
+                $rawPaths[] = $stored;
+            }
+
+            $session = DB::transaction(function () use ($template, $token, $finalPath, $rawPaths) {
+                return PhotoSession::create([
+                    'template_id'      => $template->id,
+                    'session_token'    => $token,
+                    'final_image_path' => $finalPath,
+                    'raw_photos'       => $rawPaths,
+                ]);
+            });
+
+            return response()->json([
+                'redirect' => route('photobooth.result', $session->session_token),
+            ]);
+        } catch (Throwable $e) {
+            foreach ($written as $path) {
+                $disk->delete($path);
+            }
+            Log::error('Photobooth: gagal memproses sesi foto', [
+                'template_id' => $template->id,
+                'exception'   => $e,
+            ]);
+
+            return response()->json([
+                'message' => 'Server gagal menyusun foto. Foto kamu masih aman di halaman ini, silakan coba lagi.',
+            ], 500);
+        }
+    }
+
+    /** Halaman hasil (juga tujuan QR code). Akses lewat token acak 24 karakter. */
+    public function result(string $token)
+    {
+        $session = PhotoSession::with('template')->where('session_token', $token)->firstOrFail();
+
+        $shareUrl = $this->shareUrl($token);
+        $host = strtolower((string) parse_url($shareUrl, PHP_URL_HOST));
+
+        return view('photobooth.result', [
+            'session'   => $session,
+            'qrCode'    => QrCode::format('svg')->size(220)->margin(0)->errorCorrection('M')->generate($shareUrl),
+            'qrIsLocal' => in_array($host, ['localhost', '127.0.0.1', '::1', '[::1]'], true),
+        ]);
+    }
+
+    /** Unduh sebagai lampiran: kind = "strip" atau nomor foto satuan (mulai 1). */
+    public function download(string $token, string $kind)
+    {
+        $session = PhotoSession::where('session_token', $token)->firstOrFail();
+        $disk = Storage::disk('public');
+
+        if ($kind === 'strip') {
+            $path = $session->final_image_path;
+            $name = "photobooth-tik-{$token}.jpg";
+        } else {
+            $raw = is_array($session->raw_photos) ? array_values($session->raw_photos) : [];
+            $path = $raw[((int) $kind) - 1] ?? null;
+            abort_if($path === null, 404);
+            $name = "photobooth-tik-{$token}-foto{$kind}." . (pathinfo($path, PATHINFO_EXTENSION) ?: 'jpg');
+        }
+
+        abort_unless($disk->exists($path), 404);
+
+        return $disk->download($path, $name);
+    }
+
+    private function shareUrl(string $token): string
+    {
+        $base = config('photobooth.public_url');
+
+        return $base
+            ? rtrim($base, '/') . route('photobooth.result', $token, false)
+            : route('photobooth.result', $token);
+    }
+}

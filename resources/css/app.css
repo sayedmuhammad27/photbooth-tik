@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  /* Palet Warna Ungu Retro kita */
+  --color-retro-darkest: #49225B;
+  --color-retro-dark: #6E3482;
+  --color-retro-medium: #A56ABD;
+  --color-retro-light: #E7DBEF;
+  --color-retro-text: #F5EBFA;
+  
+  /* Font Pixel */
+  --font-pixel: "Press Start 2P", cursive, system-ui;
+}
+
+@layer base {
+  body {
+    @apply bg-retro-darkest text-retro-text font-pixel antialiased;
+    -webkit-tap-highlight-color: transparent; 
+  }
+}
+
+.pixel-border {
+  border: 4px solid #F5EBFA;
+  border-radius: 8px;
+}
