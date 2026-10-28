@@ -17,6 +17,13 @@ return [
     'countdown' => (int) env('PHOTOBOOTH_COUNTDOWN', 3),
 
     /*
+    | Mode transisi antar foto di bilik kamera:
+    | 'manual' => Berhenti setelah tiap foto, menunggu pengguna klik Lanjut / tekan Spasi.
+    | 'auto'   => Langsung melanjutkan timer ke foto berikutnya secara otomatis.
+    */
+    'advance_mode' => env('PHOTOBOOTH_ADVANCE_MODE', 'manual'),
+
+    /*
     | Alamat dasar untuk QR code dan tautan bagikan, mis. "https://abc123.ngrok-free.app"
     | atau "http://192.168.1.10:8000". Kosongkan agar memakai alamat yang sedang dibuka di browser.
     | Isi bila booth dibuka lewat 127.0.0.1 tetapi ponsel pengunjung harus bisa membuka hasilnya.
@@ -30,6 +37,19 @@ return [
     'admin' => [
         'email'    => env('ADMIN_EMAIL', 'admin@photobooth.tik'),
         'password' => env('ADMIN_PASSWORD'),
+    ],
+
+    /*
+    | Kamera Canon lewat digiCamControl (memakai EDSDK Canon). Nyalakan dengan DIGICAM_ENABLED=true.
+    | Server Laravel meneruskan perintah ke web server digiCamControl di laptop yang sama,
+    | sehingga browser tidak terkena batasan CORS / campuran HTTP-HTTPS saat dibuka lewat tunnel.
+    */
+    'digicam' => [
+        'enabled'         => (bool) env('DIGICAM_ENABLED', false),
+        'url'             => env('DIGICAM_URL', 'http://127.0.0.1:5513'),
+        'default_source'  => env('DIGICAM_DEFAULT_SOURCE', 'digicam'),   // digicam | webcam
+        'capture_timeout' => (int) env('DIGICAM_CAPTURE_TIMEOUT', 25),    // detik menunggu foto muncul
+        'live_interval'   => (int) env('DIGICAM_LIVE_INTERVAL', 120),     // ms antar frame live view
     ],
 
     'categories' => [

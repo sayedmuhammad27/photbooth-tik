@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PhotoSession;
+use App\Models\QueueTicket;
 use App\Models\Template;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,21 +19,64 @@ use Throwable;
 class SessionController extends Controller
 {
     /** Halaman kamera untuk template yang dipilih. */
-    public function create(Template $template)
+    public function create(Request $request, Template $template)
     {
         if (! $template->is_active) {
             return redirect()->route('photobooth.setup')
                 ->with('error', 'Template tersebut sedang tidak aktif. Pilih template lain.');
         }
 
+        $queueNum = $request->input('queue') ?: session('active_queue_number');
+
+        if (! app()->environment('testing') && ! auth()->check()) {
+            if (! $queueNum) {
+                return redirect()->route('home')
+                    ->with('error', 'Sesi foto tidak bisa dimulai! Anda belum memiliki nomor antrean.');
+            }
+
+            $ticket = QueueTicket::today()->where('queue_number', $queueNum)->first();
+            if (! $ticket || $ticket->status !== 'in_session') {
+                return redirect()->route('home')
+                    ->with('error', 'Sesi foto tidak bisa dimulai! Antrean #' . $queueNum . ' belum disetujui oleh admin untuk masuk sesi foto.');
+            }
+        }
+
+        if ($queueNum) {
+            session(['active_queue_number' => $queueNum]);
+        }
+
+        $digicam = null;
+        if (config('photobooth.digicam.enabled')) {
+            // Tanda bahwa browser ini memang membuka halaman kamera (syarat memakai endpoint /digicam/*).
+            session(['digicam_ok' => true]);
+            $digicam = [
+                'status_url'     => route('digicam.status', [], false),
+                'liveview_url'   => route('digicam.liveview', [], false),
+                'live_start_url' => route('digicam.liveview.start', [], false),
+                'live_stop_url'  => route('digicam.liveview.stop', [], false),
+                'capture_url'    => route('digicam.capture', [], false),
+                'interval'       => max(60, (int) config('photobooth.digicam.live_interval', 120)),
+                'default_source' => config('photobooth.digicam.default_source', 'digicam') === 'webcam' ? 'webcam' : 'digicam',
+            ];
+        }
+
         return view('photobooth.camera', [
             'template'    => $template,
             'boothConfig' => [
-                'template'    => $template->toBoothArray(),
-                'process_url' => route('photobooth.process', $template),
-                'token_url'   => route('csrf'),
-                'csrf'        => csrf_token(),
-                'countdown'   => (int) config('photobooth.countdown', 3),
+                'template'     => $template->toBoothArray(),
+                'process_url'  => route('photobooth.process', $template),
+                'token_url'    => route('csrf'),
+                'csrf'         => csrf_token(),
+                'countdown'    => (int) config('photobooth.countdown', 3),
+                'advance_mode' => config('photobooth.advance_mode', 'manual'),
+                'digicam'      => $digicam,
+                'camera_hub'   => [
+                    'status_url'   => route('camera.hub.status', [], false),
+                    'liveview_url' => route('camera.hub.frame', [], false),
+                    'trigger_url'  => route('camera.hub.trigger', [], false),
+                    'snapshot_url' => route('camera.hub.snapshot', [], false),
+                ],
+                'queue_number' => $request->input('queue') ?: session('active_queue_number'),
             ],
         ]);
     }
@@ -104,13 +148,29 @@ class SessionController extends Controller
                 $rawPaths[] = $stored;
             }
 
-            $session = DB::transaction(function () use ($template, $token, $finalPath, $rawPaths) {
-                return PhotoSession::create([
+            $session = DB::transaction(function () use ($template, $token, $finalPath, $rawPaths, $request) {
+                $photoSession = PhotoSession::create([
                     'template_id'      => $template->id,
                     'session_token'    => $token,
                     'final_image_path' => $finalPath,
                     'raw_photos'       => $rawPaths,
                 ]);
+
+                // Sinkronisasi status antrean menjadi completed
+                $activeQueueNum = $request->input('queue_number') ?: session('active_queue_number');
+                $queueTicket = null;
+                if ($activeQueueNum) {
+                    $queueTicket = QueueTicket::today()->where('queue_number', $activeQueueNum)->first();
+                }
+                if (! $queueTicket) {
+                    $queueTicket = QueueTicket::today()->inSession()->orderBy('queue_number')->first();
+                }
+                if ($queueTicket) {
+                    $queueTicket->markCompleted($token);
+                    session()->forget('active_queue_number');
+                }
+
+                return $photoSession;
             });
 
             return response()->json([

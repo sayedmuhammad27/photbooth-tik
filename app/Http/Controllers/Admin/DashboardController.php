@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PhotoSession;
+use App\Models\QueueTicket;
 use App\Models\Template;
 
 class DashboardController extends Controller
@@ -11,10 +12,13 @@ class DashboardController extends Controller
     public function index()
     {
         $stats = [
-            'total_sesi'     => PhotoSession::count(),
-            'sesi_hari_ini'  => PhotoSession::whereDate('created_at', today())->count(),
-            'total_foto'     => (int) PhotoSession::pluck('raw_photos')->sum(fn ($p) => is_array($p) ? count($p) : 0),
-            'template_aktif' => Template::active()->count(),
+            'total_sesi'       => PhotoSession::count(),
+            'sesi_hari_ini'    => PhotoSession::whereDate('created_at', today())->count(),
+            'total_foto'       => (int) PhotoSession::pluck('raw_photos')->sum(fn ($p) => is_array($p) ? count($p) : 0),
+            'template_aktif'   => Template::active()->count(),
+            'antrean_hari_ini' => QueueTicket::today()->count(),
+            'antrean_menunggu' => QueueTicket::today()->waiting()->count(),
+            'antrean_aktif'    => QueueTicket::today()->whereIn('status', ['in_session', 'called'])->first(),
         ];
 
         return view('admin.dashboard', [

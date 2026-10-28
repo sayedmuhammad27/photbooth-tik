@@ -1,0 +1,730 @@
+@extends('layouts.admin')
+
+@section('title', 'Kamera Bilik (Siaran Perangkat Admin) — Admin Photobooth TIK')
+
+@section('content')
+<div class="adm-head">
+    <div>
+        <h1>📡 KAMERA BILIK (SIARKAN KAMERA ADMIN)</h1>
+        <p>Gunakan kamera yang terhubung di laptop/PC admin ini (Kamera Canon via digiCamControl atau Webcam) agar dapat diakses oleh perangkat bilik user (tablet/HP) tanpa kabel.</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+        <span id="broadcast-badge" class="badge badge--off" style="font-size:var(--fs-d-xs)">SIARAN MATI</span>
+        <button type="button" class="btn btn--primary btn--sm" id="btn-toggle-broadcast">
+            ▶ Mulai Siaran Kamera
+        </button>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr);gap:var(--sp-5);align-items:start">
+    <!-- Viewfinder Kamera Admin -->
+    <div class="px-box px-box--pad" style="text-align:center">
+        <div style="position:relative;background:#000;aspect-ratio:4/3;overflow:hidden;border:2px solid var(--outline);display:flex;align-items:center;justify-content:center">
+            <!-- Feed Webcam -->
+            <video id="admin-cam-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:none"></video>
+            
+            <!-- Feed Canon Live View -->
+            <img id="admin-cam-live" alt="Live view kamera Canon" style="width:100%;height:100%;object-fit:cover;display:none">
+
+            <!-- Layar Mati / Belum Aktif -->
+            <div id="cam-offline-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--night-950);color:var(--text-muted);padding:20px">
+                <div style="font-size:3rem;margin-bottom:12px" id="placeholder-icon">📷</div>
+                <p style="font-size:var(--fs-md);margin-bottom:8px" id="placeholder-title">Kamera Belum Dinyalakan</p>
+                <span style="font-size:var(--fs-xs);color:var(--text-dim)" id="placeholder-hint">Pilih sumber kamera di panel kanan lalu klik tombol "Mulai Siaran Kamera" untuk menghubungkan kamera laptop/USB admin ini ke bilik user.</span>
+            </div>
+
+            <!-- Efek Flash Pemotretan -->
+            <div id="shutter-flash" style="position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity 0.15s ease"></div>
+
+            <!-- Indikator Proses Potret -->
+            <div id="capture-wait-indicator" style="position:absolute;inset:0;display:none;background:rgba(12,18,48,0.8);align-items:center;justify-content:center;flex-direction:column;gap:8px;z-index:5">
+                <span style="font-size:2rem;animation:bounce 0.6s infinite alternate">📸</span>
+                <strong style="color:var(--pink-400);font-family:var(--font-display);font-size:var(--fs-sm)">MEMOTRET…</strong>
+                <span style="font-size:var(--fs-xs);color:var(--text-muted)">Kamera Canon sedang mengambil foto resolusi penuh</span>
+            </div>
+
+            <!-- Indikator On-Air -->
+            <div id="on-air-indicator" style="position:absolute;top:12px;left:12px;display:none;align-items:center;gap:6px;background:rgba(254,1,104,0.85);color:#fff;padding:4px 10px;font-family:var(--font-display);font-size:var(--fs-d-xs)">
+                <span style="width:8px;height:8px;border-radius:50%;background:#fff;animation:blink 1s infinite"></span>
+                ON-AIR KE BILIK USER
+            </div>
+
+            <!-- Tag Tipe Kamera di Viewfinder -->
+            <div id="cam-source-tag" style="position:absolute;bottom:12px;left:12px;background:rgba(0,0,0,0.7);color:var(--lamp-300);padding:3px 8px;font-size:11px;border-radius:2px;display:none">
+                📷 CANON EOS
+            </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:var(--fs-xs);color:var(--text-dim)">
+            <span id="stream-stats">Frame dikirim: 0 • FPS: 0</span>
+            <span id="resolution-info">Resolusi: -</span>
+        </div>
+    </div>
+
+    <!-- Pengaturan Kamera & Petunjuk -->
+    <div style="display:grid;gap:var(--sp-4)">
+        <div class="px-box px-box--pad">
+            <h2 class="section-title" style="font-size:var(--fs-d-sm);margin-bottom:12px">PENGATURAN KAMERA ADMIN</h2>
+            
+            <!-- Pilihan Sumber Kamera (Canon vs Webcam) -->
+            <div class="field" style="margin-bottom:12px">
+                <label class="field__label" for="select-source-type">Pilih Sumber Kamera:</label>
+                <select class="select" id="select-source-type" style="font-weight:bold;color:var(--lamp-300)">
+                    <option value="digicam" selected>📷 Kamera Canon (digiCamControl via USB)</option>
+                    <option value="webcam">💻 Webcam / Kamera USB Browser</option>
+                </select>
+                <span class="field__hint">Pilih Canon untuk hasil jepretan DSLR profesional, atau Webcam untuk webcam laptop/USB bawaan.</span>
+            </div>
+
+            <!-- Section Khusus Canon digiCamControl -->
+            <div id="section-digicam" style="display:block;margin-bottom:14px;background:rgba(0,0,0,0.25);border:1px solid var(--outline);padding:12px;border-radius:4px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                    <span style="font-size:var(--fs-xs);font-weight:bold;color:var(--pink-400);display:flex;align-items:center;gap:6px">
+                        <span>📷</span> STATUS DIGICAMCONTROL
+                    </span>
+                    <span id="badge-dcc-status" class="badge badge--off" style="font-size:10px">MENGECEK...</span>
+                </div>
+                
+                <div id="dcc-info-box" style="font-size:var(--fs-xs);color:var(--text-muted);margin-bottom:10px;line-height:1.5">
+                    Mengecek sambungan ke digiCamControl di port 5513...
+                </div>
+
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <button type="button" class="btn btn--ghost btn--xs" id="btn-refresh-dcc">
+                        🔄 Cek Ulang Koneksi
+                    </button>
+                    <button type="button" class="btn btn--primary btn--xs" id="btn-test-capture" style="background:var(--pink-500)">
+                        📸 Test Jepret Canon
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section Khusus Webcam -->
+            <div id="section-webcam" style="display:none;margin-bottom:14px">
+                <div class="field" style="margin-bottom:12px">
+                    <label class="field__label" for="select-admin-cam">Pilih Perangkat Webcam:</label>
+                    <select class="select" id="select-admin-cam">
+                        <option value="">(Mencari perangkat kamera...)</option>
+                    </select>
+                </div>
+
+                <div class="field" style="margin-bottom:12px">
+                    <label class="field__label" for="select-resolution">Kualitas Gambar Webcam:</label>
+                    <select class="select" id="select-resolution">
+                        <option value="1080">Full HD (1920 × 1080) - Disarankan</option>
+                        <option value="720">HD (1280 × 720) - Hemat Jaringan</option>
+                        <option value="4k">4K Ultra HD (3840 × 2160) - Terbaik</option>
+                    </select>
+                </div>
+            </div>
+
+            <label class="check" style="font-size:var(--fs-sm);color:var(--text-muted)">
+                <input type="checkbox" id="check-mirror-admin" checked>
+                <span>Cerminkan tampilan kamera (Mirror Selfie)</span>
+            </label>
+        </div>
+
+        <!-- Panduan & Petunjuk Canon -->
+        <div class="px-box px-box--pad" style="border-left:4px solid var(--lamp-500)">
+            <h3 style="font-size:var(--fs-d-xs);color:var(--lamp-300);margin-bottom:8px">PANDUAN KAMERA CANON (DIGICAMCONTROL):</h3>
+            <ol style="font-size:var(--fs-sm);color:var(--text-muted);padding-left:18px;margin:0;line-height:1.6">
+                <li>Colokkan kabel USB kamera Canon ke laptop/PC admin ini.</li>
+                <li>Buka aplikasi <strong>digiCamControl</strong> di laptop admin.</li>
+                <li>Pastikan Webserver aktif di menu <strong>File → Settings → Webserver (Port 5513)</strong>.</li>
+                <li>Putar dial mode kamera ke <strong>P / Tv / Av / M</strong> dan pastikan kualitas gambar disetel ke <strong>JPEG</strong> (bukan RAW murni).</li>
+                <li>Klik tombol <strong>"▶ Mulai Siaran Kamera"</strong> di atas. Kamera Canon akan menyala dan feed-nya disiarkan ke bilik pengunjung!</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Pratinjau Test Foto -->
+<div id="modal-test-preview" class="modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;padding:20px">
+    <div class="px-box px-box--pad" style="max-width:680px;width:100%;max-height:90vh;display:flex;flex-direction:column;background:var(--night-900);border:2px solid var(--pink-400)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--outline);padding-bottom:8px">
+            <h3 style="font-size:var(--fs-d-xs);color:var(--pink-400);margin:0">📸 HASIL TEST JEPRET KAMERA</h3>
+            <button type="button" class="btn btn--ghost btn--xs" id="btn-close-modal">✕ Tutup</button>
+        </div>
+        <div style="flex:1;overflow:auto;text-align:center;background:#000;padding:8px">
+            <img id="img-test-preview" src="" alt="Pratinjau foto test" style="max-width:100%;max-height:60vh;object-fit:contain;border:1px solid var(--outline)">
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:var(--fs-xs);color:var(--text-muted)">
+            <span id="test-preview-info">Ukuran: -</span>
+            <button type="button" class="btn btn--primary btn--sm" id="btn-close-modal-2">Selesai & Tutup</button>
+        </div>
+    </div>
+</div>
+
+<canvas id="snapshot-canvas" style="display:none"></canvas>
+@endsection
+
+@push('scripts')
+<script>
+(function() {
+    'use strict';
+
+    var cfg = {
+        csrf: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        digicam: @json($digicam ?? [])
+    };
+
+    var video = document.getElementById('admin-cam-video');
+    var liveImg = document.getElementById('admin-cam-live');
+    var placeholder = document.getElementById('cam-offline-placeholder');
+    var placeholderTitle = document.getElementById('placeholder-title');
+    var placeholderHint = document.getElementById('placeholder-hint');
+    var badge = document.getElementById('broadcast-badge');
+    var btnToggle = document.getElementById('btn-toggle-broadcast');
+    var onAir = document.getElementById('on-air-indicator');
+    var camSourceTag = document.getElementById('cam-source-tag');
+    var shutterFlash = document.getElementById('shutter-flash');
+    var captureWait = document.getElementById('capture-wait-indicator');
+
+    var selSourceType = document.getElementById('select-source-type');
+    var secDigicam = document.getElementById('section-digicam');
+    var secWebcam = document.getElementById('section-webcam');
+    var badgeDcc = document.getElementById('badge-dcc-status');
+    var dccInfoBox = document.getElementById('dcc-info-box');
+    var btnRefreshDcc = document.getElementById('btn-refresh-dcc');
+    var btnTestCapture = document.getElementById('btn-test-capture');
+
+    var selCam = document.getElementById('select-admin-cam');
+    var selRes = document.getElementById('select-resolution');
+    var chkMirror = document.getElementById('check-mirror-admin');
+    var streamStats = document.getElementById('stream-stats');
+    var resInfo = document.getElementById('resolution-info');
+    var canvas = document.getElementById('snapshot-canvas');
+    var ctx = canvas.getContext('2d');
+
+    // Modal preview
+    var modalPreview = document.getElementById('modal-test-preview');
+    var imgTestPreview = document.getElementById('img-test-preview');
+    var testPreviewInfo = document.getElementById('test-preview-info');
+    var btnCloseModal = document.getElementById('btn-close-modal');
+    var btnCloseModal2 = document.getElementById('btn-close-modal-2');
+
+    var stream = null;
+    var isBroadcasting = false;
+    var frameCount = 0;
+    var streamTimer = null;
+    var liveTimer = null;
+    var isCapturing = false;
+    var liveOk = false;
+    var liveBlobUrl = null;
+    var isSendingFrame = false;
+    var isFetchingLive = false;
+
+    // 1. Ganti tampilan section sesuai tipe kamera yang dipilih
+    function onSourceTypeChange() {
+        var val = selSourceType.value;
+        if (val === 'digicam') {
+            secDigicam.style.display = 'block';
+            secWebcam.style.display = 'none';
+            camSourceTag.textContent = '📷 CANON (DIGICAMCONTROL)';
+        } else {
+            secDigicam.style.display = 'none';
+            secWebcam.style.display = 'block';
+            camSourceTag.textContent = '💻 WEBCAM BROWSER';
+        }
+        if (isBroadcasting) {
+            stopBroadcasting();
+            startBroadcasting();
+        }
+    }
+    selSourceType.addEventListener('change', onSourceTypeChange);
+
+    // 2. Cek status digiCamControl
+    function checkDigicamStatus() {
+        if (!cfg.digicam.status_url) return;
+        badgeDcc.className = 'badge badge--off';
+        badgeDcc.textContent = 'MENGECEK...';
+        dccInfoBox.textContent = 'Menghubungi web server digiCamControl di port 5513...';
+
+        fetch(cfg.digicam.status_url, { credentials: 'same-origin', cache: 'no-store' })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.ok) {
+                    badgeDcc.className = 'badge badge--green';
+                    badgeDcc.textContent = '🟢 TERHUBUNG';
+                    var cam = data.cameras ? data.cameras.trim() : 'Kamera Canon Terdeteksi';
+                    dccInfoBox.innerHTML = '<strong style="color:var(--lamp-300)">' + escapeHtml(cam) + '</strong><br>' +
+                        '<span style="color:var(--text-muted)">Aplikasi digiCamControl siap digunakan untuk siaran & pemotretan bilik.</span>';
+                } else {
+                    badgeDcc.className = 'badge badge--danger';
+                    badgeDcc.textContent = '🔴 TERPUTUS';
+                    dccInfoBox.innerHTML = '<span style="color:#ff8080">' + escapeHtml(data.message || 'Tidak dapat terhubung.') + '</span><br>' +
+                        '<span style="font-size:11px;color:var(--text-dim)">Buka aplikasi digiCamControl di laptop ini dan periksa port 5513.</span>';
+                }
+            })
+            .catch(function(err) {
+                badgeDcc.className = 'badge badge--danger';
+                badgeDcc.textContent = '🔴 OFFLINE';
+                dccInfoBox.innerHTML = '<span style="color:#ff8080">Gagal terhubung ke webserver digiCamControl.</span><br>' +
+                    '<span style="font-size:11px;color:var(--text-dim)">Pastikan digiCamControl aktif di laptop admin (File → Settings → Webserver).</span>';
+            });
+    }
+
+    btnRefreshDcc.addEventListener('click', checkDigicamStatus);
+    checkDigicamStatus();
+
+    // 3. Deteksi webcam browser
+    function listWebcams() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+        navigator.mediaDevices.enumerateDevices()
+            .then(function(devices) {
+                var videoDevices = devices.filter(function(d) { return d.kind === 'videoinput'; });
+                selCam.innerHTML = '';
+                if (!videoDevices.length) {
+                    selCam.innerHTML = '<option value="">Tidak ada webcam terdeteksi</option>';
+                    return;
+                }
+                videoDevices.forEach(function(d, i) {
+                    var opt = document.createElement('option');
+                    opt.value = d.deviceId;
+                    opt.textContent = d.label || ('Webcam ' + (i + 1));
+                    selCam.appendChild(opt);
+                });
+            })
+            .catch(function(err) {});
+    }
+    listWebcams();
+    if (navigator.mediaDevices) {
+        navigator.mediaDevices.addEventListener('devicechange', listWebcams);
+    }
+
+    // 4. Efek Flash Rana
+    function triggerVisualFlash() {
+        shutterFlash.style.opacity = '1';
+        setTimeout(function() {
+            shutterFlash.style.opacity = '0';
+        }, 180);
+    }
+
+    function applyMirror() {
+        var tf = chkMirror.checked ? 'scaleX(-1)' : 'none';
+        video.style.transform = tf;
+        liveImg.style.transform = tf;
+    }
+    chkMirror.addEventListener('change', applyMirror);
+
+    // 5. Mulai Kamera Sesuai Sumber Terpilih
+    function startCamera() {
+        var source = selSourceType.value;
+
+        if (source === 'digicam') {
+            video.style.display = 'none';
+            liveImg.style.display = 'block';
+            camSourceTag.style.display = 'block';
+
+            // Nyalakan liveview di digiCamControl
+            return fetch(cfg.digicam.live_start_url, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'application/json' }
+            })
+            .then(function() {
+                placeholder.style.display = 'none';
+                applyMirror();
+                startDigicamLivePolling();
+            })
+            .catch(function(err) {
+                throw new Error('Gagal membuka Live View Canon. Pastikan digiCamControl aktif & kamera terhubung.');
+            });
+        } else {
+            liveImg.style.display = 'none';
+            video.style.display = 'block';
+            camSourceTag.style.display = 'block';
+
+            var devId = selCam.value;
+            var res = selRes.value;
+            var width = 1920, height = 1080;
+            if (res === '720') { width = 1280; height = 720; }
+            if (res === '4k') { width = 3840; height = 2160; }
+
+            var constraints = {
+                video: { width: { ideal: width }, height: { ideal: height } },
+                audio: false
+            };
+            if (devId) constraints.video.deviceId = { exact: devId };
+
+            return navigator.mediaDevices.getUserMedia(constraints)
+                .then(function(s) {
+                    stream = s;
+                    video.srcObject = s;
+                    placeholder.style.display = 'none';
+                    listWebcams();
+                    return new Promise(function(resolve) {
+                        video.onloadedmetadata = function() {
+                            resInfo.textContent = 'Resolusi: ' + video.videoWidth + ' × ' + video.videoHeight;
+                            applyMirror();
+                            resolve();
+                        };
+                    });
+                });
+        }
+    }
+
+    // Polling Live View Canon dari /digicam/liveview
+    function startDigicamLivePolling() {
+        liveOk = true;
+        pumpDigicamFrame();
+    }
+
+    function stopDigicamLivePolling() {
+        liveOk = false;
+        isFetchingLive = false;
+        if (liveTimer) clearTimeout(liveTimer);
+        liveTimer = null;
+    }
+
+    function pumpDigicamFrame() {
+        if (!liveOk || isCapturing || isFetchingLive) return;
+        isFetchingLive = true;
+
+        fetch(cfg.digicam.liveview_url + '?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' })
+            .then(function(res) {
+                if (!res.ok) throw new Error('Liveview ' + res.status);
+                return res.blob();
+            })
+            .then(function(blob) {
+                var url = URL.createObjectURL(blob);
+                if (liveBlobUrl) URL.revokeObjectURL(liveBlobUrl);
+                liveBlobUrl = url;
+                liveImg.src = url;
+                resInfo.textContent = 'Resolusi: ' + (liveImg.naturalWidth || 640) + ' × ' + (liveImg.naturalHeight || 480);
+            })
+            .catch(function(err) {})
+            .then(function() {
+                isFetchingLive = false;
+                if (liveOk && !isCapturing) {
+                    var wait = Math.max(80, cfg.digicam.interval || 140);
+                    liveTimer = setTimeout(pumpDigicamFrame, wait);
+                }
+            });
+    }
+
+    // 6. Hentikan Kamera
+    function stopCamera() {
+        stopDigicamLivePolling();
+        if (streamTimer) clearTimeout(streamTimer);
+        streamTimer = null;
+        isSendingFrame = false;
+
+        if (selSourceType.value === 'digicam') {
+            fetch(cfg.digicam.live_stop_url, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'application/json' }
+            }).catch(function() {});
+        }
+
+        if (stream) {
+            stream.getTracks().forEach(function(t) { t.stop(); });
+            stream = null;
+        }
+        video.srcObject = null;
+        video.style.display = 'none';
+        liveImg.style.display = 'none';
+        camSourceTag.style.display = 'none';
+
+        if (liveBlobUrl) {
+            URL.revokeObjectURL(liveBlobUrl);
+            liveBlobUrl = null;
+        }
+
+        placeholder.style.display = 'flex';
+        onAir.style.display = 'none';
+        badge.className = 'badge badge--off';
+        badge.textContent = 'SIARAN MATI';
+        btnToggle.className = 'btn btn--primary btn--sm';
+        btnToggle.textContent = '▶ Mulai Siaran Kamera';
+        isBroadcasting = false;
+        resInfo.textContent = 'Resolusi: -';
+    }
+
+    // 7. Siaran Frame ke Bilik Pengunjung
+    function scheduleNextPush(delay) {
+        if (streamTimer) clearTimeout(streamTimer);
+        if (!isBroadcasting || isCapturing) return;
+        streamTimer = setTimeout(sendLiveFrame, delay !== undefined ? delay : 180);
+    }
+
+    function startBroadcasting() {
+        startCamera()
+            .then(function() {
+                isBroadcasting = true;
+                onAir.style.display = 'flex';
+                badge.className = 'badge badge--green';
+                badge.textContent = 'LIVE ON-AIR';
+                btnToggle.className = 'btn btn--danger btn--sm';
+                btnToggle.textContent = '⏹ Hentikan Siaran';
+
+                // Siarkan frame ke server secara teratur menggunakan timeout ber-guard
+                scheduleNextPush(100);
+            })
+            .catch(function(err) {
+                alert('Gagal menyalakan siaran kamera: ' + (err.message || err.name));
+                stopCamera();
+            });
+    }
+
+    function stopBroadcasting() {
+        stopCamera();
+    }
+
+    btnToggle.addEventListener('click', function() {
+        if (isBroadcasting) {
+            stopBroadcasting();
+        } else {
+            startBroadcasting();
+        }
+    });
+
+    // 8. Kirim Frame Live View ke /camera-hub/push
+    function sendLiveFrame() {
+        if (!isBroadcasting || isCapturing || isSendingFrame) return;
+
+        var source = selSourceType.value;
+        var srcW = 0, srcH = 0;
+
+        if (source === 'digicam') {
+            srcW = liveImg.naturalWidth || 640;
+            srcH = liveImg.naturalHeight || 480;
+            if (!liveImg.complete || !srcW) {
+                scheduleNextPush(120);
+                return;
+            }
+        } else {
+            srcW = video.videoWidth;
+            srcH = video.videoHeight;
+            if (!srcW) {
+                scheduleNextPush(120);
+                return;
+            }
+        }
+
+        // Skala kecil ringan untuk transmisi live view ke kiosk (~480px)
+        var previewW = 480;
+        var previewH = Math.round(previewW * (srcH / srcW));
+        canvas.width = previewW;
+        canvas.height = previewH;
+
+        ctx.save();
+        if (chkMirror.checked) {
+            ctx.translate(previewW, 0);
+            ctx.scale(-1, 1);
+        }
+        if (source === 'digicam') {
+            ctx.drawImage(liveImg, 0, 0, previewW, previewH);
+        } else {
+            ctx.drawImage(video, 0, 0, previewW, previewH);
+        }
+        ctx.restore();
+
+        var frameDataUrl = canvas.toDataURL('image/jpeg', 0.55);
+        isSendingFrame = true;
+
+        fetch("{{ route('camera.hub.push') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': cfg.csrf
+            },
+            body: JSON.stringify({ frame: frameDataUrl })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            frameCount++;
+            streamStats.textContent = 'Frame terkirim: ' + frameCount;
+
+            // Jika ada sinyal trigger jepret dari bilik pengunjung
+            if (data && data.trigger) {
+                handleKioskTriggerCapture();
+            }
+        })
+        .catch(function(err) {})
+        .then(function() {
+            isSendingFrame = false;
+            scheduleNextPush(180);
+        });
+    }
+
+    // 9. Tangani Sinyal Trigger dari Bilik User
+    function handleKioskTriggerCapture() {
+        if (isCapturing) return;
+        isCapturing = true;
+        captureWait.style.display = 'flex';
+        triggerVisualFlash();
+
+        var source = selSourceType.value;
+
+        if (source === 'digicam') {
+            stopDigicamLivePolling();
+
+            // Potret dengan Canon DSLR resolusi tinggi via digiCamControl
+            fetch(cfg.digicam.capture_url, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'image/jpeg, application/json' }
+            })
+            .then(function(res) {
+                if (!res.ok) throw new Error('Pemotretan Canon gagal (HTTP ' + res.status + ')');
+                return res.blob();
+            })
+            .then(function(blob) {
+                return blobToDataUrl(blob);
+            })
+            .then(function(fullResDataUrl) {
+                return pushSnapshotToServer(fullResDataUrl);
+            })
+            .catch(function(err) {
+                console.error('Trigger capture Canon error:', err);
+            })
+            .then(function() {
+                // Selesai: nyalakan kembali live view
+                fetch(cfg.digicam.live_start_url, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': cfg.csrf }
+                }).catch(function() {});
+
+                captureWait.style.display = 'none';
+                isCapturing = false;
+                startDigicamLivePolling();
+            });
+        } else {
+            // Potret dengan Webcam
+            if (video.videoWidth) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.save();
+                if (chkMirror.checked) {
+                    ctx.translate(video.videoWidth, 0);
+                    ctx.scale(-1, 1);
+                }
+                ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+                ctx.restore();
+
+                var fullResDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+                pushSnapshotToServer(fullResDataUrl)
+                    .then(function() {
+                        captureWait.style.display = 'none';
+                        isCapturing = false;
+                    });
+            } else {
+                captureWait.style.display = 'none';
+                isCapturing = false;
+            }
+        }
+    }
+
+    function pushSnapshotToServer(dataUrl) {
+        return fetch("{{ route('camera.hub.snapshot.push') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': cfg.csrf
+            },
+            body: JSON.stringify({ snapshot: dataUrl })
+        });
+    }
+
+    function blobToDataUrl(blob) {
+        return new Promise(function(resolve, reject) {
+            var reader = new FileReader();
+            reader.onloadend = function() { resolve(reader.result); };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    // 10. Test Jepret Langsung dari Dashboard Admin
+    btnTestCapture.addEventListener('click', function() {
+        btnTestCapture.disabled = true;
+        btnTestCapture.textContent = '⏳ Memotret…';
+        captureWait.style.display = 'flex';
+        triggerVisualFlash();
+
+        var source = selSourceType.value;
+
+        if (source === 'digicam') {
+            stopDigicamLivePolling();
+
+            fetch(cfg.digicam.capture_url, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'image/jpeg, application/json' }
+            })
+            .then(function(res) {
+                if (!res.ok) {
+                    return res.json().then(function(d) {
+                        throw new Error(d.message || 'Pemotretan gagal.');
+                    });
+                }
+                return res.blob();
+            })
+            .then(function(blob) {
+                showTestPreview(blob, 'Kamera Canon DSLR (digiCamControl)');
+            })
+            .catch(function(err) {
+                alert('Test Jepret Gagal: ' + (err.message || err));
+            })
+            .then(function() {
+                fetch(cfg.digicam.live_start_url, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': cfg.csrf }
+                }).catch(function() {});
+
+                captureWait.style.display = 'none';
+                btnTestCapture.disabled = false;
+                btnTestCapture.textContent = '📸 Test Jepret Canon';
+                if (isBroadcasting) startDigicamLivePolling();
+            });
+        } else {
+            // Test jepret webcam
+            if (!video.videoWidth) {
+                alert('Nyalakan siaran kamera webcam terlebih dahulu untuk test jepret.');
+                captureWait.style.display = 'none';
+                btnTestCapture.disabled = false;
+                btnTestCapture.textContent = '📸 Test Jepret';
+                return;
+            }
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.save();
+            if (chkMirror.checked) {
+                ctx.translate(video.videoWidth, 0);
+                ctx.scale(-1, 1);
+            }
+            ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+            ctx.restore();
+
+            canvas.toBlob(function(blob) {
+                captureWait.style.display = 'none';
+                btnTestCapture.disabled = false;
+                btnTestCapture.textContent = '📸 Test Jepret';
+                showTestPreview(blob, 'Webcam Browser');
+            }, 'image/jpeg', 0.95);
+        }
+    });
+
+    function showTestPreview(blob, deviceName) {
+        var url = URL.createObjectURL(blob);
+        imgTestPreview.src = url;
+        var sizeKb = Math.round(blob.size / 1024);
+        testPreviewInfo.textContent = 'Sumber: ' + deviceName + ' • Ukuran file: ' + sizeKb + ' KB';
+        modalPreview.style.display = 'flex';
+    }
+
+    function closeModal() {
+        modalPreview.style.display = 'none';
+        if (imgTestPreview.src) {
+            URL.revokeObjectURL(imgTestPreview.src);
+            imgTestPreview.src = '';
+        }
+    }
+    btnCloseModal.addEventListener('click', closeModal);
+    btnCloseModal2.addEventListener('click', closeModal);
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+})();
+</script>
+@endpush

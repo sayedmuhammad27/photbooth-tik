@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,9 +23,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Paksa link CSS/JS menggunakan HTTPS jika URL menggunakan HTTPS (seperti Ngrok)
-        if (str_contains(config('app.url'), 'https')) {
+        // Paksa link CSS/JS menggunakan HTTPS di production atau bila APP_URL memakai HTTPS
+        if (app()->environment('production') || str_contains((string) config('app.url'), 'https')) {
             URL::forceScheme('https');
         }
+
+        // Pembatas laju bernama. (throttle:N,1 tanpa nama memakai satu penghitung bersama per IP,
+        // sehingga live view yang sering dipanggil akan ikut menghabiskan jatah rute lain.)
+        RateLimiter::for('booth-process', fn (Request $r) => Limit::perMinute(30)->by('process|' . $r->ip()));
+        RateLimiter::for('login', fn (Request $r) => Limit::perMinute(8)->by('login|' . $r->ip()));
+        RateLimiter::for('digicam-live', fn (Request $r) => Limit::perMinute(3000)->by('dlive|' . $r->ip()));
+        RateLimiter::for('digicam-capture', fn (Request $r) => Limit::perMinute(20)->by('dcap|' . $r->ip()));
     }
 }

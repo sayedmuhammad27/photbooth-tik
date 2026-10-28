@@ -17,6 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Di belakang tunnel (ngrok/cloudflared) skema HTTPS datang lewat header X-Forwarded-*.
         $middleware->trustProxies(at: '*');
+
+        // Kecualikan endpoint streaming kamera dari validasi CSRF agar tidak membebani CPU
+        $middleware->validateCsrfTokens(except: [
+            'camera-hub/push',
+            'camera-hub/snapshot/push',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Sesi/CSRF kedaluwarsa (HTTP 419): tampilkan pesan ramah, bukan halaman error mentah.

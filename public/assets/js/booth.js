@@ -20,14 +20,43 @@
   var selCam = $('cam-select'), camGroup = $('cam-group'), hint = $('hint'), status = $('status');
   var progress = $('progress'), progressLabel = $('progress-label'), thumbs = $('thumbs'), upIn = $('upload-input');
   var loader = $('loader'), loaderText = $('loader-text');
+  var liveImg = $('cam-live'), srcGroup = $('source-group'), srcSelect = $('source-select'), waitEl = $('vf-wait'), msgSwitch = $('vf-msg-switch');
+  var vfPrompt = $('vf-prompt'),
+      vfPromptThumb = $('vf-prompt-thumb'),
+      vfPromptTitle = $('vf-prompt-title'),
+      vfPromptSub = $('vf-prompt-sub'),
+      btnVfRetake = $('btn-vf-retake'),
+      btnVfNext = $('btn-vf-next'),
+      btnVfRetakeSession = $('btn-vf-retake-session'),
+      btnVfFinish = $('btn-vf-finish'),
+      btnRetake = $('btn-retake');
+  var dcc = cfg.digicam || null;                  // null bila DIGICAM_ENABLED=false
+  var hub = cfg.camera_hub || null;               // Kamera perangkat admin (relay)
   var strip = PB.strip.build($('strip-preview'), tpl);
   var canvas = document.createElement('canvas');
 
   var stream = null, deviceId = null, mirrored = true, countdown = cfg.countdown || 3;
+  // Sumber kamera: 'webcam' (getUserMedia), 'hub' (kamera admin), atau 'digicam' (Canon via digiCamControl).
+  var source = 'webcam';
+  var live = { ok: false, on: false, paused: false, busy: false, fails: 0, timer: null, w: 0, h: 0 };
+  var savedSrc = null;
+  try { savedSrc = localStorage.getItem('pb_source'); } catch (e) {}
+  if (savedSrc === 'webcam' || savedSrc === 'digicam' || savedSrc === 'hub') {
+    source = savedSrc;
+  } else if (dcc) {
+    source = dcc.default_source === 'webcam' ? 'webcam' : 'digicam';
+  }
   var shots = new Array(TOTAL).fill(null);        // { blob, url }
+  var advanceMode = cfg.advance_mode || 'manual'; // 'manual' | 'auto'
+  try {
+    var savedAdv = localStorage.getItem('pb_advance_mode');
+    if (savedAdv === 'manual' || savedAdv === 'auto') advanceMode = savedAdv;
+  } catch (e) {}
   var mode = 'init';                              // init | ready | running | uploading | error
   var ctl = null;                                 // AbortController untuk sesi berjalan
   var currentTarget = null, armedReset = false, armTimer = null;
+  var lastCapturedIdx = null;
+  var armedVfReset = false, armVfTimer = null;
 
   /* ---------- Util ---------- */
   function slotAspect(i) {
@@ -52,6 +81,8 @@
     msgTitle.textContent = title;
     msgText.textContent = text;
     msgRetry.textContent = retryLabel || 'Coba lagi';
+    msgSwitch.hidden = !dcc;
+    msgSwitch.textContent = source === 'digicam' ? 'Pakai webcam' : 'Pakai Canon (digiCamControl)';
   }
   function hideMsg() { msg.hidden = true; }
 
@@ -81,6 +112,7 @@
 
   /* ---------- Kamera: webcam bawaan laptop ---------- */
   function stopStream() {
+    stopLive();
     if (stream) {
       stream.getTracks().forEach(function (t) {
         t.onended = null;
@@ -107,6 +139,15 @@
     hideMsg();
     mode = 'init';
     render();
+    applySourceUI();
+
+    if (source === 'hub') {
+      return startHub();
+    }
+
+    if (source === 'digicam') {
+      return startDigicam();
+    }
 
     if (!navigator.mediaDevices ||
         !navigator.mediaDevices.getUserMedia) {
@@ -306,7 +347,8 @@
   /* Panduan crop: area yang benar-benar masuk ke slot (sesuai rasio slot template). */
   function updateGuide(idx) {
     var a = slotAspect(idx === null ? 0 : idx);
-    var va = (video.videoWidth && video.videoHeight) ? video.videoWidth / video.videoHeight : 16 / 9;
+    var sz = srcSize();
+    var va = (sz.w && sz.h) ? sz.w / sz.h : 16 / 9;
     var w = a >= va ? 100 : (a / va * 100);
     var h = a >= va ? (va / a * 100) : 100;
     [guide, gridEl].forEach(function (el) {
@@ -315,6 +357,283 @@
     });
   }
   function nextTarget() { var e = emptyIdx(); return e.length ? e[0] : 0; }
+
+
+  /* ---------- Kamera: Perangkat Admin & Canon lewat digiCamControl ---------- */
+  function hasSource() { return (source === 'digicam' || source === 'hub') ? live.ok : !!stream; }
+  function srcSize() { return (source === 'digicam' || source === 'hub') ? { w: live.w, h: live.h } : { w: video.videoWidth, h: video.videoHeight }; }
+
+  function applySourceUI() {
+    var isLive = (source === 'digicam' || source === 'hub');
+    vf.classList.toggle('is-digicam', isLive);
+    srcGroup.hidden = !(dcc || hub);
+    if (srcSelect && srcSelect.value !== source) srcSelect.value = source;
+    if (isLive) camGroup.hidden = true;
+  }
+
+  function setSource(next) {
+    if (next === source || mode === 'running' || mode === 'uploading') {
+      if (srcSelect) srcSelect.value = source;
+      return;
+    }
+    source = next;
+    try { localStorage.setItem('pb_source', next); } catch (e) {}
+    startCamera();
+  }
+
+  function postJson(url) {
+    return fetch(url, {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (d) {
+        if (!res.ok) throw new Error((d && d.message) || ('HTTP ' + res.status));
+        return d;
+      });
+    });
+  }
+
+  function setLiveBlob(blob) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(blob);
+      var prev = liveImg.dataset.url;
+      liveImg.onload = function () {
+        if (prev) URL.revokeObjectURL(prev);
+        liveImg.dataset.url = url;
+        var w = liveImg.naturalWidth, h = liveImg.naturalHeight;
+        if (w && h && (w !== live.w || h !== live.h)) {
+          live.w = w; live.h = h;
+          vf.style.setProperty('--vf-ar', (w / h).toFixed(4));
+          updateGuide(currentTarget === null ? nextTarget() : currentTarget);
+        }
+        resolve();
+      };
+      liveImg.onerror = function () { URL.revokeObjectURL(url); reject(new Error('frame-rusak')); };
+      liveImg.src = url;
+    });
+  }
+
+  function fetchLiveFrame() {
+    var url = '';
+    if (source === 'hub' && hub) {
+      url = hub.liveview_url + '?t=' + Date.now();
+    } else if (source === 'digicam' && dcc) {
+      url = dcc.liveview_url + '?t=' + Date.now();
+    }
+    if (!url) return Promise.reject(new Error('no-liveview-url'));
+
+    return fetch(url, { credentials: 'same-origin', cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('liveview ' + r.status); return r.blob(); })
+      .then(setLiveBlob);
+  }
+
+  // Live view dibuka butuh waktu; coba beberapa kali sebelum menyerah.
+  function waitFirstFrame(tries) {
+    return fetchLiveFrame().catch(function (err) {
+      if (tries <= 1) {
+        var msg = source === 'hub'
+          ? 'Live view kamera admin belum tampil. Pastikan admin telah memulai siaran di menu "Kamera Bilik".'
+          : 'Live view belum tampil. Pastikan kamera Canon menyala dan Live View bisa dibuka di digiCamControl.';
+        throw new Error(msg);
+      }
+      return sleep(500).then(function () { return waitFirstFrame(tries - 1); });
+    });
+  }
+
+  function startHub() {
+    live.ok = false; live.w = 0; live.h = 0;
+    applySourceUI();
+    mirrored = false;
+    vf.classList.remove('is-mirrored');
+    btnMirror.setAttribute('aria-pressed', 'false');
+
+    return fetch(hub.status_url, { credentials: 'same-origin', cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (statusData) {
+        if (!statusData.hub_active) {
+          throw new Error('Kamera laptop admin belum aktif. Buka menu "Kamera Bilik" di dashboard laptop admin dan klik "Mulai Siaran Kamera".');
+        }
+        return waitFirstFrame(10);
+      })
+      .then(function () {
+        live.ok = true;
+        mode = 'ready';
+        updateGuide(nextTarget());
+        render();
+        startLive();
+      })
+      .catch(function (err) {
+        console.error('Gagal menyambung ke Kamera Admin:', err);
+        stopLive();
+        live.ok = false;
+        mode = 'error';
+        showMsg('Kamera Admin Belum Siap', err.message || 'Pastikan admin telah membuka menu Kamera Bilik di dashboard admin dan menyalakan siaran kamera.', 'error');
+        render();
+      });
+  }
+
+  function startLive() {
+    if (live.on) return;
+    live.on = true; live.paused = false; live.fails = 0;
+    pumpLive();
+  }
+  function stopLive() {
+    live.on = false; live.busy = false;
+    clearTimeout(live.timer); live.timer = null;
+  }
+  function pauseLive() { live.paused = true; }
+  function resumeLive() {
+    live.paused = false; live.fails = 0;
+    if (live.on && !live.busy) pumpLive();
+  }
+  function pumpLive() {
+    if (!live.on || live.paused || live.busy) return;
+    live.busy = true;
+    var t0 = Date.now();
+    fetchLiveFrame()
+      .then(function () { live.fails = 0; })
+      .catch(function () { live.fails++; })
+      .then(function () {
+        live.busy = false;
+        if (!live.on || live.paused) return;
+        if (live.fails >= 10) { live.on = false; onLiveLost(); return; }
+        var interval = (source === 'hub' && hub && hub.interval) ? hub.interval : ((dcc && dcc.interval) ? dcc.interval : 150);
+        var wait = live.fails ? 500 : Math.max(0, interval - (Date.now() - t0));
+        live.timer = setTimeout(pumpLive, wait);
+      });
+  }
+  function onLiveLost() {
+    if (ctl) ctl.abort();
+    live.ok = false;
+    if (mode !== 'uploading') {
+      mode = 'error';
+      showMsg('Live view terputus', 'Gambar dari digiCamControl berhenti. Periksa kabel USB dan daya kamera, pastikan digiCamControl masih berjalan, lalu coba lagi.', 'error');
+      render();
+    }
+  }
+
+  function showDigicamError(err) {
+    var text = (err && err.dcc && err.message) ? err.message
+      : (err && err.userMessage) ? err.userMessage
+      : 'Pastikan digiCamControl berjalan, web server-nya aktif (File → Settings → Webserver, port 5513), kamera Canon menyala, dan EOS Utility / EOS Webcam Utility sudah ditutup.';
+    showMsg('digiCamControl belum siap', text, 'error');
+  }
+
+  function startDigicam() {
+    live.ok = false; live.w = 0; live.h = 0;
+    applySourceUI();
+    mirrored = true;
+    vf.classList.add('is-mirrored');
+    btnMirror.setAttribute('aria-pressed', 'true');
+
+    return fetch(dcc.status_url, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } })
+      .then(function (r) {
+        return r.json().catch(function () { return null; }).then(function (j) {
+          if (r.status === 403 || r.status === 404) {
+            var e = new Error('Fitur kamera Canon tidak aktif atau sesi halaman habis. Muat ulang halaman ini.');
+            e.userMessage = e.message; throw e;
+          }
+          if (!r.ok || !j) throw new Error('Status digiCamControl tidak terbaca (HTTP ' + r.status + ').');
+          if (!j.ok) { var e2 = new Error(j.message || 'digiCamControl tidak terjangkau.'); e2.dcc = true; throw e2; }
+          return j;
+        });
+      })
+      .then(function () { return postJson(dcc.live_start_url); })
+      .then(function () { return waitFirstFrame(14); })
+      .then(function () {
+        live.ok = true;
+        mode = 'ready';
+        updateGuide(nextTarget());
+        render();
+        startLive();
+      })
+      .catch(function (err) {
+        console.error('Gagal menyambung ke digiCamControl:', err);
+        stopLive();
+        live.ok = false;
+        mode = 'error';
+        showDigicamError(err);
+        render();
+      });
+  }
+
+  function captureRequest(retried) {
+    var abort = new AbortController();
+    var to = setTimeout(function () { abort.abort(); }, 60000);
+    return fetch(dcc.capture_url, {
+      method: 'POST', credentials: 'same-origin', signal: abort.signal,
+      headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'image/jpeg, application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(function (res) {
+      clearTimeout(to);
+      if (res.status === 419 && !retried) return refreshToken().then(function () { return captureRequest(true); });
+      if (res.ok) return res.blob();
+      return res.json().catch(function () { return null; }).then(function (d) {
+        var e = new Error((d && d.message) || ('Kamera gagal memotret (HTTP ' + res.status + ').'));
+        e.userMessage = e.message;
+        throw e;
+      });
+    }, function (err) {
+      clearTimeout(to);
+      var e = new Error('Koneksi ke server terputus saat memotret.');
+      e.userMessage = e.message;
+      throw e;
+    });
+  }
+
+  // Potret dengan kamera Canon → foto resolusi penuh → dipotong sesuai rasio slot di browser.
+  function digicamCapture(idx) {
+    pauseLive();
+    waitEl.hidden = false;
+    var finish = function () {
+      waitEl.hidden = true;
+      // digiCamControl bisa menutup live view saat memotret: nyalakan lagi lalu lanjutkan polling.
+      postJson(dcc.live_start_url).catch(function () {}).then(resumeLive);
+    };
+    return captureRequest(false)
+      .then(function (blob) { return createImageBitmap(blob); })
+      .then(function (bmp) {
+        return cropToBlob(bmp, bmp.width, bmp.height, idx, mirrored).then(function (b) {
+          if (bmp.close) bmp.close();
+          return b;
+        });
+      })
+      .then(function (b) { finish(); return b; }, function (err) { finish(); throw err; });
+  }
+
+  function pollHubSnapshot(cid, retries) {
+    return fetch(hub.snapshot_url + '?capture_id=' + encodeURIComponent(cid) + '&t=' + Date.now(), {
+      credentials: 'same-origin', cache: 'no-store'
+    }).then(function (res) {
+      if (res.ok) return res.blob();
+      if (retries <= 1) throw new Error('Kamera admin tidak merespons foto.');
+      return sleep(250).then(function () { return pollHubSnapshot(cid, retries - 1); });
+    });
+  }
+
+  function hubCapture(idx) {
+    pauseLive();
+    waitEl.hidden = false;
+    var finish = function () {
+      waitEl.hidden = true;
+      resumeLive();
+    };
+
+    return postJson(hub.trigger_url)
+      .then(function (trigRes) {
+        var cid = trigRes.capture_id;
+        return pollHubSnapshot(cid, 24);
+      })
+      .then(function (blob) {
+        return createImageBitmap(blob);
+      })
+      .then(function (bmp) {
+        return cropToBlob(bmp, bmp.width, bmp.height, idx, false).then(function (b) {
+          if (bmp.close) bmp.close();
+          return b;
+        });
+      })
+      .then(function (b) { finish(); return b; }, function (err) { finish(); throw err; });
+  }
 
   /* ---------- Ambil gambar ---------- */
   function cropToBlob(source, sw0, sh0, idx, flip) {
@@ -331,13 +650,18 @@
     ctx.restore();
     return new Promise(function (res) { canvas.toBlob(res, 'image/jpeg', 0.92); });
   }
-  function grabFrame(idx) { return cropToBlob(video, video.videoWidth, video.videoHeight, idx, mirrored); }
+  function grabFrame(idx) {
+    if (source === 'hub') return hubCapture(idx);
+    if (source === 'digicam') return digicamCapture(idx);
+    return cropToBlob(video, video.videoWidth, video.videoHeight, idx, mirrored);
+  }
 
   function putShot(idx, blob) {
     if (shots[idx]) URL.revokeObjectURL(shots[idx].url);
     var url = URL.createObjectURL(blob);
     shots[idx] = { blob: blob, url: url };
     strip.setPhoto(idx, url, true);
+    lastCapturedIdx = idx;
     say('Foto ' + (idx + 1) + ' tersimpan.');
   }
 
@@ -374,22 +698,31 @@
   }
 
   function runSequence(indices) {
-    if (mode !== 'ready' || !stream || !indices.length) return;
+    if (mode !== 'ready' || !hasSource() || !indices.length) return;
+    if (advanceMode === 'manual' && indices.length > 1) {
+      indices = [indices[0]];
+    }
     ctl = new AbortController();
     var signal = ctl.signal;
     mode = 'running';
+    if (vfPrompt) vfPrompt.hidden = true;
     render();
     var chain = Promise.resolve();
     indices.forEach(function (idx, k) {
       chain = chain.then(function () { return captureOne(idx, signal); });
-      if (k < indices.length - 1) chain = chain.then(function () { setTarget(null); return sleep(1400, signal); });
+      if (k < indices.length - 1) {
+        chain = chain.then(function () {
+          setTarget(null);
+          return sleep(2000, signal);
+        });
+      }
     });
     chain.catch(function (err) {
-      if (!err || err.name !== 'AbortError') { console.error(err); PB.toast('Foto gagal diambil. Coba lagi.', 'error'); }
+      if (!err || err.name !== 'AbortError') { console.error(err); PB.toast((err && err.userMessage) || 'Foto gagal diambil. Coba lagi.', 'error', 7000); }
     }).then(function () {
       ctl = null;
       hideTick();
-      mode = stream ? 'ready' : 'error';
+      mode = hasSource() ? 'ready' : 'error';
       setTarget(null);
       render();
       if (allFilled()) say('Semua foto siap. Tinjau hasilnya lalu simpan.');
@@ -401,7 +734,9 @@
     if (mode === 'running') { if (ctl) ctl.abort(); return; }
     if (mode !== 'ready') return;
     if (allFilled()) { upload(); return; }
-    runSequence(emptyIdx());
+    var empty = emptyIdx();
+    if (!empty.length) return;
+    runSequence(advanceMode === 'manual' ? [empty[0]] : empty);
   }
   function onReset() {
     if (mode !== 'ready' || !filled()) return;
@@ -415,7 +750,9 @@
     disarm();
     shots.forEach(function (s, i) { if (s) { URL.revokeObjectURL(s.url); strip.clearPhoto(i); } });
     shots = new Array(TOTAL).fill(null);
+    lastCapturedIdx = null;
     setTarget(null);
+    if (vfPrompt) vfPrompt.hidden = true;
     render();
     PB.toast('Semua foto dihapus. Mulai lagi dari awal.', 'info');
   }
@@ -431,19 +768,109 @@
   function render() {
     var n = filled();
     var busy = mode === 'running' || mode === 'uploading';
-    // Tombol utama
+    // Tombol utama & tombol ulangi
     btnMain.classList.remove('btn--primary', 'btn--danger', 'btn--success');
-    if (mode === 'running') { btnMain.textContent = 'Batalkan'; btnMain.classList.add('btn--danger'); btnMain.disabled = false; }
-    else if (allFilled()) { btnMain.textContent = 'Simpan & lihat hasil'; btnMain.classList.add('btn--success'); btnMain.disabled = mode !== 'ready'; }
-    else { btnMain.textContent = n ? 'Lanjutkan' : 'Mulai foto'; btnMain.classList.add('btn--primary'); btnMain.disabled = mode !== 'ready'; }
+    if (mode === 'running') {
+      btnMain.textContent = 'Batalkan';
+      btnMain.classList.add('btn--danger');
+      btnMain.disabled = false;
+      if (btnRetake) btnRetake.hidden = true;
+    } else if (allFilled()) {
+      btnMain.textContent = 'Simpan & lihat hasil';
+      btnMain.classList.add('btn--success');
+      btnMain.disabled = mode !== 'ready';
+      if (btnRetake) {
+        btnRetake.hidden = false;
+        btnRetake.textContent = '🔄 Ulangi Foto Terakhir';
+        btnRetake.disabled = mode !== 'ready';
+      }
+    } else if (n > 0) {
+      var nextNum = nextTarget() + 1;
+      btnMain.textContent = 'Lanjut ke Foto ' + nextNum;
+      btnMain.classList.add('btn--primary');
+      btnMain.disabled = mode !== 'ready';
+      if (btnRetake) {
+        btnRetake.hidden = lastCapturedIdx === null || !shots[lastCapturedIdx];
+        if (lastCapturedIdx !== null) {
+          btnRetake.textContent = '🔄 Ulangi Foto ' + (lastCapturedIdx + 1);
+        }
+        btnRetake.disabled = mode !== 'ready';
+      }
+    } else {
+      btnMain.textContent = 'Mulai foto';
+      btnMain.classList.add('btn--primary');
+      btnMain.disabled = mode !== 'ready';
+      if (btnRetake) btnRetake.hidden = true;
+    }
     btnReset.hidden = !n;
     btnReset.disabled = mode !== 'ready';
     btnMain.setAttribute('aria-busy', String(mode === 'init'));
     // Kontrol saat sibuk
     Array.prototype.forEach.call(document.querySelectorAll('[data-secs]'), function (b) {
-      b.disabled = busy; b.setAttribute('aria-pressed', String(Number(b.dataset.secs) === countdown));
+      b.disabled = busy;
+      b.setAttribute('aria-pressed', String(Number(b.dataset.secs) === countdown));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-advance]'), function (b) {
+      b.disabled = busy;
+      b.setAttribute('aria-pressed', String(b.dataset.advance === advanceMode));
     });
     selCam.disabled = busy;
+    srcSelect.disabled = busy;
+
+    // Viewfinder prompt (interaktif setelah jepret foto)
+    if (vfPrompt) {
+      if (mode === 'ready' && n > 0) {
+        vfPrompt.hidden = false;
+        if (allFilled()) {
+          // Semua foto selesai diambil (Review Sesi)
+          if (vfPromptThumb && lastCapturedIdx !== null && shots[lastCapturedIdx]) {
+            vfPromptThumb.src = shots[lastCapturedIdx].url;
+            vfPromptThumb.hidden = false;
+          } else if (vfPromptThumb) {
+            vfPromptThumb.hidden = true;
+          }
+          if (vfPromptTitle) vfPromptTitle.textContent = 'Semua Foto Selesai (' + TOTAL + '/' + TOTAL + ')';
+          if (vfPromptSub) vfPromptSub.textContent = 'Puas dengan hasilnya? Ulangi bila belum puas.';
+          if (btnVfRetake) btnVfRetake.hidden = true;
+          if (btnVfNext) btnVfNext.hidden = true;
+          if (btnVfRetakeSession) {
+            btnVfRetakeSession.hidden = false;
+            btnVfRetakeSession.textContent = '🔄 Ulangi Sesi';
+          }
+          if (btnVfFinish) {
+            btnVfFinish.hidden = false;
+            btnVfFinish.textContent = '✔ Simpan & Selesai';
+          }
+        } else if (advanceMode === 'manual') {
+          // Jeda manual setelah mengambil satu foto
+          var nextSlotNum = nextTarget() + 1;
+          var curNum = (lastCapturedIdx !== null) ? (lastCapturedIdx + 1) : n;
+          if (vfPromptThumb && lastCapturedIdx !== null && shots[lastCapturedIdx]) {
+            vfPromptThumb.src = shots[lastCapturedIdx].url;
+            vfPromptThumb.hidden = false;
+          } else if (vfPromptThumb) {
+            vfPromptThumb.hidden = true;
+          }
+          if (vfPromptTitle) vfPromptTitle.textContent = 'Foto ' + curNum + ' Selesai!';
+          if (vfPromptSub) vfPromptSub.textContent = 'Puas dengan pose ini? Ulangi bila belum puas.';
+          if (btnVfRetake) {
+            btnVfRetake.hidden = false;
+            btnVfRetake.textContent = '🔄 Ulangi Foto ' + curNum;
+          }
+          if (btnVfNext) {
+            btnVfNext.hidden = false;
+            btnVfNext.textContent = '▶ Lanjut ke Foto ' + nextSlotNum;
+          }
+          if (btnVfRetakeSession) btnVfRetakeSession.hidden = true;
+          if (btnVfFinish) btnVfFinish.hidden = true;
+        } else {
+          vfPrompt.hidden = true;
+        }
+      } else {
+        vfPrompt.hidden = true;
+      }
+    }
+
     // Progres
     progress.innerHTML = '';
     for (var i = 0; i < TOTAL; i++) {
@@ -453,12 +880,24 @@
     }
     progressLabel.textContent = 'Foto ' + n + ' dari ' + TOTAL;
     // Petunjuk
-    if (mode === 'init') hint.textContent = 'Membuka kamera… izinkan akses kamera jika browser meminta.';
-    else if (mode === 'error') hint.textContent = 'Kamera belum siap. Coba lagi, atau unggah foto manual.';
-    else if (mode === 'running') hint.textContent = 'Bersiap, lihat ke kamera. Tekan Esc untuk membatalkan.';
-    else if (allFilled()) hint.textContent = 'Semua foto siap. Ketuk foto di panel Progres untuk mengulang satu pose, atau simpan hasilnya.';
-    else if (n) hint.textContent = 'Klik “Lanjutkan” untuk mengambil sisa foto. Ketuk foto di panel Progres untuk mengulang satu pose.';
-    else hint.textContent = 'Tekan Spasi atau tombol Mulai foto. Foto diambil otomatis dengan hitung mundur ' + countdown + ' detik.';
+    if (mode === 'init') {
+      hint.textContent = source === 'digicam' ? 'Menghubungkan ke kamera Canon lewat digiCamControl…' : 'Membuka kamera… izinkan akses kamera jika browser meminta.';
+    } else if (mode === 'error') {
+      hint.textContent = 'Kamera belum siap. Coba lagi, atau unggah foto manual.';
+    } else if (mode === 'running') {
+      hint.textContent = source === 'digicam' ? 'Bersiap, lihat ke kamera. Setelah hitung mundur, tahan pose sampai kamera selesai memotret.' : 'Bersiap, lihat ke kamera. Tekan Esc untuk membatalkan.';
+    } else if (allFilled()) {
+      hint.textContent = 'Semua foto siap! Jika belum puas, klik “Ulangi Sesi” atau ketuk foto di panel samping untuk mengulang.';
+    } else if (n > 0) {
+      var targetNum = nextTarget() + 1;
+      if (advanceMode === 'manual') {
+        hint.textContent = 'Foto ' + n + ' tersimpan! Puas dengan hasilnya? Klik “Lanjut ke Foto ' + targetNum + '” atau klik “Ulangi Foto” jika belum puas.';
+      } else {
+        hint.textContent = 'Klik “Lanjut ke Foto ' + targetNum + '” untuk melanjutkan pemotretan otomatis.';
+      }
+    } else {
+      hint.textContent = 'Tekan Spasi atau tombol Mulai foto. Foto diambil dengan hitung mundur ' + countdown + ' detik (' + (advanceMode === 'manual' ? 'Mode manual per foto' : 'Lanjut otomatis') + ').';
+    }
     renderThumbs();
   }
 
@@ -561,7 +1000,7 @@
     }).catch(function (r) {
       console.error('Upload gagal:', r);
       loader.hidden = true;
-      mode = stream ? 'ready' : 'error';
+      mode = hasSource() ? 'ready' : 'error';
       render();
       PB.toast(failMessage(r && r.res ? r : null), 'error', 8000);
     });
@@ -569,8 +1008,45 @@
 
   /* ---------- Event ---------- */
   btnMain.addEventListener('click', onMain);
+  if (btnVfNext) btnVfNext.addEventListener('click', onMain);
+  if (btnVfFinish) btnVfFinish.addEventListener('click', onMain);
+
+  function triggerRetakeLast() {
+    if (mode !== 'ready' || lastCapturedIdx === null || !shots[lastCapturedIdx]) return;
+    retake(lastCapturedIdx);
+  }
+
+  if (btnVfRetake) btnVfRetake.addEventListener('click', triggerRetakeLast);
+  if (btnRetake) btnRetake.addEventListener('click', triggerRetakeLast);
+
+  if (btnVfRetakeSession) {
+    btnVfRetakeSession.addEventListener('click', function () {
+      if (!armedVfReset) {
+        armedVfReset = true;
+        btnVfRetakeSession.textContent = 'Yakin? Klik lagi';
+        clearTimeout(armVfTimer);
+        armVfTimer = setTimeout(function () {
+          armedVfReset = false;
+          if (btnVfRetakeSession) btnVfRetakeSession.textContent = '🔄 Ulangi Sesi';
+        }, 3200);
+        return;
+      }
+      armedVfReset = false;
+      clearTimeout(armVfTimer);
+      shots.forEach(function (s, i) { if (s) { URL.revokeObjectURL(s.url); strip.clearPhoto(i); } });
+      shots = new Array(TOTAL).fill(null);
+      lastCapturedIdx = null;
+      setTarget(null);
+      if (vfPrompt) vfPrompt.hidden = true;
+      render();
+      PB.toast('Sesi diulang dari awal. Silakan berpose kembali.', 'info');
+    });
+  }
+
   btnReset.addEventListener('click', onReset);
   msgRetry.addEventListener('click', function () { startCamera(); });
+  msgSwitch.addEventListener('click', function () { setSource(source === 'digicam' ? 'webcam' : 'digicam'); });
+  srcSelect.addEventListener('change', function () { setSource(srcSelect.value); });
   btnMirror.addEventListener('click', function () {
     mirrored = !mirrored;
     vf.classList.toggle('is-mirrored', mirrored);
@@ -584,15 +1060,30 @@
   Array.prototype.forEach.call(document.querySelectorAll('[data-secs]'), function (b) {
     b.addEventListener('click', function () { countdown = Number(b.dataset.secs); render(); });
   });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-advance]'), function (b) {
+    b.addEventListener('click', function () {
+      advanceMode = b.dataset.advance;
+      try { localStorage.setItem('pb_advance_mode', advanceMode); } catch (e) {}
+      render();
+    });
+  });
   selCam.addEventListener('change', function () { deviceId = selCam.value; startCamera(); });
   upIn.addEventListener('change', function () { onManualFiles(upIn.files); upIn.value = ''; });
   $('msg-upload').addEventListener('change', function (e) { onManualFiles(e.target.files); e.target.value = ''; });
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && ctl) { ctl.abort(); return; }
-    if ((e.code === 'Space' || e.key === ' ') && document.activeElement === document.body && !e.repeat) {
+    var tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.repeat) return;
+
+    if (e.code === 'Space' || e.key === ' ') {
       e.preventDefault();
-      if (mode === 'ready' && !allFilled()) onMain();
+      if (mode === 'ready') onMain();
+    } else if (e.key === 'r' || e.key === 'R') {
+      if (mode === 'ready' && lastCapturedIdx !== null && shots[lastCapturedIdx]) {
+        e.preventDefault();
+        retake(lastCapturedIdx);
+      }
     }
   });
   document.addEventListener('visibilitychange', function () { if (document.hidden && ctl) ctl.abort(); });
@@ -607,7 +1098,24 @@
   setInterval(refreshToken, 10 * 60 * 1000);
 
   /* ---------- Mulai ---------- */
+  applySourceUI();
   updateGuide(0);
   render();
-  startCamera();
+
+  if (hub && !savedSrc) {
+    fetch(hub.status_url, { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.hub_active) {
+          source = 'hub';
+          applySourceUI();
+        }
+        startCamera();
+      })
+      .catch(function () {
+        startCamera();
+      });
+  } else {
+    startCamera();
+  }
 })();

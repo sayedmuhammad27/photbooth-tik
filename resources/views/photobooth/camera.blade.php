@@ -4,8 +4,14 @@
 @section('body_class', 'booth-page')
 
 @section('content')
+@if(!empty($isTestMode))
+    <div style="background:var(--pink-400);color:#0c1230;padding:6px 16px;text-align:center;font-family:var(--font-display);font-size:var(--fs-d-xs);letter-spacing:.06em">
+        🧪 MODE TEST FOTO (UJI COBA KAMERA — HASIL TIDAK DISIMPAN KE DATABASE)
+    </div>
+@endif
+
 <div class="topbar">
-    <a class="back-link" href="{{ route('photobooth.setup') }}">‹ Batalkan sesi</a>
+    <a class="back-link" href="{{ !empty($isTestMode) ? route('test.photo.setup') : route('photobooth.setup') }}">‹ Batalkan sesi</a>
     <h1 class="topbar__title">{{ $template->name }}</h1>
 </div>
 
@@ -14,15 +20,31 @@
         <div class="vf-wrap">
             <div class="vf is-mirrored" id="vf">
                 <video id="cam-video" autoplay playsinline muted></video>
+                <img class="vf__live" id="cam-live" alt="Live view kamera Canon">
                 <div class="vf__grid" id="vf-grid" aria-hidden="true"></div>
                 <div class="vf__guide" id="vf-guide" aria-hidden="true"></div>
                 <div class="vf__count" id="vf-count" aria-hidden="true"><span></span></div>
                 <div class="vf__flash" id="vf-flash" aria-hidden="true"></div>
+                <div class="vf__wait" id="vf-wait" hidden role="status"><strong>Memotret…</strong><span>Tahan pose sampai kamera selesai</span></div>
+                <div class="vf__prompt" id="vf-prompt" hidden>
+                    <img class="vf__prompt-thumb" id="vf-prompt-thumb" alt="Pratinjau foto" hidden>
+                    <div class="vf__prompt-info">
+                        <span class="vf__prompt-title" id="vf-prompt-title">Foto Selesai!</span>
+                        <span class="vf__prompt-sub" id="vf-prompt-sub">Puas dengan hasilnya?</span>
+                    </div>
+                    <div class="vf__prompt-actions">
+                        <button type="button" class="btn btn--ghost btn--sm" id="btn-vf-retake">🔄 Ulangi Foto Ini</button>
+                        <button type="button" class="btn btn--primary btn--sm" id="btn-vf-next">▶ Lanjut ke Foto 2</button>
+                        <button type="button" class="btn btn--ghost btn--sm" id="btn-vf-retake-session" hidden>🔄 Ulangi Sesi</button>
+                        <button type="button" class="btn btn--success btn--sm" id="btn-vf-finish" hidden>✔ Simpan & Selesai</button>
+                    </div>
+                </div>
                 <div class="vf__msg" id="vf-msg" hidden role="alert">
                     <h2 id="vf-msg-title"></h2>
                     <p id="vf-msg-text"></p>
                     <div class="vf__msg-actions">
                         <button type="button" class="btn btn--primary btn--sm" id="vf-msg-retry">Coba lagi</button>
+                        <button type="button" class="btn btn--ghost btn--sm" id="vf-msg-switch" hidden>Pakai webcam</button>
                         <label class="btn btn--ghost btn--sm" for="msg-upload">Unggah foto</label>
                         <input id="msg-upload" type="file" accept="image/jpeg,image/png" multiple hidden>
                     </div>
@@ -31,12 +53,27 @@
         </div>
 
         <div class="controls">
+            <div class="controls__group" id="source-group" hidden>
+                <label for="source-select">Sumber Kamera</label>
+                <select class="select" id="source-select">
+                    <option value="hub">📡 Kamera Admin (Bilik)</option>
+                    <option value="webcam">💻 Webcam Perangkat Ini</option>
+                    <option value="digicam">📷 Canon (digiCamControl)</option>
+                </select>
+            </div>
             <div class="controls__group" role="group" aria-label="Hitung mundur">
                 <span>Timer</span>
                 <div class="seg">
                     <button type="button" class="chip" data-secs="3" aria-pressed="true">3 dtk</button>
                     <button type="button" class="chip" data-secs="5" aria-pressed="false">5 dtk</button>
                     <button type="button" class="chip" data-secs="10" aria-pressed="false">10 dtk</button>
+                </div>
+            </div>
+            <div class="controls__group" role="group" aria-label="Mode Lanjut Foto">
+                <span>Lanjut</span>
+                <div class="seg" id="advance-seg">
+                    <button type="button" class="chip" data-advance="manual" aria-pressed="true" title="Tunggu tombol Lanjut atau Spasi sebelum foto berikutnya">Manual</button>
+                    <button type="button" class="chip" data-advance="auto" aria-pressed="false" title="Lanjut otomatis ke foto berikutnya">Otomatis</button>
                 </div>
             </div>
             <div class="controls__group" id="cam-group" hidden>
@@ -51,6 +88,7 @@
 
         <div class="actions">
             <button type="button" class="btn btn--primary btn--lg" id="btn-main" disabled>Mulai foto</button>
+            <button type="button" class="btn btn--ghost btn--lg" id="btn-retake" hidden>🔄 Ulangi foto ini</button>
             <button type="button" class="btn btn--ghost" id="btn-reset" hidden>Ulangi semua</button>
         </div>
         <p class="hint" id="hint"></p>

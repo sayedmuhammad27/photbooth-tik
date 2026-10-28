@@ -139,7 +139,9 @@
       '<div><dt>Ukuran cetak</dt><dd>4R (10 × 15 cm)</dd></div>' +
       '<div><dt>Status</dt><dd><span class="badge badge--green">Aktif</span></dd></div>';
     var go = document.getElementById('tmodal-go');
-    go.href = t.session_url;
+    var params = new URLSearchParams(window.location.search);
+    var q = params.get('queue');
+    go.href = q ? (t.session_url + (t.session_url.indexOf('?') === -1 ? '?queue=' : '&queue=') + encodeURIComponent(q)) : t.session_url;
     if (typeof dlg.showModal === 'function') { if (!dlg.open) dlg.showModal(); } else { dlg.setAttribute('open', ''); }
     go.focus();
   }

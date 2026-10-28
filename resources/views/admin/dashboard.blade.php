@@ -8,14 +8,25 @@
         <h1>RINGKASAN</h1>
         <p>Aktivitas photobooth Expo Wisuda Jurusan TIK 2026.</p>
     </div>
-    <a class="btn btn--primary btn--sm" href="{{ route('admin.templates.create') }}">Tambah template</a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn btn--primary btn--sm" href="{{ route('admin.queue.index') }}">🎟️ Kelola Antrean</a>
+        <a class="btn btn--ghost btn--sm" href="{{ route('admin.templates.create') }}">Tambah template</a>
+    </div>
 </div>
 
 <div class="stats">
     <div class="px-box stat reveal"><div class="stat__label">Total sesi foto</div><div class="stat__value">{{ number_format($stats['total_sesi'], 0, ',', '.') }}</div></div>
     <div class="px-box stat reveal"><div class="stat__label">Sesi hari ini</div><div class="stat__value">{{ number_format($stats['sesi_hari_ini'], 0, ',', '.') }}</div></div>
-    <div class="px-box stat reveal"><div class="stat__label">Foto dihasilkan</div><div class="stat__value">{{ number_format($stats['total_foto'], 0, ',', '.') }}</div></div>
-    <div class="px-box stat reveal"><div class="stat__label">Template aktif</div><div class="stat__value">{{ $stats['template_aktif'] }}</div></div>
+    <div class="px-box stat reveal" style="border-left:4px solid var(--lamp-500)">
+        <div class="stat__label">Antrean Menunggu</div>
+        <div class="stat__value" style="color:var(--lamp-300)">{{ $stats['antrean_menunggu'] }}</div>
+    </div>
+    <div class="px-box stat reveal" style="border-left:4px solid var(--pink-400)">
+        <div class="stat__label">Antrean Aktif</div>
+        <div class="stat__value" style="color:var(--pink-400);font-size:clamp(1.1rem, 2.5vw, 1.5rem)">
+            {{ $stats['antrean_aktif'] ? '#' . $stats['antrean_aktif']->queue_number : 'Kosong' }}
+        </div>
+    </div>
 </div>
 
 <h2 class="section-title">Sesi terakhir</h2>

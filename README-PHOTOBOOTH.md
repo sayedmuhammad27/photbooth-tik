@@ -136,3 +136,38 @@ komposisi gambar Intervention di server, QR code, login/CSRF Laravel sungguhan, 
 - Akses kamera dari perangkat lain lewat HTTP biasa tetap diblokir browser (batasan browser, bukan bug).
 - Jumlah foto maksimal 4 per template (aturan validasi admin).
 - Foto hasil tersimpan tanpa batas waktu; belum ada fitur hapus sesi/retensi otomatis.
+
+---
+
+## 9. Kamera Canon lewat digiCamControl (EDSDK)
+
+Browser tidak bisa memanggil EDSDK Canon langsung, jadi **digiCamControl** (yang berbicara dengan kamera) dipakai sebagai jembatan.
+Laravel di laptop yang sama meneruskan perintah dari halaman kamera ke web server digiCamControl, sehingga tidak ada masalah
+CORS / HTTP-HTTPS meski halaman dibuka lewat Cloudflare.
+
+### Persiapan di laptop booth
+1. Pasang digiCamControl, sambungkan EOS 1200D lewat USB, nyalakan kamera, dan pastikan kamera terdeteksi di digiCamControl.
+2. Atur kualitas gambar kamera ke **JPEG** (bukan RAW). Biarkan penamaan file bawaan (nomor urut), karena aplikasi mendeteksi foto baru dari nama file.
+3. Di digiCamControl: **File → Settings → Webserver** → aktifkan web server dan izinkan interaksi lewat web server, port **5513**, lalu restart digiCamControl.
+4. Tutup **EOS Utility, EOS Webcam Utility**, dan aplikasi lain yang memakai kamera (satu kamera hanya bisa dipakai satu aplikasi).
+5. Di `.env` isi `DIGICAM_ENABLED=true`, lalu `php artisan config:clear` dan restart server.
+6. Uji dulu tanpa aplikasi ini: setelah live view dibuka, `http://localhost:5513/liveview.jpg` harus menampilkan gambar.
+
+### Cara kerja di halaman kamera
+- Dropdown **Sumber** memilih Canon (digiCamControl) atau Webcam; pilihan diingat di browser.
+- Live view ditarik berulang dari `/digicam/liveview` (±8 gambar/detik). Saat hitung mundur selesai, server memerintahkan `?slc=capture`,
+  menunggu nama file baru (`?slc=get&param1=lastcaptured`), mengunduhnya (`/image/<nama>`), lalu browser memotongnya sesuai rasio slot
+  dan mengirim ke proses penyusunan strip seperti biasa.
+- Jika digiCamControl mati / kamera putus, muncul pesan jelas dan tombol "Pakai webcam".
+- Endpoint `/digicam/*` hanya jalan bila `DIGICAM_ENABLED=true` dan hanya untuk browser yang sudah membuka halaman kamera.
+
+### Batasan yang perlu diketahui
+- Jalur ini **belum diuji dengan kamera dan digiCamControl asli**. Perintah web server mengikuti dokumentasi digiCamControl; pengujian
+  yang dilakukan memakai server tiruan. Jika balasan versi digiCamControl-mu berbeda, kirim isi `http://localhost:5513/?slc=get&param1=lastcaptured`
+  setelah satu kali memotret agar penyesuaiannya mudah.
+- Ada jeda beberapa detik antara hitung mundur selesai dan foto muncul (pemotretan + transfer foto resolusi penuh).
+- Live view digiCamControl beresolusi rendah dan membuka jendela live view di laptop booth (boleh diminimalkan).
+- `php artisan serve` di Windows memproses satu permintaan pada satu waktu; untuk live view yang lebih lancar gunakan Apache XAMPP.
+- Foto resolusi penuh juga tersimpan di folder sesi digiCamControl pada laptop booth; bersihkan berkala.
+- Pembatas laju kini memakai pembatas bernama (`booth-process`, `login`, `digicam-*`). Sebelumnya `throttle:N,1` biasa berbagi satu
+  penghitung per IP di semua rute sehingga bisa saling menghabiskan jatah.

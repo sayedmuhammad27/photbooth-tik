@@ -11,6 +11,8 @@
             <a class="adm-logo" href="{{ route('admin.dashboard') }}">PHOTOBOOTH TIK</a>
             <nav class="adm-nav" aria-label="Menu admin">
                 <a href="{{ route('admin.dashboard') }}" @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif>Ringkasan</a>
+                <a href="{{ route('admin.queue.index') }}" @if(request()->routeIs('admin.queue.*')) aria-current="page" @endif>Antrean</a>
+                <a href="{{ route('admin.camera.hub') }}" @if(request()->routeIs('admin.camera.*')) aria-current="page" @endif>Kamera Bilik</a>
                 <a href="{{ route('admin.templates.index') }}" @if(request()->routeIs('admin.templates.*')) aria-current="page" @endif>Template</a>
                 <a href="{{ route('admin.sessions') }}" @if(request()->routeIs('admin.sessions')) aria-current="page" @endif>Sesi</a>
                 <a href="{{ route('home') }}" target="_blank" rel="noopener">Buka booth</a>
