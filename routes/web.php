@@ -58,6 +58,7 @@ Route::prefix('camera-hub')->name('camera.hub.')->group(function () {
     Route::post('/snapshot/push', [CameraHubController::class, 'pushSnapshot'])->name('snapshot.push');
     Route::get('/snapshot', [CameraHubController::class, 'getSnapshot'])->name('snapshot');
     Route::get('/status', [CameraHubController::class, 'status'])->name('status');
+    Route::match(['get', 'post'], '/signal', [CameraHubController::class, 'signal'])->name('signal');
 });
 
 // Token CSRF segar untuk halaman kamera yang dibiarkan terbuka lama (kiosk)

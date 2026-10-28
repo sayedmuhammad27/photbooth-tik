@@ -81,6 +81,8 @@ class SessionController extends Controller
                     'liveview_url' => route('camera.hub.frame', [], false),
                     'trigger_url'  => route('camera.hub.trigger', [], false),
                     'snapshot_url' => route('camera.hub.snapshot', [], false),
+                    'signal_url'   => route('camera.hub.signal', [], false),
+                    'interval'     => max(40, (int) config('photobooth.camera_hub.live_interval', 75)),
                 ],
                 'queue_number' => $request->input('queue') ?: session('active_queue_number'),
             ],

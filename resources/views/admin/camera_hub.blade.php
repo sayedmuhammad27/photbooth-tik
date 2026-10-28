@@ -204,15 +204,35 @@
     var btnCloseModal2 = document.getElementById('btn-close-modal-2');
 
     var stream = null;
+    var dccStream = null;
     var isBroadcasting = false;
     var frameCount = 0;
     var streamTimer = null;
     var liveTimer = null;
+    var webrtcTimer = null;
+    var peerConnections = {};
     var isCapturing = false;
     var liveOk = false;
     var liveBlobUrl = null;
     var isSendingFrame = false;
     var isFetchingLive = false;
+    var signalUrl = "{{ route('camera.hub.signal') }}";
+
+    function hasActivePeer() {
+        var keys = Object.keys(peerConnections);
+        for (var i = 0; i < keys.length; i++) {
+            var conn = peerConnections[keys[i]];
+            if (conn && conn.pc && (conn.pc.connectionState === 'connected' || conn.pc.iceConnectionState === 'connected')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function updateStatsDisplay() {
+        var p2p = hasActivePeer();
+        streamStats.textContent = 'Frame: ' + frameCount + (p2p ? ' (⚡ Real-Time P2P Aktif)' : ' (Relay Server Aktif)');
+    }
 
     // 1. Ganti tampilan section sesuai tipe kamera yang dipilih
     function onSourceTypeChange() {
@@ -405,6 +425,7 @@
     // 6. Hentikan Kamera
     function stopCamera() {
         stopDigicamLivePolling();
+        stopWebRTCHost();
         if (streamTimer) clearTimeout(streamTimer);
         streamTimer = null;
         isSendingFrame = false;
@@ -419,6 +440,10 @@
         if (stream) {
             stream.getTracks().forEach(function(t) { t.stop(); });
             stream = null;
+        }
+        if (dccStream) {
+            dccStream.getTracks().forEach(function(t) { t.stop(); });
+            dccStream = null;
         }
         video.srcObject = null;
         video.style.display = 'none';
@@ -438,13 +463,167 @@
         btnToggle.textContent = '▶ Mulai Siaran Kamera';
         isBroadcasting = false;
         resInfo.textContent = 'Resolusi: -';
+        updateStatsDisplay();
     }
 
-    // 7. Siaran Frame ke Bilik Pengunjung
+    // 7. WebRTC Host Broadcaster (Real-Time 30 FPS Peer-to-Peer)
+    function getActiveStream() {
+        if (selSourceType.value === 'webcam') {
+            return stream;
+        }
+        if (!dccStream && canvas && canvas.captureStream) {
+            dccStream = canvas.captureStream(25);
+        }
+        return dccStream;
+    }
+
+    function startWebRTCHost() {
+        fetch(signalUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'register_host' })
+        }).catch(function() {});
+
+        if (webrtcTimer) clearInterval(webrtcTimer);
+        webrtcTimer = setInterval(checkPendingViewers, 1000);
+    }
+
+    function stopWebRTCHost() {
+        if (webrtcTimer) clearInterval(webrtcTimer);
+        webrtcTimer = null;
+
+        Object.keys(peerConnections).forEach(function(k) {
+            var conn = peerConnections[k];
+            if (conn) {
+                if (conn.dc) conn.dc.close();
+                if (conn.pc) conn.pc.close();
+            }
+        });
+        peerConnections = {};
+    }
+
+    function checkPendingViewers() {
+        if (!isBroadcasting) return;
+        fetch(signalUrl + '?action=check_viewers', { cache: 'no-store' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data && data.ok && data.viewers && data.viewers.length) {
+                    data.viewers.forEach(function(viewerId) {
+                        connectToViewer(viewerId);
+                    });
+                }
+            })
+            .catch(function() {});
+    }
+
+    function connectToViewer(viewerId) {
+        if (peerConnections[viewerId]) return;
+
+        var pc = new RTCPeerConnection({
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        });
+
+        var dc = pc.createDataChannel('control');
+        dc.onmessage = function(e) {
+            try {
+                var d = JSON.parse(e.data);
+                if (d.type === 'trigger_capture') {
+                    handleKioskTriggerCapture(d.capture_id);
+                }
+            } catch(ex) {}
+        };
+
+        pc.onconnectionstatechange = function() {
+            updateStatsDisplay();
+            if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                delete peerConnections[viewerId];
+                updateStatsDisplay();
+            }
+        };
+
+        peerConnections[viewerId] = { pc: pc, dc: dc };
+
+        var activeStream = getActiveStream();
+        if (activeStream) {
+            activeStream.getTracks().forEach(function(t) {
+                pc.addTrack(t, activeStream);
+            });
+        }
+
+        pc.createOffer({ offerToReceiveVideo: false, offerToReceiveAudio: false })
+            .then(function(offer) { return pc.setLocalDescription(offer); })
+            .then(function() { return waitForIceComplete(pc); })
+            .then(function() {
+                return fetch(signalUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'send_offer',
+                        viewer_id: viewerId,
+                        offer: JSON.stringify(pc.localDescription)
+                    })
+                });
+            })
+            .then(function() {
+                pollViewerAnswer(viewerId, pc, 25);
+            })
+            .catch(function(err) {
+                console.warn('WebRTC offer error:', err);
+                delete peerConnections[viewerId];
+            });
+    }
+
+    function waitForIceComplete(pc) {
+        return new Promise(function(resolve) {
+            if (pc.iceGatheringState === 'complete') {
+                resolve();
+                return;
+            }
+            var timer = setTimeout(function() {
+                resolve();
+            }, 800);
+            pc.onicecandidate = function(e) {
+                if (!e.candidate) {
+                    clearTimeout(timer);
+                    resolve();
+                }
+            };
+        });
+    }
+
+    function pollViewerAnswer(viewerId, pc, tries) {
+        tries = tries !== undefined ? tries : 25;
+        if (tries <= 0 || !isBroadcasting || !peerConnections[viewerId]) return;
+
+        fetch(signalUrl + '?action=get_answer&viewer_id=' + encodeURIComponent(viewerId), { cache: 'no-store' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d && d.ok && d.answer) {
+                    var answerDesc = new RTCSessionDescription(JSON.parse(d.answer));
+                    return pc.setRemoteDescription(answerDesc).then(function() {
+                        updateStatsDisplay();
+                    });
+                } else {
+                    setTimeout(function() {
+                        pollViewerAnswer(viewerId, pc, tries - 1);
+                    }, 350);
+                }
+            })
+            .catch(function() {
+                setTimeout(function() {
+                    pollViewerAnswer(viewerId, pc, tries - 1);
+                }, 350);
+            });
+    }
+
+    // 8. Siaran Frame ke Bilik Pengunjung
     function scheduleNextPush(delay) {
         if (streamTimer) clearTimeout(streamTimer);
         if (!isBroadcasting || isCapturing) return;
-        streamTimer = setTimeout(sendLiveFrame, delay !== undefined ? delay : 180);
+        streamTimer = setTimeout(sendLiveFrame, delay !== undefined ? delay : 75);
     }
 
     function startBroadcasting() {
@@ -457,8 +636,11 @@
                 btnToggle.className = 'btn btn--danger btn--sm';
                 btnToggle.textContent = '⏹ Hentikan Siaran';
 
+                // Nyalakan WebRTC Host
+                startWebRTCHost();
+
                 // Siarkan frame ke server secara teratur menggunakan timeout ber-guard
-                scheduleNextPush(100);
+                scheduleNextPush(50);
             })
             .catch(function(err) {
                 alert('Gagal menyalakan siaran kamera: ' + (err.message || err.name));
@@ -478,7 +660,7 @@
         }
     });
 
-    // 8. Kirim Frame Live View ke /camera-hub/push
+    // 9. Kirim Frame Live View ke /camera-hub/push (Binary Blob Tanpa Base64)
     function sendLiveFrame() {
         if (!isBroadcasting || isCapturing || isSendingFrame) return;
 
@@ -489,19 +671,19 @@
             srcW = liveImg.naturalWidth || 640;
             srcH = liveImg.naturalHeight || 480;
             if (!liveImg.complete || !srcW) {
-                scheduleNextPush(120);
+                scheduleNextPush(100);
                 return;
             }
         } else {
             srcW = video.videoWidth;
             srcH = video.videoHeight;
             if (!srcW) {
-                scheduleNextPush(120);
+                scheduleNextPush(100);
                 return;
             }
         }
 
-        // Skala kecil ringan untuk transmisi live view ke kiosk (~480px)
+        // Skala ringan untuk transmisi buffer live view (~480px)
         var previewW = 480;
         var previewH = Math.round(previewW * (srcH / srcW));
         canvas.width = previewW;
@@ -519,36 +701,43 @@
         }
         ctx.restore();
 
-        var frameDataUrl = canvas.toDataURL('image/jpeg', 0.55);
         isSendingFrame = true;
 
-        fetch("{{ route('camera.hub.push') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': cfg.csrf
-            },
-            body: JSON.stringify({ frame: frameDataUrl })
-        })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            frameCount++;
-            streamStats.textContent = 'Frame terkirim: ' + frameCount;
-
-            // Jika ada sinyal trigger jepret dari bilik pengunjung
-            if (data && data.trigger) {
-                handleKioskTriggerCapture();
+        canvas.toBlob(function(blob) {
+            if (!blob || !isBroadcasting) {
+                isSendingFrame = false;
+                scheduleNextPush(100);
+                return;
             }
-        })
-        .catch(function(err) {})
-        .then(function() {
-            isSendingFrame = false;
-            scheduleNextPush(180);
-        });
+
+            fetch("{{ route('camera.hub.push') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'image/jpeg'
+                },
+                body: blob
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                frameCount++;
+                updateStatsDisplay();
+
+                // Jika ada sinyal trigger jepret dari bilik pengunjung
+                if (data && data.trigger) {
+                    handleKioskTriggerCapture(data.capture_id);
+                }
+            })
+            .catch(function(err) {})
+            .then(function() {
+                isSendingFrame = false;
+                var hasP2P = hasActivePeer();
+                scheduleNextPush(hasP2P ? 140 : 75);
+            });
+        }, 'image/jpeg', 0.50);
     }
 
-    // 9. Tangani Sinyal Trigger dari Bilik User
-    function handleKioskTriggerCapture() {
+    // 10. Tangani Sinyal Trigger dari Bilik User
+    function handleKioskTriggerCapture(captureId) {
         if (isCapturing) return;
         isCapturing = true;
         captureWait.style.display = 'flex';
@@ -569,15 +758,15 @@
                 return res.blob();
             })
             .then(function(blob) {
-                return blobToDataUrl(blob);
-            })
-            .then(function(fullResDataUrl) {
-                return pushSnapshotToServer(fullResDataUrl);
+                return pushSnapshotToServer(blob, captureId);
             })
             .catch(function(err) {
                 console.error('Trigger capture Canon error:', err);
             })
             .then(function() {
+                // Beritahu juga lewat WebRTC DataChannel jika terbuka
+                notifySnapshotReady(captureId);
+
                 // Selesai: nyalakan kembali live view
                 fetch(cfg.digicam.live_start_url, {
                     method: 'POST',
@@ -601,12 +790,14 @@
                 ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
                 ctx.restore();
 
-                var fullResDataUrl = canvas.toDataURL('image/jpeg', 0.92);
-                pushSnapshotToServer(fullResDataUrl)
-                    .then(function() {
-                        captureWait.style.display = 'none';
-                        isCapturing = false;
-                    });
+                canvas.toBlob(function(blob) {
+                    pushSnapshotToServer(blob, captureId)
+                        .then(function() {
+                            notifySnapshotReady(captureId);
+                            captureWait.style.display = 'none';
+                            isCapturing = false;
+                        });
+                }, 'image/jpeg', 0.92);
             } else {
                 captureWait.style.display = 'none';
                 isCapturing = false;
@@ -614,14 +805,34 @@
         }
     }
 
-    function pushSnapshotToServer(dataUrl) {
+    function notifySnapshotReady(captureId) {
+        Object.keys(peerConnections).forEach(function(k) {
+            var conn = peerConnections[k];
+            if (conn && conn.dc && conn.dc.readyState === 'open') {
+                try {
+                    conn.dc.send(JSON.stringify({ type: 'snapshot_ready', capture_id: captureId }));
+                } catch(e) {}
+            }
+        });
+    }
+
+    function pushSnapshotToServer(blobOrDataUrl, captureId) {
+        if (blobOrDataUrl instanceof Blob) {
+            var fd = new FormData();
+            fd.append('snapshot', blobOrDataUrl, 'snapshot.jpg');
+            if (captureId) fd.append('capture_id', captureId);
+            return fetch("{{ route('camera.hub.snapshot.push') }}", {
+                method: 'POST',
+                body: fd
+            });
+        }
+
         return fetch("{{ route('camera.hub.snapshot.push') }}", {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': cfg.csrf
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ snapshot: dataUrl })
+            body: JSON.stringify({ snapshot: blobOrDataUrl, capture_id: captureId })
         });
     }
 

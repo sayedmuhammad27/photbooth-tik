@@ -32,6 +32,11 @@
       btnRetake = $('btn-retake');
   var dcc = cfg.digicam || null;                  // null bila DIGICAM_ENABLED=false
   var hub = cfg.camera_hub || null;               // Kamera perangkat admin (relay)
+  var hubPc = null;
+  var hubDc = null;
+  var hubViewerId = 'v_' + Math.random().toString(36).substring(2, 10);
+  var hubWebrtcActive = false;
+  var hubAbortController = null;
   var strip = PB.strip.build($('strip-preview'), tpl);
   var canvas = document.createElement('canvas');
 
@@ -113,6 +118,7 @@
   /* ---------- Kamera: webcam bawaan laptop ---------- */
   function stopStream() {
     stopLive();
+    stopHubWebRTC();
     if (stream) {
       stream.getTracks().forEach(function (t) {
         t.onended = null;
@@ -360,15 +366,23 @@
 
 
   /* ---------- Kamera: Perangkat Admin & Canon lewat digiCamControl ---------- */
-  function hasSource() { return (source === 'digicam' || source === 'hub') ? live.ok : !!stream; }
-  function srcSize() { return (source === 'digicam' || source === 'hub') ? { w: live.w, h: live.h } : { w: video.videoWidth, h: video.videoHeight }; }
+  function hasSource() {
+    if (source === 'hub') return hubWebrtcActive ? (video.videoWidth > 0) : live.ok;
+    if (source === 'digicam') return live.ok;
+    return !!stream;
+  }
+  function srcSize() {
+    if (source === 'hub' && hubWebrtcActive) return { w: video.videoWidth, h: video.videoHeight };
+    if (source === 'digicam' || source === 'hub') return { w: live.w, h: live.h };
+    return { w: video.videoWidth, h: video.videoHeight };
+  }
 
   function applySourceUI() {
-    var isLive = (source === 'digicam' || source === 'hub');
-    vf.classList.toggle('is-digicam', isLive);
+    var isLiveImg = (source === 'digicam' || (source === 'hub' && !hubWebrtcActive));
+    vf.classList.toggle('is-digicam', isLiveImg);
     srcGroup.hidden = !(dcc || hub);
     if (srcSelect && srcSelect.value !== source) srcSelect.value = source;
-    if (isLive) camGroup.hidden = true;
+    if (source === 'digicam' || source === 'hub') camGroup.hidden = true;
   }
 
   function setSource(next) {
@@ -381,16 +395,131 @@
     startCamera();
   }
 
-  function postJson(url) {
+  function postJson(url, body) {
     return fetch(url, {
       method: 'POST', credentials: 'same-origin',
-      headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': cfg.csrf,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: body ? JSON.stringify(body) : undefined
     }).then(function (res) {
       return res.json().catch(function () { return null; }).then(function (d) {
         if (!res.ok) throw new Error((d && d.message) || ('HTTP ' + res.status));
         return d;
       });
     });
+  }
+
+  function stopHubWebRTC() {
+    hubWebrtcActive = false;
+    if (hubDc) {
+      try { hubDc.close(); } catch (e) {}
+      hubDc = null;
+    }
+    if (hubPc) {
+      try { hubPc.close(); } catch (e) {}
+      hubPc = null;
+    }
+  }
+
+  function startHubWebRTC() {
+    if (!window.RTCPeerConnection || !hub || !hub.signal_url) return;
+    stopHubWebRTC();
+
+    var pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    });
+    hubPc = pc;
+
+    pc.ontrack = function (e) {
+      if (e.streams && e.streams[0]) {
+        video.srcObject = e.streams[0];
+        video.play().catch(function () {});
+        hubWebrtcActive = true;
+        live.ok = true;
+        applySourceUI();
+
+        video.onloadedmetadata = function () {
+          if (video.videoWidth > 0 && video.videoHeight > 0) {
+            vf.style.setProperty('--vf-ar', (video.videoWidth / video.videoHeight).toFixed(4));
+            updateGuide(nextTarget());
+            mode = 'ready';
+            render();
+          }
+        };
+      }
+    };
+
+    pc.ondatachannel = function (e) {
+      hubDc = e.channel;
+    };
+
+    pc.onconnectionstatechange = function () {
+      if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+        hubWebrtcActive = false;
+        applySourceUI();
+      }
+    };
+
+    postJson(hub.signal_url, { action: 'join', viewer_id: hubViewerId })
+      .then(function () {
+        return pollHubOffer(15);
+      })
+      .then(function (offerSdp) {
+        if (!offerSdp || hubPc !== pc) return;
+        var offerDesc = new RTCSessionDescription(JSON.parse(offerSdp));
+        return pc.setRemoteDescription(offerDesc)
+          .then(function () { return pc.createAnswer(); })
+          .then(function (answer) { return pc.setLocalDescription(answer); })
+          .then(function () { return waitForIceComplete(pc); })
+          .then(function () {
+            return postJson(hub.signal_url, {
+              action: 'send_answer',
+              viewer_id: hubViewerId,
+              answer: JSON.stringify(pc.localDescription)
+            });
+          });
+      })
+      .catch(function (err) {
+        console.warn('WebRTC hub fallback ke HTTP relay:', err);
+      });
+  }
+
+  function waitForIceComplete(pc) {
+    return new Promise(function (resolve) {
+      if (pc.iceGatheringState === 'complete') {
+        resolve();
+        return;
+      }
+      var timer = setTimeout(function () { resolve(); }, 800);
+      pc.onicecandidate = function (e) {
+        if (!e.candidate) {
+          clearTimeout(timer);
+          resolve();
+        }
+      };
+    });
+  }
+
+  function pollHubOffer(tries) {
+    if (tries <= 0 || !hub || !hub.signal_url) return Promise.resolve(null);
+    return fetch(hub.signal_url + '?action=get_offer&viewer_id=' + encodeURIComponent(hubViewerId), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.ok && d.offer) {
+          return d.offer;
+        }
+        return sleep(300).then(function () { return pollHubOffer(tries - 1); });
+      })
+      .catch(function () {
+        return sleep(300).then(function () { return pollHubOffer(tries - 1); });
+      });
   }
 
   function setLiveBlob(blob) {
@@ -414,6 +543,10 @@
   }
 
   function fetchLiveFrame() {
+    if (source === 'hub' && hubWebrtcActive) {
+      return Promise.resolve();
+    }
+
     var url = '';
     if (source === 'hub' && hub) {
       url = hub.liveview_url + '?t=' + Date.now();
@@ -422,7 +555,12 @@
     }
     if (!url) return Promise.reject(new Error('no-liveview-url'));
 
-    return fetch(url, { credentials: 'same-origin', cache: 'no-store' })
+    if (hubAbortController) {
+      try { hubAbortController.abort(); } catch (e) {}
+    }
+    hubAbortController = new AbortController();
+
+    return fetch(url, { credentials: 'same-origin', cache: 'no-store', signal: hubAbortController.signal })
       .then(function (r) { if (!r.ok) throw new Error('liveview ' + r.status); return r.blob(); })
       .then(setLiveBlob);
   }
@@ -436,16 +574,20 @@
           : 'Live view belum tampil. Pastikan kamera Canon menyala dan Live View bisa dibuka di digiCamControl.';
         throw new Error(msg);
       }
-      return sleep(500).then(function () { return waitFirstFrame(tries - 1); });
+      return sleep(400).then(function () { return waitFirstFrame(tries - 1); });
     });
   }
 
   function startHub() {
     live.ok = false; live.w = 0; live.h = 0;
+    hubWebrtcActive = false;
     applySourceUI();
     mirrored = false;
     vf.classList.remove('is-mirrored');
     btnMirror.setAttribute('aria-pressed', 'false');
+
+    // Mulai WebRTC P2P langsung untuk 30 FPS instan
+    startHubWebRTC();
 
     return fetch(hub.status_url, { credentials: 'same-origin', cache: 'no-store' })
       .then(function (r) { return r.json(); })
@@ -453,7 +595,7 @@
         if (!statusData.hub_active) {
           throw new Error('Kamera laptop admin belum aktif. Buka menu "Kamera Bilik" di dashboard laptop admin dan klik "Mulai Siaran Kamera".');
         }
-        return waitFirstFrame(10);
+        return waitFirstFrame(12);
       })
       .then(function () {
         live.ok = true;
@@ -463,6 +605,9 @@
         startLive();
       })
       .catch(function (err) {
+        if (hubWebrtcActive) {
+          return;
+        }
         console.error('Gagal menyambung ke Kamera Admin:', err);
         stopLive();
         live.ok = false;
@@ -487,18 +632,29 @@
     if (live.on && !live.busy) pumpLive();
   }
   function pumpLive() {
-    if (!live.on || live.paused || live.busy) return;
+    if (!live.on || live.paused) return;
+
+    if (source === 'hub' && hubWebrtcActive) {
+      live.timer = setTimeout(pumpLive, 1000);
+      return;
+    }
+
+    if (live.busy) return;
     live.busy = true;
     var t0 = Date.now();
     fetchLiveFrame()
       .then(function () { live.fails = 0; })
-      .catch(function () { live.fails++; })
+      .catch(function (err) {
+        if (err && err.name !== 'AbortError') {
+          live.fails++;
+        }
+      })
       .then(function () {
         live.busy = false;
         if (!live.on || live.paused) return;
-        if (live.fails >= 10) { live.on = false; onLiveLost(); return; }
-        var interval = (source === 'hub' && hub && hub.interval) ? hub.interval : ((dcc && dcc.interval) ? dcc.interval : 150);
-        var wait = live.fails ? 500 : Math.max(0, interval - (Date.now() - t0));
+        if (live.fails >= 12) { live.on = false; onLiveLost(); return; }
+        var interval = (source === 'hub' && hub && hub.interval) ? hub.interval : ((dcc && dcc.interval) ? dcc.interval : 120);
+        var wait = live.fails ? 400 : Math.max(0, interval - (Date.now() - t0));
         live.timer = setTimeout(pumpLive, wait);
       });
   }
@@ -621,7 +777,12 @@
     return postJson(hub.trigger_url)
       .then(function (trigRes) {
         var cid = trigRes.capture_id;
-        return pollHubSnapshot(cid, 24);
+        if (hubDc && hubDc.readyState === 'open') {
+          try {
+            hubDc.send(JSON.stringify({ type: 'trigger_capture', capture_id: cid }));
+          } catch (e) {}
+        }
+        return pollHubSnapshot(cid, 25);
       })
       .then(function (blob) {
         return createImageBitmap(blob);

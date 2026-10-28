@@ -52,6 +52,13 @@ return [
         'live_interval'   => (int) env('DIGICAM_LIVE_INTERVAL', 120),     // ms antar frame live view
     ],
 
+    /*
+    | Pengaturan Kamera Hub (Siaran kamera admin ke bilik user via WebRTC & HTTP buffer)
+    */
+    'camera_hub' => [
+        'live_interval' => (int) env('CAMERA_HUB_LIVE_INTERVAL', 75),      // ms antar frame fallback HTTP
+    ],
+
     'categories' => [
         'strip'  => 'Strip',
         'grid'   => 'Grid',

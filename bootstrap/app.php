@@ -20,8 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Kecualikan endpoint streaming kamera dari validasi CSRF agar tidak membebani CPU
         $middleware->validateCsrfTokens(except: [
-            'camera-hub/push',
-            'camera-hub/snapshot/push',
+            'camera-hub/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
