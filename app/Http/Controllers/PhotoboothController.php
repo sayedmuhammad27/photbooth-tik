@@ -10,8 +10,9 @@ use Illuminate\Http\Request;
 class PhotoboothController extends Controller
 {
     /** Layar sambutan. */
-    public function index()
+    public function index(Request $request)
     {
+        $this->capturePublicDomain($request);
         $setting = QueueSetting::forToday();
 
         $activeTicket = QueueTicket::today()
@@ -29,6 +30,7 @@ class PhotoboothController extends Controller
     /** Galeri template: hanya template aktif; filter & pencarian berjalan di browser. */
     public function setup(Request $request)
     {
+        $this->capturePublicDomain($request);
         $queueNum = $request->input('queue') ?: session('active_queue_number');
 
         if (! app()->environment('testing') && ! auth()->check()) {
@@ -55,5 +57,14 @@ class PhotoboothController extends Controller
             ->values();
 
         return view('photobooth.setup', ['templates' => $templates]);
+    }
+
+    private function capturePublicDomain(Request $request): void
+    {
+        $host = $request->getHost();
+        if ($host && ! in_array(strtolower($host), ['localhost', '127.0.0.1', '::1', '[::1]'], true) && ! preg_match('/^(192\.168|10\.|172\.)/', $host)) {
+            $scheme = (str_contains($host, 'trycloudflare.com') || str_contains($host, 'ngrok')) ? 'https' : $request->getScheme();
+            session(['active_public_url' => "{$scheme}://{$host}"]);
+        }
     }
 }

@@ -23,4 +23,7 @@ yarn-error.log
 /.zed
 
 /ngrok.exe
+/cloudflared.exe
 /photbooth-tik/
+/storage/tunnel_url.txt
+/storage/cloudflared.log

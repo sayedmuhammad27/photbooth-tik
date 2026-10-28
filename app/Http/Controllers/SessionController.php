@@ -45,6 +45,12 @@ class SessionController extends Controller
             session(['active_queue_number' => $queueNum]);
         }
 
+        $host = $request->getHost();
+        if (! $this->isLocalHost($host)) {
+            $scheme = (str_contains($host, 'trycloudflare.com') || str_contains($host, 'ngrok')) ? 'https' : $request->getScheme();
+            session(['active_public_url' => "{$scheme}://{$host}"]);
+        }
+
         $digicam = null;
         if (config('photobooth.digicam.enabled')) {
             // Tanda bahwa browser ini memang membuka halaman kamera (syarat memakai endpoint /digicam/*).
@@ -201,8 +207,9 @@ class SessionController extends Controller
 
         return view('photobooth.result', [
             'session'   => $session,
+            'shareUrl'  => $shareUrl,
             'qrCode'    => QrCode::format('svg')->size(220)->margin(0)->errorCorrection('M')->generate($shareUrl),
-            'qrIsLocal' => in_array($host, ['localhost', '127.0.0.1', '::1', '[::1]'], true),
+            'qrIsLocal' => $this->isLocalHost($host),
         ]);
     }
 
@@ -229,10 +236,59 @@ class SessionController extends Controller
 
     private function shareUrl(string $token): string
     {
-        $base = config('photobooth.public_url');
+        $path = route('photobooth.result', $token, false);
+        $requestHost = request()->getHost();
 
-        return $base
-            ? rtrim($base, '/') . route('photobooth.result', $token, false)
-            : route('photobooth.result', $token);
+        // 1. Jika request yang sedang aktif BUKAN localhost/IP lokal (misal dibuka via Cloudflare / Ngrok / domain publik)
+        if (! $this->isLocalHost($requestHost)) {
+            $scheme = request()->getScheme();
+            if (str_contains($requestHost, 'trycloudflare.com') || str_contains($requestHost, 'ngrok')) {
+                $scheme = 'https';
+            }
+            return "{$scheme}://{$requestHost}{$path}";
+        }
+
+        // 2. Cek apakah ada file tunnel aktif yang dicatat oleh cloudflared / script
+        $tunnelFile = storage_path('tunnel_url.txt');
+        if (file_exists($tunnelFile)) {
+            $tunnelUrl = trim((string) @file_get_contents($tunnelFile));
+            if (! empty($tunnelUrl) && filter_var($tunnelUrl, FILTER_VALIDATE_URL)) {
+                $tHost = parse_url($tunnelUrl, PHP_URL_HOST);
+                if (! $this->isLocalHost($tHost)) {
+                    return rtrim($tunnelUrl, '/') . $path;
+                }
+            }
+        }
+
+        // 3. Cek apakah ada session active_public_url yang pernah dicatat
+        if (session('active_public_url') && ! $this->isLocalHost(parse_url(session('active_public_url'), PHP_URL_HOST))) {
+            return rtrim(session('active_public_url'), '/') . $path;
+        }
+
+        // 4. Jika PHOTOBOOTH_PUBLIC_URL diatur dan bukan IP lokal
+        $base = config('photobooth.public_url');
+        if (! empty($base)) {
+            $baseHost = parse_url($base, PHP_URL_HOST);
+            if (! $this->isLocalHost($baseHost)) {
+                return rtrim($base, '/') . $path;
+            }
+        }
+
+        // 5. Fallback ke URL request saat ini
+        return request()->getSchemeAndHttpHost() . $path;
+    }
+
+    private function isLocalHost(?string $host): bool
+    {
+        if (empty($host)) {
+            return true;
+        }
+
+        $host = strtolower(trim($host));
+
+        return in_array($host, ['localhost', '127.0.0.1', '::1', '[::1]'], true)
+            || preg_match('/^192\.168\./', $host) === 1
+            || preg_match('/^10\./', $host) === 1
+            || preg_match('/^172\.(1[6-9]|2[0-9]|3[0-1])\./', $host) === 1;
     }
 }

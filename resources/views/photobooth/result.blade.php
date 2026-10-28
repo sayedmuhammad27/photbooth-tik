@@ -21,9 +21,14 @@
                 <div>
                     <h2>Bawa pulang lewat ponsel</h2>
                     <p>Arahkan kamera ponsel ke kode ini untuk membuka dan mengunduh fotomu.</p>
+                    @if(!empty($shareUrl))
+                        <p style="margin-top:8px;font-size:0.75rem;color:var(--lamp-400);word-break:break-all">
+                            <a href="{{ $shareUrl }}" target="_blank" rel="noopener" style="color:var(--lamp-400);text-decoration:underline">{{ $shareUrl }}</a>
+                        </p>
+                    @endif
                     @auth
                         @if($qrIsLocal)
-                            <p style="margin-top:8px;color:var(--lamp-300)">Catatan admin: QR mengarah ke alamat lokal dan tidak bisa dibuka dari ponsel. Isi PHOTOBOOTH_PUBLIC_URL di .env.</p>
+                            <p style="margin-top:8px;color:var(--pink-400)">Catatan: QR masih mengarah ke alamat lokal. Jalankan Cloudflare Tunnel agar bisa diakses dari HP.</p>
                         @endif
                     @endauth
                 </div>
