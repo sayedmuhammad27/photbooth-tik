@@ -172,7 +172,16 @@ if ($detectedUrl) {
 }
 
 # Tunggu cloudflared berjalan
-$cfProcess.WaitForExit()
+try {
+    $cfProcess.WaitForExit()
+} finally {
+    Write-Host ""
+    Write-Host "Menutup sesi Photobooth..." -ForegroundColor Yellow
+    if ($cfProcess -and -not $cfProcess.HasExited) {
+        $cfProcess.Kill()
+    }
+    if (Test-Path $tunnelFile) { Remove-Item $tunnelFile -Force -ErrorAction SilentlyContinue }
 
-# Saat ditutup, bersihkan file tunnel
-if (Test-Path $tunnelFile) { Remove-Item $tunnelFile -Force -ErrorAction SilentlyContinue }
+    Write-Host "Tunnel Cloudflare telah ditutup." -ForegroundColor Green
+    Write-Host "Tip: Untuk mematikan MySQL, Apache & digiCamControl, jalankan 'matikan-semua.bat'." -ForegroundColor Cyan
+}
