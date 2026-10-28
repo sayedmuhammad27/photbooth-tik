@@ -16,32 +16,43 @@ Write-Host "       PHOTOBOOTH TIK - ALL-IN-ONE SYSTEM LAUNCHER (AUTO)          "
 Write-Host "===================================================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Deteksi lokasi folder XAMPP
+$xamppCandidates = @("d:\Xampp", "c:\xampp")
+$xamppDir = $null
+foreach ($c in $xamppCandidates) {
+    if (Test-Path $c) {
+        $xamppDir = $c
+        break
+    }
+}
+
 # 1. Jalankan MySQL (mysqld.exe) jika belum aktif
 $mysqlPort = Get-NetTCPConnection -LocalPort 3306 -State Listen -ErrorAction SilentlyContinue
 if (-not $mysqlPort) {
     Write-Host "[1/5] Menyalakan MySQL (mysqld.exe)..." -ForegroundColor Yellow
-    $mysqlCandidates = @(
-        "d:\Xampp\mysql\bin\mysqld.exe",
-        "c:\xampp\mysql\bin\mysqld.exe"
-    )
-    $mysqlStarted = $false
-    foreach ($mExe in $mysqlCandidates) {
-        if (Test-Path $mExe) {
-            $mDir = Split-Path (Split-Path $mExe)
-            $mIni = Join-Path $mDir "mysql\bin\my.ini"
-            Start-Process -FilePath $mExe -ArgumentList "--defaults-file=$mIni", "--standalone" -WorkingDirectory $mDir -WindowStyle Hidden
-            for ($i = 0; $i -lt 8; $i++) {
-                Start-Sleep -Seconds 1
-                $test = Get-NetTCPConnection -LocalPort 3306 -State Listen -ErrorAction SilentlyContinue
-                if ($test) { $mysqlStarted = $true; break }
-            }
-            break
+    $mysqlExe = if ($xamppDir) { Join-Path $xamppDir "mysql\bin\mysqld.exe" } else { $null }
+    $mysqlIni = if ($xamppDir) { Join-Path $xamppDir "mysql\bin\my.ini" } else { $null }
+
+    if ($mysqlExe -and (Test-Path $mysqlExe) -and (Test-Path $mysqlIni)) {
+        # Gunakan Win32_Process agar proses MySQL berdiri sendiri tanpa ditutup oleh console
+        $wmi = [wmiclass]"Win32_Process"
+        $cmd = "`"$mysqlExe`" --defaults-file=`"$mysqlIni`" --standalone"
+        $wmi.Create($cmd, $xamppDir, $null) | Out-Null
+
+        # Tunggu port 3306 siap
+        $mysqlOk = $false
+        for ($i = 0; $i -lt 10; $i++) {
+            Start-Sleep -Seconds 1
+            $test = Get-NetTCPConnection -LocalPort 3306 -State Listen -ErrorAction SilentlyContinue
+            if ($test) { $mysqlOk = $true; break }
         }
-    }
-    if ($mysqlStarted) {
-        Write-Host "   -> MySQL aktif di port 3306." -ForegroundColor Green
+        if ($mysqlOk) {
+            Write-Host "   -> MySQL (mysqld.exe) BERHASIL AKTIF di port 3306." -ForegroundColor Green
+        } else {
+            Write-Host "   -> MySQL sedang booting..." -ForegroundColor DarkGray
+        }
     } else {
-        Write-Host "   -> MySQL sedang menyala atau sudah berjalan di background." -ForegroundColor DarkGray
+        Write-Host "   -> File mysqld.exe tidak ditemukan di folder XAMPP." -ForegroundColor Red
     }
 } else {
     Write-Host "[1/5] MySQL (mysqld.exe) sudah aktif di port 3306." -ForegroundColor Green
@@ -51,27 +62,27 @@ if (-not $mysqlPort) {
 $apachePort = Get-NetTCPConnection -LocalPort 80 -State Listen -ErrorAction SilentlyContinue
 if (-not $apachePort) {
     Write-Host "[2/5] Menyalakan Apache (httpd.exe)..." -ForegroundColor Yellow
-    $apacheCandidates = @(
-        "d:\Xampp\apache\bin\httpd.exe",
-        "c:\xampp\apache\bin\httpd.exe"
-    )
-    $apacheStarted = $false
-    foreach ($aExe in $apacheCandidates) {
-        if (Test-Path $aExe) {
-            $aDir = Split-Path (Split-Path $aExe)
-            Start-Process -FilePath $aExe -WorkingDirectory $aDir -WindowStyle Hidden
-            for ($i = 0; $i -lt 5; $i++) {
-                Start-Sleep -Seconds 1
-                $test = Get-NetTCPConnection -LocalPort 80 -State Listen -ErrorAction SilentlyContinue
-                if ($test) { $apacheStarted = $true; break }
-            }
-            break
+    $apacheExe = if ($xamppDir) { Join-Path $xamppDir "apache\bin\httpd.exe" } else { $null }
+
+    if ($apacheExe -and (Test-Path $apacheExe)) {
+        $wmi = [wmiclass]"Win32_Process"
+        $cmd = "`"$apacheExe`""
+        $wmi.Create($cmd, $xamppDir, $null) | Out-Null
+
+        # Tunggu port 80 siap
+        $apacheOk = $false
+        for ($i = 0; $i -lt 6; $i++) {
+            Start-Sleep -Seconds 1
+            $test = Get-NetTCPConnection -LocalPort 80 -State Listen -ErrorAction SilentlyContinue
+            if ($test) { $apacheOk = $true; break }
         }
-    }
-    if ($apacheStarted) {
-        Write-Host "   -> Apache aktif di port 80." -ForegroundColor Green
+        if ($apacheOk) {
+            Write-Host "   -> Apache (httpd.exe) BERHASIL AKTIF di port 80." -ForegroundColor Green
+        } else {
+            Write-Host "   -> Apache sedang booting..." -ForegroundColor DarkGray
+        }
     } else {
-        Write-Host "   -> Apache sedang menyala atau sudah berjalan di background." -ForegroundColor DarkGray
+        Write-Host "   -> File httpd.exe tidak ditemukan di folder XAMPP." -ForegroundColor Red
     }
 } else {
     Write-Host "[2/5] Apache (httpd.exe) sudah aktif di port 80." -ForegroundColor Green
@@ -95,8 +106,10 @@ if (-not $dccProc) {
         }
     }
     if ($dccFound) {
-        Start-Process -FilePath $dccFound -WorkingDirectory (Split-Path $dccFound)
-        Write-Host "   -> digiCamControl dibuka: $dccFound" -ForegroundColor Green
+        $dccDir = Split-Path $dccFound
+        $wmi = [wmiclass]"Win32_Process"
+        $wmi.Create("`"$dccFound`"", $dccDir, $null) | Out-Null
+        Write-Host "   -> digiCamControl BERHASIL DIBUKA: $dccFound" -ForegroundColor Green
     } else {
         Write-Host "   -> digiCamControl tidak ditemukan di lokasi standar (lewati jika memakai webcam)." -ForegroundColor DarkGray
     }
@@ -108,20 +121,24 @@ if (-not $dccProc) {
 $laravelPort = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue
 if (-not $laravelPort) {
     Write-Host "[4/5] Menyalakan server Laravel di port 8000..." -ForegroundColor Yellow
-    Start-Process -FilePath "php" -ArgumentList "artisan", "serve", "--port=8000" -WorkingDirectory $PSScriptRoot -WindowStyle Hidden
-    for ($i = 0; $i -lt 6; $i++) {
+    $wmi = [wmiclass]"Win32_Process"
+    $wmi.Create("php artisan serve --port=8000", $PSScriptRoot, $null) | Out-Null
+
+    # Tunggu port 8000 siap
+    for ($i = 0; $i -lt 8; $i++) {
         Start-Sleep -Seconds 1
         $test = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue
         if ($test) { break }
     }
-    Write-Host "   -> Server Laravel aktif di http://127.0.0.1:8000" -ForegroundColor Green
+    Write-Host "   -> Server Laravel BERHASIL AKTIF di http://127.0.0.1:8000" -ForegroundColor Green
 } else {
     Write-Host "[4/5] Server Laravel port 8000 sudah aktif." -ForegroundColor Green
 }
 
 # 5. Hubungkan ke Cloudflare Tunnel
 Write-Host "[5/5] Menghubungkan ke Cloudflare Tunnel..." -ForegroundColor Yellow
-$cfProcess = Start-Process -FilePath ".\cloudflared.exe" -ArgumentList "tunnel", "--url", "http://127.0.0.1:8000" -NoNewWindow -PassThru -RedirectStandardError $logFile
+$cfExe = Join-Path $PSScriptRoot "cloudflared.exe"
+$cfProcess = Start-Process -FilePath $cfExe -ArgumentList "tunnel", "--url", "http://127.0.0.1:8000" -WorkingDirectory $PSScriptRoot -NoNewWindow -PassThru -RedirectStandardError $logFile
 
 $detectedUrl = $null
 for ($i = 0; $i -lt 35; $i++) {
@@ -164,7 +181,7 @@ if ($detectedUrl) {
     Write-Host "Membuka halaman Kamera Hub Admin di browser..." -ForegroundColor DarkGray
     Start-Process "http://localhost:8000/admin/camera-hub"
     Write-Host ""
-    Write-Host "Tekan Ctrl+C untuk menutup tunnel dan server." -ForegroundColor DarkGray
+    Write-Host "Tekan Ctrl+C untuk menutup tunnel." -ForegroundColor DarkGray
 } else {
     Write-Host "[PERINGATAN] Belum mendeteksi URL trycloudflare. Cek file storage\cloudflared.log" -ForegroundColor Yellow
     Write-Host "Namun server Localhost tetap aktif di http://localhost:8000" -ForegroundColor Cyan
