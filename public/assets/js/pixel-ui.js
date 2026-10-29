@@ -70,13 +70,19 @@
     try { url = new URL(a.href, location.href); } catch (_) { return; }
     if (url.origin !== location.origin || url.protocol.indexOf('http') !== 0) return;
     if (url.pathname === location.pathname && url.search === location.search) return;
+
+    // Pertahankan preferensi layar penuh saat berpindah halaman
+    if (PB.isFullscreen()) {
+      try { sessionStorage.setItem('pb_fullscreen_wanted', '1'); } catch (_) {}
+    }
+
     e.preventDefault();
     document.body.classList.add('is-leaving');
     setTimeout(function () { location.href = a.href; }, 170);
   });
   window.addEventListener('pageshow', function () { document.body.classList.remove('is-leaving'); });
 
-  /* ---------- Layar Penuh (Fullscreen) ---------- */
+  /* ---------- Layar Penuh (Fullscreen) Persisten ---------- */
   PB.isFullscreen = function () {
     return !!(
       document.fullscreenElement ||
@@ -86,41 +92,94 @@
     );
   };
 
+  PB.enterFullscreen = function () {
+    var el = document.documentElement;
+    var rfs = el.requestFullscreen ||
+              el.webkitRequestFullscreen ||
+              el.mozRequestFullScreen ||
+              el.msRequestFullscreen;
+    if (rfs) {
+      try {
+        var p = rfs.call(el);
+        if (p && p.then) {
+          return p.then(function () {
+            try { sessionStorage.setItem('pb_fullscreen_wanted', '1'); } catch (_) {}
+            hideFullscreenResumeBanner();
+            updateFullscreenButtons();
+          });
+        }
+      } catch (e) {
+        return Promise.reject(e);
+      }
+      try { sessionStorage.setItem('pb_fullscreen_wanted', '1'); } catch (_) {}
+      hideFullscreenResumeBanner();
+      updateFullscreenButtons();
+      return Promise.resolve();
+    }
+    return Promise.reject(new Error('Fullscreen not supported'));
+  };
+
+  PB.exitFullscreen = function () {
+    try { sessionStorage.removeItem('pb_fullscreen_wanted'); } catch (_) {}
+    hideFullscreenResumeBanner();
+    var efs = document.exitFullscreen ||
+              document.webkitExitFullscreen ||
+              document.mozCancelFullScreen ||
+              document.msExitFullscreen;
+    if (efs) {
+      try {
+        var p = efs.call(document);
+        if (p && p.then) {
+          return p.then(function () {
+            updateFullscreenButtons();
+          });
+        }
+      } catch (e) {
+        return Promise.reject(e);
+      }
+      updateFullscreenButtons();
+      return Promise.resolve();
+    }
+    return Promise.reject(new Error('Exit fullscreen not supported'));
+  };
+
   PB.toggleFullscreen = function () {
     if (PB.isFullscreen()) {
-      var efs = document.exitFullscreen ||
-                document.webkitExitFullscreen ||
-                document.mozCancelFullScreen ||
-                document.msExitFullscreen;
-      if (efs) {
-        try {
-          var p = efs.call(document);
-          if (p && p.catch) p.catch(function () {});
-        } catch (e) {}
-      }
+      PB.exitFullscreen().catch(function () {});
     } else {
-      var el = document.documentElement;
-      var rfs = el.requestFullscreen ||
-                el.webkitRequestFullscreen ||
-                el.mozRequestFullScreen ||
-                el.msRequestFullscreen;
-      if (rfs) {
-        try {
-          var p2 = rfs.call(el);
-          if (p2 && p2.catch) {
-            p2.catch(function () {
-              PB.toast('Izin layar penuh ditolak atau tidak didukung browser.', 'info');
-            });
-          }
-        } catch (e) {
-          PB.toast('Layar penuh tidak didukung di perangkat ini.', 'info');
-        }
-      }
+      PB.enterFullscreen().catch(function () {
+        PB.toast('Izin layar penuh ditolak atau tidak didukung browser.', 'info');
+      });
     }
   };
 
+  function showFullscreenResumeBanner() {
+    if (document.getElementById('fs-resume-banner') || PB.isFullscreen()) return;
+    var bar = document.createElement('div');
+    bar.id = 'fs-resume-banner';
+    bar.className = 'fs-resume-banner';
+    bar.setAttribute('role', 'button');
+    bar.setAttribute('tabindex', '0');
+    bar.innerHTML = '<span class="fs-resume-icon" aria-hidden="true">⛶</span><span>Sentuh layar di mana saja untuk lanjut Layar Penuh</span>';
+    bar.addEventListener('click', function (e) {
+      e.stopPropagation();
+      PB.enterFullscreen().catch(function () {});
+    });
+    document.body.appendChild(bar);
+  }
+
+  function hideFullscreenResumeBanner() {
+    var bar = document.getElementById('fs-resume-banner');
+    if (bar && bar.parentNode) {
+      bar.parentNode.removeChild(bar);
+    }
+  }
+
   function updateFullscreenButtons() {
     var inFs = PB.isFullscreen();
+    var wanted = false;
+    try { wanted = sessionStorage.getItem('pb_fullscreen_wanted') === '1'; } catch (_) {}
+
     document.body.classList.toggle('is-fullscreen-active', inFs);
     var btns = document.querySelectorAll('.btn-fullscreen, .btn-fullscreen-floating');
     for (var i = 0; i < btns.length; i++) {
@@ -133,6 +192,11 @@
         if (label) label.textContent = 'Keluar';
         btn.setAttribute('title', 'Keluar Layar Penuh (Esc / F11)');
         btn.setAttribute('aria-label', 'Keluar Layar Penuh');
+      } else if (wanted) {
+        if (icon) icon.textContent = '⛶';
+        if (label) label.textContent = 'Lanjut Fullscreen';
+        btn.setAttribute('title', 'Klik untuk melanjutkan Layar Penuh');
+        btn.setAttribute('aria-label', 'Lanjutkan Layar Penuh');
       } else {
         if (icon) icon.textContent = '⛶';
         if (label) label.textContent = 'Layar Penuh';
@@ -140,12 +204,67 @@
         btn.setAttribute('aria-label', 'Masuk Layar Penuh');
       }
     }
+
+    if (inFs) {
+      hideFullscreenResumeBanner();
+    }
   }
 
-  document.addEventListener('fullscreenchange', updateFullscreenButtons);
-  document.addEventListener('webkitfullscreenchange', updateFullscreenButtons);
-  document.addEventListener('mozfullscreenchange', updateFullscreenButtons);
-  document.addEventListener('MSFullscreenChange', updateFullscreenButtons);
+  function setupFullscreenPersistence() {
+    var wanted = false;
+    try { wanted = sessionStorage.getItem('pb_fullscreen_wanted') === '1'; } catch (_) {}
+    if (!wanted) {
+      updateFullscreenButtons();
+      return;
+    }
+
+    if (PB.isFullscreen()) {
+      updateFullscreenButtons();
+      return;
+    }
+
+    // Coba langsung masuk layar penuh bila browser mengizinkan
+    PB.enterFullscreen().catch(function () {
+      updateFullscreenButtons();
+      showFullscreenResumeBanner();
+
+      // Pasang listener satu kali pada capture-phase agar sentuhan pertama di mana saja
+      // pada dokumen (pilih frame, klik tombol, tap layar) langsung memulihkan layar penuh
+      function onFirstUserGesture() {
+        var stillWanted = false;
+        try { stillWanted = sessionStorage.getItem('pb_fullscreen_wanted') === '1'; } catch (_) {}
+        if (!PB.isFullscreen() && stillWanted) {
+          PB.enterFullscreen().catch(function () {});
+        }
+        window.removeEventListener('click', onFirstUserGesture, true);
+        window.removeEventListener('pointerdown', onFirstUserGesture, true);
+        window.removeEventListener('touchstart', onFirstUserGesture, true);
+        window.removeEventListener('keydown', onFirstUserGesture, true);
+      }
+
+      window.addEventListener('click', onFirstUserGesture, true);
+      window.addEventListener('pointerdown', onFirstUserGesture, true);
+      window.addEventListener('touchstart', onFirstUserGesture, true);
+      window.addEventListener('keydown', onFirstUserGesture, true);
+    });
+  }
+
+  function onFullscreenStateChanged() {
+    var inFs = PB.isFullscreen();
+    if (!inFs) {
+      // Jika keluar secara manual (misal tekan Esc) dan bukan karena sedang proses navigasi
+      if (!document.body.classList.contains('is-leaving')) {
+        try { sessionStorage.removeItem('pb_fullscreen_wanted'); } catch (_) {}
+        hideFullscreenResumeBanner();
+      }
+    }
+    updateFullscreenButtons();
+  }
+
+  document.addEventListener('fullscreenchange', onFullscreenStateChanged);
+  document.addEventListener('webkitfullscreenchange', onFullscreenStateChanged);
+  document.addEventListener('mozfullscreenchange', onFullscreenStateChanged);
+  document.addEventListener('MSFullscreenChange', onFullscreenStateChanged);
 
   document.addEventListener('click', function (e) {
     var btn = e.target.closest ? e.target.closest('.btn-fullscreen, .btn-fullscreen-floating') : null;
@@ -166,7 +285,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     if (!PB.reduceMotion()) document.body.classList.add('page-enter');
     PB.reveal();
-    updateFullscreenButtons();
+    setupFullscreenPersistence();
     // Pesan flash dari server: <div data-toast="success|error|info">teks</div>
     Array.prototype.forEach.call(document.querySelectorAll('[data-toast]'), function (n) {
       PB.toast(n.textContent.trim(), n.getAttribute('data-toast') || 'info', 6000);

@@ -1212,6 +1212,10 @@
         loaderText.textContent = 'Selesai! Membuka hasil…';
         stopStream();
         PB.toast('Sesi tersimpan.', 'success', 2500);
+        if (window.PB && PB.isFullscreen && PB.isFullscreen()) {
+          try { sessionStorage.setItem('pb_fullscreen_wanted', '1'); } catch (_) {}
+        }
+        document.body.classList.add('is-leaving');
         setTimeout(function () { location.href = r.data.redirect; }, PB.reduceMotion() ? 0 : 500);
         return;
       }

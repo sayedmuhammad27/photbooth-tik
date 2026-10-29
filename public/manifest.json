@@ -1,0 +1,16 @@
+{
+  "name": "Photobooth TIK — Expo Wisuda Jurusan TIK 2026",
+  "short_name": "Photobooth TIK",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0C1230",
+  "theme_color": "#131947",
+  "icons": [
+    {
+      "src": "/assets/img/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
