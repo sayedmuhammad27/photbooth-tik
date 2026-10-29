@@ -139,27 +139,30 @@ class CameraHubController extends Controller
         $contentType = $request->header('Content-Type', '');
         $saved = false;
 
+        $dir = storage_path('framework/cache/snapshots');
+        if (! is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
         // Cek binary stream
         if (str_contains($contentType, 'image/') || str_contains($contentType, 'application/octet-stream')) {
             $binary = $request->getContent();
             if ($binary && strlen($binary) > 1000) {
-                $dir = storage_path('framework/cache/snapshots');
-                if (! is_dir($dir)) {
-                    @mkdir($dir, 0755, true);
-                }
                 $path = $dir . '/snap_' . ($captureId ?: 'latest') . '.jpg';
                 @file_put_contents($path, $binary);
+                if ($captureId) {
+                    @file_put_contents($dir . '/snap_latest.jpg', $binary);
+                }
                 $saved = true;
             }
         } elseif ($request->hasFile('snapshot')) {
             $file = $request->file('snapshot');
             if ($file && $file->isValid()) {
-                $dir = storage_path('framework/cache/snapshots');
-                if (! is_dir($dir)) {
-                    @mkdir($dir, 0755, true);
-                }
                 $path = $dir . '/snap_' . ($captureId ?: 'latest') . '.jpg';
                 @copy($file->getRealPath(), $path);
+                if ($captureId) {
+                    @copy($file->getRealPath(), $dir . '/snap_latest.jpg');
+                }
                 $saved = true;
             }
         } else {
@@ -168,18 +171,27 @@ class CameraHubController extends Controller
             if ($snapshot) {
                 $parts = explode(',', $snapshot, 2);
                 $binary = base64_decode($parts[1] ?? $parts[0]);
-                $dir = storage_path('framework/cache/snapshots');
-                if (! is_dir($dir)) {
-                    @mkdir($dir, 0755, true);
-                }
                 $path = $dir . '/snap_' . ($captureId ?: 'latest') . '.jpg';
                 @file_put_contents($path, $binary);
+                if ($captureId) {
+                    @file_put_contents($dir . '/snap_latest.jpg', $binary);
+                }
                 $saved = true;
             }
         }
 
         if (! $saved) {
             return response()->json(['ok' => false, 'message' => 'Format foto tidak valid.'], 422);
+        }
+
+        // Bersihkan berkas snapshot lama (> 10 menit) secara berkala
+        if (random_int(1, 10) === 1) {
+            $now = time();
+            foreach (glob($dir . '/snap_*.jpg') ?: [] as $oldFile) {
+                if ($now - @filemtime($oldFile) > 600) {
+                    @unlink($oldFile);
+                }
+            }
         }
 
         if ($captureId) {

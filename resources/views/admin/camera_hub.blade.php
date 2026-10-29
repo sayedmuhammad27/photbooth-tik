@@ -736,8 +736,88 @@
     }
 
     // 10. Tangani Sinyal Trigger dari Bilik User
+    var lastHandledCaptureId = null;
+
+    function optimizeSnapshotBlob(blob, maxDim, quality) {
+        maxDim = maxDim || 2048;
+        quality = quality || 0.88;
+
+        if (!blob || !(blob instanceof Blob)) {
+            return Promise.resolve(blob);
+        }
+
+        if (window.createImageBitmap) {
+            return createImageBitmap(blob).then(function(bmp) {
+                var sw = bmp.width;
+                var sh = bmp.height;
+                var maxEdge = Math.max(sw, sh);
+                var scale = maxEdge > maxDim ? (maxDim / maxEdge) : 1;
+                var dw = Math.round(sw * scale);
+                var dh = Math.round(sh * scale);
+
+                var oc = document.createElement('canvas');
+                oc.width = dw;
+                oc.height = dh;
+                var octx = oc.getContext('2d');
+
+                if (chkMirror.checked) {
+                    octx.translate(dw, 0);
+                    octx.scale(-1, 1);
+                }
+                octx.drawImage(bmp, 0, 0, dw, dh);
+                if (bmp.close) bmp.close();
+
+                return new Promise(function(resolve) {
+                    oc.toBlob(function(optBlob) {
+                        resolve(optBlob || blob);
+                    }, 'image/jpeg', quality);
+                });
+            }).catch(function(err) {
+                console.warn('createImageBitmap error, fallback ke Image:', err);
+                return fallbackOptimizeBlob(blob, maxDim, quality);
+            });
+        }
+
+        return fallbackOptimizeBlob(blob, maxDim, quality);
+    }
+
+    function fallbackOptimizeBlob(blob, maxDim, quality) {
+        return new Promise(function(resolve) {
+            var img = new Image();
+            var url = URL.createObjectURL(blob);
+            img.onload = function() {
+                URL.revokeObjectURL(url);
+                var sw = img.naturalWidth || img.width;
+                var sh = img.naturalHeight || img.height;
+                var maxEdge = Math.max(sw, sh);
+                var scale = maxEdge > maxDim ? (maxDim / maxEdge) : 1;
+                var dw = Math.round(sw * scale);
+                var dh = Math.round(sh * scale);
+
+                var oc = document.createElement('canvas');
+                oc.width = dw;
+                oc.height = dh;
+                var octx = oc.getContext('2d');
+                if (chkMirror.checked) {
+                    octx.translate(dw, 0);
+                    octx.scale(-1, 1);
+                }
+                octx.drawImage(img, 0, 0, dw, dh);
+                oc.toBlob(function(optBlob) {
+                    resolve(optBlob || blob);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = function() {
+                URL.revokeObjectURL(url);
+                resolve(blob);
+            };
+            img.src = url;
+        });
+    }
+
     function handleKioskTriggerCapture(captureId) {
-        if (isCapturing) return;
+        if (isCapturing || (captureId && captureId === lastHandledCaptureId)) return;
+        lastHandledCaptureId = captureId;
         isCapturing = true;
         captureWait.style.display = 'inline-flex';
         triggerVisualFlash();
@@ -755,15 +835,21 @@
                 if (!res.ok) throw new Error('Pemotretan Canon gagal (HTTP ' + res.status + ')');
                 return res.blob();
             })
+            .then(function(rawBlob) {
+                // Kompresi cerdas di browser admin: ukuran turun dari ~12MB menjadi ~400KB (2048px @ 0.88).
+                // Kualitas DSLR tetap sangat tajam untuk cetak photostrip, transmisi ke bilik user instan (<0.3 detik)!
+                return optimizeSnapshotBlob(rawBlob, 2048, 0.88);
+            })
             .then(function(blob) {
                 return pushSnapshotToServer(blob, captureId);
+            })
+            .then(function() {
+                notifySnapshotReady(captureId);
             })
             .catch(function(err) {
                 console.error('Trigger capture Canon error:', err);
             })
             .then(function() {
-                notifySnapshotReady(captureId);
-
                 // Pastikan live view tetap aktif di digiCamControl
                 fetch(cfg.digicam.live_start_url, {
                     method: 'POST',
@@ -776,24 +862,38 @@
         } else {
             // Potret dengan Webcam secara instan
             if (video.videoWidth) {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.save();
+                var snapW = Math.min(video.videoWidth, 2048);
+                var snapH = Math.round(snapW * (video.videoHeight / video.videoWidth));
+                var snapCanvas = document.createElement('canvas');
+                snapCanvas.width = snapW;
+                snapCanvas.height = snapH;
+                var sCtx = snapCanvas.getContext('2d');
+                sCtx.save();
                 if (chkMirror.checked) {
-                    ctx.translate(video.videoWidth, 0);
-                    ctx.scale(-1, 1);
+                    sCtx.translate(snapW, 0);
+                    sCtx.scale(-1, 1);
                 }
-                ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-                ctx.restore();
+                sCtx.drawImage(video, 0, 0, snapW, snapH);
+                sCtx.restore();
 
-                canvas.toBlob(function(blob) {
+                snapCanvas.toBlob(function(blob) {
+                    if (!blob) {
+                        captureWait.style.display = 'none';
+                        isCapturing = false;
+                        return;
+                    }
                     pushSnapshotToServer(blob, captureId)
                         .then(function() {
                             notifySnapshotReady(captureId);
+                        })
+                        .catch(function(err) {
+                            console.error('Push webcam snapshot error:', err);
+                        })
+                        .then(function() {
                             captureWait.style.display = 'none';
                             isCapturing = false;
                         });
-                }, 'image/jpeg', 0.95);
+                }, 'image/jpeg', 0.88);
             } else {
                 captureWait.style.display = 'none';
                 isCapturing = false;
@@ -819,6 +919,9 @@
             if (captureId) fd.append('capture_id', captureId);
             return fetch("{{ route('camera.hub.snapshot.push') }}", {
                 method: 'POST',
+                headers: {
+                    'X-Capture-Id': captureId || ''
+                },
                 body: fd
             });
         }
@@ -826,7 +929,8 @@
         return fetch("{{ route('camera.hub.snapshot.push') }}", {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-Capture-Id': captureId || ''
             },
             body: JSON.stringify({ snapshot: blobOrDataUrl, capture_id: captureId })
         });
@@ -864,6 +968,9 @@
                     });
                 }
                 return res.blob();
+            })
+            .then(function(rawBlob) {
+                return optimizeSnapshotBlob(rawBlob, 2048, 0.88);
             })
             .then(function(blob) {
                 showTestPreview(blob, 'Kamera Canon DSLR (digiCamControl)');

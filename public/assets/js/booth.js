@@ -413,8 +413,28 @@
     });
   }
 
+  var hubSnapshotListeners = {};
+
+  function setupHubDataChannel(dc) {
+    if (!dc) return;
+    dc.onmessage = function (e) {
+      try {
+        var data = JSON.parse(e.data);
+        if (data && data.type === 'snapshot_ready') {
+          var cid = data.capture_id;
+          if (hubSnapshotListeners[cid]) {
+            hubSnapshotListeners[cid]();
+          } else if (hubSnapshotListeners['*']) {
+            hubSnapshotListeners['*'](cid);
+          }
+        }
+      } catch (err) {}
+    };
+  }
+
   function stopHubWebRTC() {
     hubWebrtcActive = false;
+    hubSnapshotListeners = {};
     if (hubDc) {
       try { hubDc.close(); } catch (e) {}
       hubDc = null;
@@ -458,6 +478,7 @@
 
     pc.ondatachannel = function (e) {
       hubDc = e.channel;
+      setupHubDataChannel(hubDc);
     };
 
     pc.onconnectionstatechange = function () {
@@ -754,13 +775,61 @@
       .then(function (b) { finish(); return b; }, function (err) { finish(); throw err; });
   }
 
-  function pollHubSnapshot(cid, retries) {
+  function pollHubSnapshot(cid, retries, delay) {
+    delay = delay || 120;
     return fetch(hub.snapshot_url + '?capture_id=' + encodeURIComponent(cid) + '&t=' + Date.now(), {
       credentials: 'same-origin', cache: 'no-store'
     }).then(function (res) {
       if (res.ok) return res.blob();
       if (retries <= 1) throw new Error('Kamera admin tidak merespons foto.');
-      return sleep(250).then(function () { return pollHubSnapshot(cid, retries - 1); });
+      return sleep(delay).then(function () {
+        return pollHubSnapshot(cid, retries - 1, Math.min(delay + 40, 350));
+      });
+    });
+  }
+
+  function waitForHubSnapshot(cid) {
+    return new Promise(function (resolve, reject) {
+      var isResolved = false;
+
+      function onReady() {
+        if (isResolved) return;
+        isResolved = true;
+        delete hubSnapshotListeners[cid];
+        delete hubSnapshotListeners['*'];
+        fetch(hub.snapshot_url + '?capture_id=' + encodeURIComponent(cid) + '&t=' + Date.now(), {
+          credentials: 'same-origin', cache: 'no-store'
+        })
+          .then(function (res) {
+            if (res.ok) return res.blob();
+            return pollHubSnapshot(cid, 20, 100);
+          })
+          .then(resolve)
+          .catch(reject);
+      }
+
+      hubSnapshotListeners[cid] = onReady;
+      hubSnapshotListeners['*'] = onReady;
+
+      // Jalankan polling paralel sebagai fallback bila WebRTC DataChannel belum tersambung
+      sleep(120).then(function () {
+        if (isResolved) return;
+        return pollHubSnapshot(cid, 25, 120);
+      }).then(function (blob) {
+        if (!isResolved && blob) {
+          isResolved = true;
+          delete hubSnapshotListeners[cid];
+          delete hubSnapshotListeners['*'];
+          resolve(blob);
+        }
+      }).catch(function (err) {
+        if (!isResolved) {
+          isResolved = true;
+          delete hubSnapshotListeners[cid];
+          delete hubSnapshotListeners['*'];
+          reject(err);
+        }
+      });
     });
   }
 
@@ -773,7 +842,7 @@
             hubDc.send(JSON.stringify({ type: 'trigger_capture', capture_id: cid }));
           } catch (e) {}
         }
-        return pollHubSnapshot(cid, 25);
+        return waitForHubSnapshot(cid);
       })
       .then(function (blob) {
         return createImageBitmap(blob);

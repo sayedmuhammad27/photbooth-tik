@@ -111,6 +111,11 @@ class DigicamController extends Controller
     {
         $this->guard($request);
 
+        // Bebaskan session lock segera agar request lain (seperti polling bilik) tidak terblokir
+        if (session()->isStarted()) {
+            session()->save();
+        }
+
         $timeout = max(5, (int) config('photobooth.digicam.capture_timeout', 25));
         @set_time_limit($timeout + 40);
 
@@ -132,7 +137,7 @@ class DigicamController extends Controller
             $sawBusy = false;
             $name = null;
             while (microtime(true) < $deadline) {
-                usleep(300000);
+                usleep(150000);
                 $current = $this->lastCaptured();
                 if ($current === '-') {
                     $sawBusy = true;
@@ -241,7 +246,7 @@ class DigicamController extends Controller
             } catch (Throwable $e) {
                 // file mungkin belum selesai ditulis; coba lagi
             }
-            usleep(300000);
+            usleep(150000);
         }
 
         return null;
