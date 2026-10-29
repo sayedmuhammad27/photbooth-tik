@@ -36,11 +36,10 @@
             <!-- Efek Flash Pemotretan -->
             <div id="shutter-flash" style="position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity 0.15s ease"></div>
 
-            <!-- Indikator Proses Potret -->
-            <div id="capture-wait-indicator" style="position:absolute;inset:0;display:none;background:rgba(12,18,48,0.8);align-items:center;justify-content:center;flex-direction:column;gap:8px;z-index:5">
-                <span style="font-size:2rem;animation:bounce 0.6s infinite alternate">📸</span>
-                <strong style="color:var(--pink-400);font-family:var(--font-display);font-size:var(--fs-sm)">MEMOTRET…</strong>
-                <span style="font-size:var(--fs-xs);color:var(--text-muted)">Kamera Canon sedang mengambil foto resolusi penuh</span>
+            <!-- Indikator Non-Intrusif Saat Memotret (Tidak menutupi layar / tidak freeze) -->
+            <div id="capture-wait-indicator" style="position:absolute;top:12px;right:12px;display:none;align-items:center;gap:6px;background:rgba(12,18,48,0.88);border:1px solid var(--pink-400);color:#fff;padding:5px 12px;font-family:var(--font-display);font-size:var(--fs-d-xs);z-index:10;pointer-events:none;border-radius:4px">
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--pink-400);animation:blink 0.5s infinite"></span>
+                📸 MEMOTRET FOTO PENUH…
             </div>
 
             <!-- Indikator On-Air -->
@@ -397,7 +396,7 @@
     }
 
     function pumpDigicamFrame() {
-        if (!liveOk || isCapturing || isFetchingLive) return;
+        if (!liveOk || isFetchingLive) return;
         isFetchingLive = true;
 
         fetch(cfg.digicam.liveview_url + '?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' })
@@ -415,7 +414,7 @@
             .catch(function(err) {})
             .then(function() {
                 isFetchingLive = false;
-                if (liveOk && !isCapturing) {
+                if (liveOk) {
                     var wait = Math.max(80, cfg.digicam.interval || 140);
                     liveTimer = setTimeout(pumpDigicamFrame, wait);
                 }
@@ -622,7 +621,7 @@
     // 8. Siaran Frame ke Bilik Pengunjung
     function scheduleNextPush(delay) {
         if (streamTimer) clearTimeout(streamTimer);
-        if (!isBroadcasting || isCapturing) return;
+        if (!isBroadcasting) return;
         streamTimer = setTimeout(sendLiveFrame, delay !== undefined ? delay : 75);
     }
 
@@ -662,7 +661,7 @@
 
     // 9. Kirim Frame Live View ke /camera-hub/push (Binary Blob Tanpa Base64)
     function sendLiveFrame() {
-        if (!isBroadcasting || isCapturing || isSendingFrame) return;
+        if (!isBroadcasting || isSendingFrame) return;
 
         var source = selSourceType.value;
         var srcW = 0, srcH = 0;
@@ -740,15 +739,14 @@
     function handleKioskTriggerCapture(captureId) {
         if (isCapturing) return;
         isCapturing = true;
-        captureWait.style.display = 'flex';
+        captureWait.style.display = 'inline-flex';
         triggerVisualFlash();
 
         var source = selSourceType.value;
 
         if (source === 'digicam') {
-            stopDigicamLivePolling();
-
             // Potret dengan Canon DSLR resolusi tinggi via digiCamControl
+            // Biarkan frame liveview terakhir tetap mengalir tanpa diputus paksa
             fetch(cfg.digicam.capture_url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'image/jpeg, application/json' }
@@ -764,10 +762,9 @@
                 console.error('Trigger capture Canon error:', err);
             })
             .then(function() {
-                // Beritahu juga lewat WebRTC DataChannel jika terbuka
                 notifySnapshotReady(captureId);
 
-                // Selesai: nyalakan kembali live view
+                // Pastikan live view tetap aktif di digiCamControl
                 fetch(cfg.digicam.live_start_url, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': cfg.csrf }
@@ -775,10 +772,9 @@
 
                 captureWait.style.display = 'none';
                 isCapturing = false;
-                startDigicamLivePolling();
             });
         } else {
-            // Potret dengan Webcam
+            // Potret dengan Webcam secara instan
             if (video.videoWidth) {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
@@ -797,7 +793,7 @@
                             captureWait.style.display = 'none';
                             isCapturing = false;
                         });
-                }, 'image/jpeg', 0.92);
+                }, 'image/jpeg', 0.95);
             } else {
                 captureWait.style.display = 'none';
                 isCapturing = false;
@@ -918,8 +914,14 @@
         var url = URL.createObjectURL(blob);
         imgTestPreview.src = url;
         var sizeKb = Math.round(blob.size / 1024);
-        testPreviewInfo.textContent = 'Sumber: ' + deviceName + ' • Ukuran file: ' + sizeKb + ' KB';
+        testPreviewInfo.textContent = 'Sumber: ' + deviceName + ' • Ukuran file: ' + sizeKb + ' KB (Otomatis menutup)';
         modalPreview.style.display = 'flex';
+
+        setTimeout(function() {
+            if (modalPreview.style.display === 'flex') {
+                closeModal();
+            }
+        }, 4000);
     }
 
     function closeModal() {

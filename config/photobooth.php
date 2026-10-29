@@ -18,10 +18,10 @@ return [
 
     /*
     | Mode transisi antar foto di bilik kamera:
+    | 'auto'   => Langsung melanjutkan timer ke foto berikutnya secara otomatis tanpa pop-up.
     | 'manual' => Berhenti setelah tiap foto, menunggu pengguna klik Lanjut / tekan Spasi.
-    | 'auto'   => Langsung melanjutkan timer ke foto berikutnya secara otomatis.
     */
-    'advance_mode' => env('PHOTOBOOTH_ADVANCE_MODE', 'manual'),
+    'advance_mode' => env('PHOTOBOOTH_ADVANCE_MODE', 'auto'),
 
     /*
     | Alamat dasar untuk QR code dan tautan bagikan, mis. "https://abc123.ngrok-free.app"

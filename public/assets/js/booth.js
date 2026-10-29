@@ -52,7 +52,7 @@
     source = dcc.default_source === 'webcam' ? 'webcam' : 'digicam';
   }
   var shots = new Array(TOTAL).fill(null);        // { blob, url }
-  var advanceMode = cfg.advance_mode || 'manual'; // 'manual' | 'auto'
+  var advanceMode = cfg.advance_mode || 'auto';   // 'auto' (default) | 'manual'
   try {
     var savedAdv = localStorage.getItem('pb_advance_mode');
     if (savedAdv === 'manual' || savedAdv === 'auto') advanceMode = savedAdv;
@@ -739,9 +739,7 @@
   // Potret dengan kamera Canon → foto resolusi penuh → dipotong sesuai rasio slot di browser.
   function digicamCapture(idx) {
     pauseLive();
-    waitEl.hidden = false;
     var finish = function () {
-      waitEl.hidden = true;
       // digiCamControl bisa menutup live view saat memotret: nyalakan lagi lalu lanjutkan polling.
       postJson(dcc.live_start_url).catch(function () {}).then(resumeLive);
     };
@@ -767,13 +765,6 @@
   }
 
   function hubCapture(idx) {
-    pauseLive();
-    waitEl.hidden = false;
-    var finish = function () {
-      waitEl.hidden = true;
-      resumeLive();
-    };
-
     return postJson(hub.trigger_url)
       .then(function (trigRes) {
         var cid = trigRes.capture_id;
@@ -792,8 +783,7 @@
           if (bmp.close) bmp.close();
           return b;
         });
-      })
-      .then(function (b) { finish(); return b; }, function (err) { finish(); throw err; });
+      });
   }
 
   /* ---------- Ambil gambar ---------- */
@@ -978,12 +968,12 @@
     selCam.disabled = busy;
     srcSelect.disabled = busy;
 
-    // Viewfinder prompt (interaktif setelah jepret foto)
+    // Viewfinder prompt (interaktif setelah jepret foto - HANYA tampil jika mode Manual aktif)
     if (vfPrompt) {
-      if (mode === 'ready' && n > 0) {
+      if (mode === 'ready' && n > 0 && advanceMode === 'manual') {
         vfPrompt.hidden = false;
         if (allFilled()) {
-          // Semua foto selesai diambil (Review Sesi)
+          // Semua foto selesai diambil (Review Sesi Manual)
           if (vfPromptThumb && lastCapturedIdx !== null && shots[lastCapturedIdx]) {
             vfPromptThumb.src = shots[lastCapturedIdx].url;
             vfPromptThumb.hidden = false;
@@ -1002,7 +992,7 @@
             btnVfFinish.hidden = false;
             btnVfFinish.textContent = '✔ Simpan & Selesai';
           }
-        } else if (advanceMode === 'manual') {
+        } else {
           // Jeda manual setelah mengambil satu foto
           var nextSlotNum = nextTarget() + 1;
           var curNum = (lastCapturedIdx !== null) ? (lastCapturedIdx + 1) : n;
@@ -1024,10 +1014,9 @@
           }
           if (btnVfRetakeSession) btnVfRetakeSession.hidden = true;
           if (btnVfFinish) btnVfFinish.hidden = true;
-        } else {
-          vfPrompt.hidden = true;
         }
       } else {
+        // Mode Otomatis (Default): Jangan pernah munculkan pop-up yang menghentikan foto!
         vfPrompt.hidden = true;
       }
     }

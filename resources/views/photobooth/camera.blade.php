@@ -72,8 +72,8 @@
             <div class="controls__group" role="group" aria-label="Mode Lanjut Foto">
                 <span>Lanjut</span>
                 <div class="seg" id="advance-seg">
-                    <button type="button" class="chip" data-advance="manual" aria-pressed="true" title="Tunggu tombol Lanjut atau Spasi sebelum foto berikutnya">Manual</button>
-                    <button type="button" class="chip" data-advance="auto" aria-pressed="false" title="Lanjut otomatis ke foto berikutnya">Otomatis</button>
+                    <button type="button" class="chip" data-advance="auto" aria-pressed="true" title="Lanjut otomatis ke foto berikutnya secara otomatis">Otomatis</button>
+                    <button type="button" class="chip" data-advance="manual" aria-pressed="false" title="Tunggu tombol Lanjut atau Spasi sebelum foto berikutnya">Manual</button>
                 </div>
             </div>
             <div class="controls__group" id="cam-group" hidden>
