@@ -76,10 +76,97 @@
   });
   window.addEventListener('pageshow', function () { document.body.classList.remove('is-leaving'); });
 
+  /* ---------- Layar Penuh (Fullscreen) ---------- */
+  PB.isFullscreen = function () {
+    return !!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+  };
+
+  PB.toggleFullscreen = function () {
+    if (PB.isFullscreen()) {
+      var efs = document.exitFullscreen ||
+                document.webkitExitFullscreen ||
+                document.mozCancelFullScreen ||
+                document.msExitFullscreen;
+      if (efs) {
+        try {
+          var p = efs.call(document);
+          if (p && p.catch) p.catch(function () {});
+        } catch (e) {}
+      }
+    } else {
+      var el = document.documentElement;
+      var rfs = el.requestFullscreen ||
+                el.webkitRequestFullscreen ||
+                el.mozRequestFullScreen ||
+                el.msRequestFullscreen;
+      if (rfs) {
+        try {
+          var p2 = rfs.call(el);
+          if (p2 && p2.catch) {
+            p2.catch(function () {
+              PB.toast('Izin layar penuh ditolak atau tidak didukung browser.', 'info');
+            });
+          }
+        } catch (e) {
+          PB.toast('Layar penuh tidak didukung di perangkat ini.', 'info');
+        }
+      }
+    }
+  };
+
+  function updateFullscreenButtons() {
+    var inFs = PB.isFullscreen();
+    document.body.classList.toggle('is-fullscreen-active', inFs);
+    var btns = document.querySelectorAll('.btn-fullscreen, .btn-fullscreen-floating');
+    for (var i = 0; i < btns.length; i++) {
+      var btn = btns[i];
+      btn.classList.toggle('is-active', inFs);
+      var icon = btn.querySelector('.fs-icon');
+      var label = btn.querySelector('.fs-text');
+      if (inFs) {
+        if (icon) icon.textContent = '🗗';
+        if (label) label.textContent = 'Keluar';
+        btn.setAttribute('title', 'Keluar Layar Penuh (Esc / F11)');
+        btn.setAttribute('aria-label', 'Keluar Layar Penuh');
+      } else {
+        if (icon) icon.textContent = '⛶';
+        if (label) label.textContent = 'Layar Penuh';
+        btn.setAttribute('title', 'Masuk Layar Penuh (F11)');
+        btn.setAttribute('aria-label', 'Masuk Layar Penuh');
+      }
+    }
+  }
+
+  document.addEventListener('fullscreenchange', updateFullscreenButtons);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenButtons);
+  document.addEventListener('mozfullscreenchange', updateFullscreenButtons);
+  document.addEventListener('MSFullscreenChange', updateFullscreenButtons);
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('.btn-fullscreen, .btn-fullscreen-floating') : null;
+    if (btn) {
+      e.preventDefault();
+      PB.toggleFullscreen();
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'F11') {
+      e.preventDefault();
+      PB.toggleFullscreen();
+    }
+  });
+
   /* ---------- Init ---------- */
   document.addEventListener('DOMContentLoaded', function () {
     if (!PB.reduceMotion()) document.body.classList.add('page-enter');
     PB.reveal();
+    updateFullscreenButtons();
     // Pesan flash dari server: <div data-toast="success|error|info">teks</div>
     Array.prototype.forEach.call(document.querySelectorAll('[data-toast]'), function (n) {
       PB.toast(n.textContent.trim(), n.getAttribute('data-toast') || 'info', 6000);

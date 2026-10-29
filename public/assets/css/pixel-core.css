@@ -212,3 +212,68 @@ body.is-leaving { opacity: 0; transition: opacity 160ms ease-in; }
   .reveal { opacity: 1; transform: none; }
   .has-stars::before, .has-stars::after { animation: none; opacity: .8; }
 }
+
+/* ---------- Tombol Layar Penuh (Fullscreen) ---------- */
+.btn-fullscreen-floating {
+  position: fixed;
+  top: 10px;
+  right: 14px;
+  z-index: 9999;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 38px;
+  padding: 8px 12px;
+  font-family: var(--font-display);
+  font-size: var(--fs-d-xs);
+  letter-spacing: .04em;
+  color: var(--peri-200);
+  background: var(--night-900);
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 calc(var(--px) * -1) 0 0 var(--outline),
+              0 var(--px) 0 0 var(--outline),
+              calc(var(--px) * -1) 0 0 0 var(--outline),
+              var(--px) 0 0 0 var(--outline),
+              4px 4px 0 0 rgba(8, 12, 36, .7);
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+  user-select: none;
+}
+.btn-fullscreen-floating:hover,
+.btn-fullscreen:hover {
+  background: var(--night-800);
+  color: var(--lamp-300);
+}
+.btn-fullscreen-floating:active,
+.btn-fullscreen:active {
+  transform: translateY(var(--px));
+}
+.btn-fullscreen-floating.is-active,
+.btn-fullscreen.is-active {
+  color: var(--lamp-500);
+  background: var(--night-700);
+  box-shadow: 0 calc(var(--px) * -1) 0 0 var(--lamp-500),
+              0 var(--px) 0 0 var(--lamp-500),
+              calc(var(--px) * -1) 0 0 0 var(--lamp-500),
+              var(--px) 0 0 0 var(--lamp-500);
+}
+.btn-fullscreen-floating .fs-icon,
+.btn-fullscreen .fs-icon {
+  font-size: 1.15em;
+  line-height: 1;
+}
+
+@media (max-width: 600px) {
+  .btn-fullscreen-floating {
+    top: 8px;
+    right: 8px;
+    padding: 6px 10px;
+    min-height: 34px;
+  }
+  .btn-fullscreen-floating .fs-text {
+    display: none;
+  }
+}
+

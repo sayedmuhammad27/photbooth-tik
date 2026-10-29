@@ -215,7 +215,7 @@
 /* =====================================================================
    ADMIN
    ===================================================================== */
-.adm-bar { background: var(--night-950); border-bottom: var(--px) solid var(--outline); }
+.adm-bar { background: var(--night-950); border-bottom: var(--px) solid var(--outline); position: sticky; top: 0; z-index: 100; }
 .adm-bar__in { max-width: 1200px; margin: 0 auto; padding: var(--sp-3) var(--sp-5); display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-6); }
 .adm-logo { font-family: var(--font-display); font-size: var(--fs-d-md); color: var(--lamp-300); text-decoration: none; }
 .adm-nav { display: flex; flex-wrap: wrap; gap: var(--sp-1); flex: 1; }
