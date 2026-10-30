@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PhotoSession;
 use App\Models\QueueTicket;
 use App\Models\Template;
+use App\Services\GoogleDriveService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -180,6 +181,19 @@ class SessionController extends Controller
 
                 return $photoSession;
             });
+
+            // Otomatis unggah ke Google Drive jika integrasi Google Drive diaktifkan
+            try {
+                $driveService = app(GoogleDriveService::class);
+                if ($driveService->isEnabled() && config('photobooth.google_drive.auto_upload', true)) {
+                    $driveService->uploadSession($session, false);
+                }
+            } catch (Throwable $driveEx) {
+                Log::warning('Google Drive auto-upload gagal (sesi foto tetap aman tersimpan lokal)', [
+                    'session_token' => $token,
+                    'error'         => $driveEx->getMessage(),
+                ]);
+            }
 
             return response()->json([
                 'redirect' => route('photobooth.result', $session->session_token),

@@ -72,6 +72,48 @@ class CameraHubAndTestPhotoTest extends TestCase
         $this->assertEquals('image/jpeg', $getSnap->headers->get('Content-Type'));
     }
 
+    public function test_camera_hub_sequential_snapshots_are_unique_and_not_duplicated(): void
+    {
+        $admin = User::factory()->create();
+
+        // Foto 1
+        $trigger1 = $this->postJson('/camera-hub/trigger');
+        $cid1 = $trigger1->json('capture_id');
+
+        $p1 = str_repeat('PHOTO_1_CONTENT_ABC_', 10);
+        $p2 = str_repeat('PHOTO_2_CONTENT_XYZ_', 10);
+
+        $this->actingAs($admin)->postJson('/camera-hub/snapshot/push', [
+            'capture_id' => $cid1,
+            'snapshot'   => 'data:image/jpeg;base64,' . base64_encode($p1),
+        ])->assertStatus(200);
+
+        $get1 = $this->get('/camera-hub/snapshot?capture_id=' . $cid1);
+        $get1->assertStatus(200);
+        $this->assertEquals($p1, $get1->streamedContent());
+
+        // Foto 2 diminta oleh bilik
+        $trigger2 = $this->postJson('/camera-hub/trigger');
+        $cid2 = $trigger2->json('capture_id');
+        $this->assertNotEquals($cid1, $cid2);
+
+        // Sebelum foto 2 diunggah kamera admin, bilik TIDAK BOLEH mendapatkan foto 1 (harus 404 'belum siap')
+        $getPending = $this->get('/camera-hub/snapshot?capture_id=' . $cid2);
+        $getPending->assertStatus(404);
+
+        // Foto 2 diunggah kamera admin
+        $this->actingAs($admin)->postJson('/camera-hub/snapshot/push', [
+            'capture_id' => $cid2,
+            'snapshot'   => 'data:image/jpeg;base64,' . base64_encode($p2),
+        ])->assertStatus(200);
+
+        // Bilik sekarang mendapatkan foto 2 yang benar-benar berbeda dari foto 1
+        $get2 = $this->get('/camera-hub/snapshot?capture_id=' . $cid2);
+        $get2->assertStatus(200);
+        $this->assertEquals($p2, $get2->streamedContent());
+        $this->assertNotEquals($get1->streamedContent(), $get2->streamedContent());
+    }
+
     public function test_test_photo_flow_does_not_save_to_database(): void
     {
         Storage::fake('public');

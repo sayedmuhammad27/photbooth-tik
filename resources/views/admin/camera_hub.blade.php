@@ -737,6 +737,7 @@
 
     // 10. Tangani Sinyal Trigger dari Bilik User
     var lastHandledCaptureId = null;
+    var captureQueue = [];
 
     function optimizeSnapshotBlob(blob, maxDim, quality) {
         maxDim = maxDim || 2048;
@@ -816,13 +817,38 @@
     }
 
     function handleKioskTriggerCapture(captureId) {
-        if (isCapturing || (captureId && captureId === lastHandledCaptureId)) return;
+        if (!captureId) return;
+        if (captureId === lastHandledCaptureId) return;
+
+        if (isCapturing) {
+            if (captureQueue.indexOf(captureId) === -1) {
+                captureQueue.push(captureId);
+            }
+            return;
+        }
+
+        processKioskCapture(captureId);
+    }
+
+    function processKioskCapture(captureId) {
         lastHandledCaptureId = captureId;
         isCapturing = true;
         captureWait.style.display = 'inline-flex';
         triggerVisualFlash();
 
         var source = selSourceType.value;
+
+        var finishCapture = function() {
+            captureWait.style.display = 'none';
+            isCapturing = false;
+
+            if (captureQueue.length > 0) {
+                var nextCid = captureQueue.shift();
+                setTimeout(function() {
+                    handleKioskTriggerCapture(nextCid);
+                }, 80);
+            }
+        };
 
         if (source === 'digicam') {
             // Potret dengan Canon DSLR resolusi tinggi via digiCamControl
@@ -856,8 +882,7 @@
                     headers: { 'X-CSRF-TOKEN': cfg.csrf }
                 }).catch(function() {});
 
-                captureWait.style.display = 'none';
-                isCapturing = false;
+                finishCapture();
             });
         } else {
             // Potret dengan Webcam secara instan
@@ -878,8 +903,7 @@
 
                 snapCanvas.toBlob(function(blob) {
                     if (!blob) {
-                        captureWait.style.display = 'none';
-                        isCapturing = false;
+                        finishCapture();
                         return;
                     }
                     pushSnapshotToServer(blob, captureId)
@@ -889,14 +913,10 @@
                         .catch(function(err) {
                             console.error('Push webcam snapshot error:', err);
                         })
-                        .then(function() {
-                            captureWait.style.display = 'none';
-                            isCapturing = false;
-                        });
+                        .then(finishCapture);
                 }, 'image/jpeg', 0.88);
             } else {
-                captureWait.style.display = 'none';
-                isCapturing = false;
+                finishCapture();
             }
         }
     }

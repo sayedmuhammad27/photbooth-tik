@@ -143,9 +143,17 @@ class DigicamController extends Controller
                     $sawBusy = true;
                     continue;
                 }
-                if ($current !== '' && ($current !== $before || $sawBusy)) {
-                    $name = $current;
-                    break;
+                // Jika ada foto sebelumnya, foto baru harus memiliki nama berbeda
+                if ($before !== '') {
+                    if ($current !== '' && $current !== $before) {
+                        $name = $current;
+                        break;
+                    }
+                } else {
+                    if ($current !== '') {
+                        $name = $current;
+                        break;
+                    }
                 }
             }
 

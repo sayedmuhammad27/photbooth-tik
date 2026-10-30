@@ -36,6 +36,12 @@
 
             <div class="result__actions">
                 <a class="btn btn--primary btn--block" href="{{ route('photobooth.download', [$session->session_token, 'strip']) }}" download data-no-transition>UNDUH STRIP</a>
+                @if($session->isSyncedToGoogleDrive())
+                    <a class="btn btn--success btn--block" id="btn-gdrive-link" href="{{ $session->google_drive_url }}" target="_blank" rel="noopener">☁️ BUKA DI GOOGLE DRIVE</a>
+                @else
+                    <button type="button" class="btn btn--ghost btn--block" id="btn-sync-gdrive" data-token="{{ $session->session_token }}">☁️ SIMPAN KE GOOGLE DRIVE</button>
+                    <a class="btn btn--success btn--block" id="btn-gdrive-link" href="#" target="_blank" rel="noopener" style="display:none">☁️ BUKA DI GOOGLE DRIVE</a>
+                @endif
                 <a class="btn btn--ghost btn--block" href="{{ route('home') }}">SELESAI</a>
             </div>
         </div>
@@ -56,3 +62,57 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(function() {
+    var btnSync = document.getElementById('btn-sync-gdrive');
+    var linkDrive = document.getElementById('btn-gdrive-link');
+    if (!btnSync) return;
+
+    btnSync.addEventListener('click', function() {
+        var token = btnSync.getAttribute('data-token');
+        btnSync.disabled = true;
+        btnSync.textContent = '⏳ Menyimpan ke Drive…';
+
+        fetch('/session/' + encodeURIComponent(token) + '/upload-drive', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        })
+        .then(function(res) {
+            return res.json().then(function(data) {
+                if (!res.ok) throw new Error(data.message || ('HTTP ' + res.status));
+                return data;
+            });
+        })
+        .then(function(data) {
+            if (data.ok && data.google_drive_url) {
+                if (window.PB && PB.toast) {
+                    PB.toast('Foto berhasil tersimpan di Google Drive!', 'success', 3500);
+                }
+                btnSync.style.display = 'none';
+                if (linkDrive) {
+                    linkDrive.href = data.google_drive_url;
+                    linkDrive.style.display = 'flex';
+                }
+            } else {
+                throw new Error(data.message || 'Gagal menyimpan.');
+            }
+        })
+        .catch(function(err) {
+            btnSync.disabled = false;
+            btnSync.textContent = '☁️ Simpan ke Google Drive';
+            if (window.PB && PB.toast) {
+                PB.toast(err.message || 'Gagal menyimpan ke Google Drive. Periksa koneksi atau kredensial Google Drive.', 'error', 6000);
+            } else {
+                alert(err.message || 'Gagal menyimpan ke Google Drive.');
+            }
+        });
+    });
+})();
+</script>
+@endpush

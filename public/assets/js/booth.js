@@ -422,10 +422,8 @@
         var data = JSON.parse(e.data);
         if (data && data.type === 'snapshot_ready') {
           var cid = data.capture_id;
-          if (hubSnapshotListeners[cid]) {
+          if (cid && hubSnapshotListeners[cid]) {
             hubSnapshotListeners[cid]();
-          } else if (hubSnapshotListeners['*']) {
-            hubSnapshotListeners['*'](cid);
           }
         }
       } catch (err) {}
@@ -796,37 +794,33 @@
         if (isResolved) return;
         isResolved = true;
         delete hubSnapshotListeners[cid];
-        delete hubSnapshotListeners['*'];
         fetch(hub.snapshot_url + '?capture_id=' + encodeURIComponent(cid) + '&t=' + Date.now(), {
           credentials: 'same-origin', cache: 'no-store'
         })
           .then(function (res) {
             if (res.ok) return res.blob();
-            return pollHubSnapshot(cid, 20, 100);
+            return pollHubSnapshot(cid, 25, 120);
           })
           .then(resolve)
           .catch(reject);
       }
 
       hubSnapshotListeners[cid] = onReady;
-      hubSnapshotListeners['*'] = onReady;
 
       // Jalankan polling paralel sebagai fallback bila WebRTC DataChannel belum tersambung
-      sleep(120).then(function () {
+      sleep(180).then(function () {
         if (isResolved) return;
-        return pollHubSnapshot(cid, 25, 120);
+        return pollHubSnapshot(cid, 35, 150);
       }).then(function (blob) {
         if (!isResolved && blob) {
           isResolved = true;
           delete hubSnapshotListeners[cid];
-          delete hubSnapshotListeners['*'];
           resolve(blob);
         }
       }).catch(function (err) {
         if (!isResolved) {
           isResolved = true;
           delete hubSnapshotListeners[cid];
-          delete hubSnapshotListeners['*'];
           reject(err);
         }
       });

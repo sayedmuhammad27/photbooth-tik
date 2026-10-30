@@ -116,6 +116,13 @@ class CameraHubController extends Controller
         Cache::put('camera_hub_trigger_capture', $captureId, now()->addSeconds(20));
         Cache::put('camera_hub_pending_capture_id', $captureId, now()->addSeconds(20));
 
+        // Pastikan tidak ada berkas cache lama dengan ID ini
+        $dir = storage_path('framework/cache/snapshots');
+        $oldPath = $dir . '/snap_' . $captureId . '.jpg';
+        if (file_exists($oldPath)) {
+            @unlink($oldPath);
+        }
+
         return response()->json([
             'ok'         => true,
             'capture_id' => $captureId,
@@ -147,22 +154,22 @@ class CameraHubController extends Controller
         // Cek binary stream
         if (str_contains($contentType, 'image/') || str_contains($contentType, 'application/octet-stream')) {
             $binary = $request->getContent();
-            if ($binary && strlen($binary) > 1000) {
-                $path = $dir . '/snap_' . ($captureId ?: 'latest') . '.jpg';
-                @file_put_contents($path, $binary);
+            if ($binary && strlen($binary) > 50) {
                 if ($captureId) {
-                    @file_put_contents($dir . '/snap_latest.jpg', $binary);
+                    $path = $dir . '/snap_' . $captureId . '.jpg';
+                    @file_put_contents($path, $binary);
                 }
+                @file_put_contents($dir . '/snap_latest.jpg', $binary);
                 $saved = true;
             }
         } elseif ($request->hasFile('snapshot')) {
             $file = $request->file('snapshot');
             if ($file && $file->isValid()) {
-                $path = $dir . '/snap_' . ($captureId ?: 'latest') . '.jpg';
-                @copy($file->getRealPath(), $path);
                 if ($captureId) {
-                    @copy($file->getRealPath(), $dir . '/snap_latest.jpg');
+                    $path = $dir . '/snap_' . $captureId . '.jpg';
+                    @copy($file->getRealPath(), $path);
                 }
+                @copy($file->getRealPath(), $dir . '/snap_latest.jpg');
                 $saved = true;
             }
         } else {
@@ -171,12 +178,14 @@ class CameraHubController extends Controller
             if ($snapshot) {
                 $parts = explode(',', $snapshot, 2);
                 $binary = base64_decode($parts[1] ?? $parts[0]);
-                $path = $dir . '/snap_' . ($captureId ?: 'latest') . '.jpg';
-                @file_put_contents($path, $binary);
-                if ($captureId) {
+                if ($binary && strlen($binary) > 50) {
+                    if ($captureId) {
+                        $path = $dir . '/snap_' . $captureId . '.jpg';
+                        @file_put_contents($path, $binary);
+                    }
                     @file_put_contents($dir . '/snap_latest.jpg', $binary);
+                    $saved = true;
                 }
-                $saved = true;
             }
         }
 
@@ -214,22 +223,32 @@ class CameraHubController extends Controller
         $captureId = $request->query('capture_id');
         $dir = storage_path('framework/cache/snapshots');
 
-        $path = $captureId ? ($dir . '/snap_' . $captureId . '.jpg') : null;
-
-        if (! $path || ! file_exists($path)) {
-            // Coba snapshot latest jika capture_id spesifik belum ada
-            $latestPath = $dir . '/snap_latest.jpg';
-            if (file_exists($latestPath) && (time() - filemtime($latestPath) < 60)) {
-                $path = $latestPath;
-            } else {
-                return response()->json(['message' => 'Foto belum siap.'], 404);
+        // Jika bilik meminta capture_id spesifik (selalu dikirim oleh booth.js pada tiap foto):
+        // WAJIB hanya mengembalikan berkas foto dengan capture_id tersebut.
+        // JANGAN PERNAH fallback ke snap_latest.jpg di sini, karena bila foto baru masih diproses kamera,
+        // fallback ke snap_latest.jpg akan mengembalikan foto sebelumnya (foto 1), menyebabkan foto terduplikasi / double!
+        if ($captureId) {
+            $path = $dir . '/snap_' . $captureId . '.jpg';
+            if (file_exists($path) && filesize($path) > 50) {
+                return response()->file($path, [
+                    'Content-Type'  => 'image/jpeg',
+                    'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                ]);
             }
+
+            return response()->json(['message' => 'Foto belum siap.'], 404);
         }
 
-        return response()->file($path, [
-            'Content-Type'  => 'image/jpeg',
-            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-        ]);
+        // Fallback hanya berlaku jika request sama sekali tidak membawa parameter capture_id
+        $latestPath = $dir . '/snap_latest.jpg';
+        if (file_exists($latestPath) && (time() - filemtime($latestPath) < 60) && filesize($latestPath) > 50) {
+            return response()->file($latestPath, [
+                'Content-Type'  => 'image/jpeg',
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            ]);
+        }
+
+        return response()->json(['message' => 'Foto belum siap.'], 404);
     }
 
     /**
