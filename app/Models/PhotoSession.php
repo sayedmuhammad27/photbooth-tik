@@ -16,23 +16,11 @@ class PhotoSession extends Model
         'session_token',
         'final_image_path',
         'raw_photos',
-        'google_drive_file_id',
-        'google_drive_url',
-        'google_drive_raw_urls',
-        'google_drive_status',
-        'google_drive_synced_at',
     ];
 
     protected $casts = [
-        'raw_photos'             => 'array',
-        'google_drive_raw_urls'  => 'array',
-        'google_drive_synced_at' => 'datetime',
+        'raw_photos' => 'array',
     ];
-
-    public function isSyncedToGoogleDrive(): bool
-    {
-        return ! empty($this->google_drive_url);
-    }
 
     public function template(): BelongsTo
     {

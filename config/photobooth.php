@@ -59,20 +59,6 @@ return [
         'live_interval' => (int) env('CAMERA_HUB_LIVE_INTERVAL', 75),      // ms antar frame fallback HTTP
     ],
 
-    /*
-    | Pengaturan Integrasi Google Drive API
-    */
-    'google_drive' => [
-        'enabled'              => (bool) env('GOOGLE_DRIVE_ENABLED', false),
-        'folder_id'            => env('GOOGLE_DRIVE_FOLDER_ID', ''),
-        'client_id'            => env('GOOGLE_DRIVE_CLIENT_ID', ''),
-        'client_secret'        => env('GOOGLE_DRIVE_CLIENT_SECRET', ''),
-        'refresh_token'        => env('GOOGLE_DRIVE_REFRESH_TOKEN', ''),
-        'service_account_json' => env('GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON', ''),
-        'webhook_url'          => env('GOOGLE_DRIVE_WEBHOOK_URL', ''),
-        'auto_upload'          => (bool) env('GOOGLE_DRIVE_AUTO_UPLOAD', true),
-    ],
-
     'categories' => [
         'strip'  => 'Strip',
         'grid'   => 'Grid',

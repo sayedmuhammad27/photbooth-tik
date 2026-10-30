@@ -8,7 +8,6 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -19,11 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Di belakang tunnel (ngrok/cloudflared) skema HTTPS datang lewat header X-Forwarded-*.
         $middleware->trustProxies(at: '*');
 
-        // Kecualikan endpoint streaming kamera dan API publik dari validasi CSRF
+        // Kecualikan endpoint streaming kamera dari validasi CSRF agar tidak membebani CPU
         $middleware->validateCsrfTokens(except: [
             'camera-hub/*',
-            'api/*',
-            'session/*/upload-drive',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -3,7 +3,6 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\QueueController as AdminQueueController;
 use App\Http\Controllers\Admin\TemplateController;
-use App\Http\Controllers\Api\GoogleDriveController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CameraHubController;
 use App\Http\Controllers\DigicamController;
@@ -27,7 +26,6 @@ Route::get('/result/{token}', [SessionController::class, 'result'])->name('photo
 Route::get('/result/{token}/download/{kind}', [SessionController::class, 'download'])
     ->where('kind', 'strip|[0-9]+')
     ->name('photobooth.download');
-Route::post('/session/{token}/upload-drive', [GoogleDriveController::class, 'uploadSession'])->name('photobooth.upload-drive');
 
 // ==========================================
 // FITUR TEST FOTO (UJI COBA TANPA SIMPAN DATABASE)

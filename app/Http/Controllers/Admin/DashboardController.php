@@ -19,7 +19,6 @@ class DashboardController extends Controller
             'antrean_hari_ini' => QueueTicket::today()->count(),
             'antrean_menunggu' => QueueTicket::today()->waiting()->count(),
             'antrean_aktif'    => QueueTicket::today()->whereIn('status', ['in_session', 'called'])->first(),
-            'gdrive_synced'    => PhotoSession::whereNotNull('google_drive_url')->count(),
         ];
 
         return view('admin.dashboard', [

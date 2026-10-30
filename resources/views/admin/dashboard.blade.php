@@ -27,10 +27,6 @@
             {{ $stats['antrean_aktif'] ? '#' . $stats['antrean_aktif']->queue_number : 'Kosong' }}
         </div>
     </div>
-    <div class="px-box stat reveal" style="border-left:4px solid var(--peri-400)">
-        <div class="stat__label">Tersimpan di Google Drive</div>
-        <div class="stat__value" style="color:var(--peri-200)">{{ number_format($stats['gdrive_synced'], 0, ',', '.') }}</div>
-    </div>
 </div>
 
 <h2 class="section-title">Sesi terakhir</h2>
