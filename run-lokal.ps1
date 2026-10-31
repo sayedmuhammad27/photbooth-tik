@@ -50,27 +50,31 @@ foreach ($c in $xamppCandidates) {
 $mysqlPort = Get-NetTCPConnection -LocalPort 3306 -State Listen -ErrorAction SilentlyContinue
 if (-not $mysqlPort) {
     Write-Host "[1/4] Menyalakan MySQL (mysqld.exe)..." -ForegroundColor Yellow
+    $mysqlBat = if ($xamppDir) { Join-Path $xamppDir "mysql_start.bat" } else { $null }
     $mysqlExe = if ($xamppDir) { Join-Path $xamppDir "mysql\bin\mysqld.exe" } else { $null }
     $mysqlIni = if ($xamppDir) { Join-Path $xamppDir "mysql\bin\my.ini" } else { $null }
 
-    if ($mysqlExe -and (Test-Path $mysqlExe) -and (Test-Path $mysqlIni)) {
+    if ($mysqlBat -and (Test-Path $mysqlBat)) {
+        $wmi = [wmiclass]"Win32_Process"
+        $cmd = "cmd.exe /c `"`"$mysqlBat`"`""
+        $wmi.Create($cmd, $xamppDir, $null) | Out-Null
+    } elseif ($mysqlExe -and (Test-Path $mysqlExe) -and (Test-Path $mysqlIni)) {
         $wmi = [wmiclass]"Win32_Process"
         $cmd = "`"$mysqlExe`" --defaults-file=`"$mysqlIni`" --standalone"
         $wmi.Create($cmd, $xamppDir, $null) | Out-Null
+    }
 
-        $mysqlOk = $false
-        for ($i = 0; $i -lt 10; $i++) {
-            Start-Sleep -Seconds 1
-            $test = Get-NetTCPConnection -LocalPort 3306 -State Listen -ErrorAction SilentlyContinue
-            if ($test) { $mysqlOk = $true; break }
-        }
-        if ($mysqlOk) {
-            Write-Host "   -> MySQL (mysqld.exe) BERHASIL AKTIF di port 3306." -ForegroundColor Green
-        } else {
-            Write-Host "   -> MySQL sedang booting..." -ForegroundColor DarkGray
-        }
+    # Tunggu port 3306 siap
+    $mysqlOk = $false
+    for ($i = 0; $i -lt 10; $i++) {
+        Start-Sleep -Seconds 1
+        $test = Get-NetTCPConnection -LocalPort 3306 -State Listen -ErrorAction SilentlyContinue
+        if ($test) { $mysqlOk = $true; break }
+    }
+    if ($mysqlOk) {
+        Write-Host "   -> MySQL (mysqld.exe) BERHASIL AKTIF di port 3306." -ForegroundColor Green
     } else {
-        Write-Host "   -> File mysqld.exe tidak ditemukan di folder XAMPP." -ForegroundColor Red
+        Write-Host "   -> MySQL sedang booting..." -ForegroundColor DarkGray
     }
 } else {
     Write-Host "[1/4] MySQL (mysqld.exe) sudah aktif di port 3306." -ForegroundColor Green
@@ -80,26 +84,30 @@ if (-not $mysqlPort) {
 $apachePort = Get-NetTCPConnection -LocalPort 80 -State Listen -ErrorAction SilentlyContinue
 if (-not $apachePort) {
     Write-Host "[2/4] Menyalakan Apache (httpd.exe)..." -ForegroundColor Yellow
+    $apacheBat = if ($xamppDir) { Join-Path $xamppDir "apache_start.bat" } else { $null }
     $apacheExe = if ($xamppDir) { Join-Path $xamppDir "apache\bin\httpd.exe" } else { $null }
 
-    if ($apacheExe -and (Test-Path $apacheExe)) {
+    if ($apacheBat -and (Test-Path $apacheBat)) {
+        $wmi = [wmiclass]"Win32_Process"
+        $cmd = "cmd.exe /c `"`"$apacheBat`"`""
+        $wmi.Create($cmd, $xamppDir, $null) | Out-Null
+    } elseif ($apacheExe -and (Test-Path $apacheExe)) {
         $wmi = [wmiclass]"Win32_Process"
         $cmd = "`"$apacheExe`""
         $wmi.Create($cmd, $xamppDir, $null) | Out-Null
+    }
 
-        $apacheOk = $false
-        for ($i = 0; $i -lt 6; $i++) {
-            Start-Sleep -Seconds 1
-            $test = Get-NetTCPConnection -LocalPort 80 -State Listen -ErrorAction SilentlyContinue
-            if ($test) { $apacheOk = $true; break }
-        }
-        if ($apacheOk) {
-            Write-Host "   -> Apache (httpd.exe) BERHASIL AKTIF di port 80." -ForegroundColor Green
-        } else {
-            Write-Host "   -> Apache sedang booting..." -ForegroundColor DarkGray
-        }
+    # Tunggu port 80 siap
+    $apacheOk = $false
+    for ($i = 0; $i -lt 6; $i++) {
+        Start-Sleep -Seconds 1
+        $test = Get-NetTCPConnection -LocalPort 80 -State Listen -ErrorAction SilentlyContinue
+        if ($test) { $apacheOk = $true; break }
+    }
+    if ($apacheOk) {
+        Write-Host "   -> Apache (httpd.exe) BERHASIL AKTIF di port 80." -ForegroundColor Green
     } else {
-        Write-Host "   -> File httpd.exe tidak ditemukan di folder XAMPP." -ForegroundColor Red
+        Write-Host "   -> Apache sedang booting..." -ForegroundColor DarkGray
     }
 } else {
     Write-Host "[2/4] Apache (httpd.exe) sudah aktif di port 80." -ForegroundColor Green
@@ -124,8 +132,7 @@ if (-not $dccProc) {
     }
     if ($dccFound) {
         $dccDir = Split-Path $dccFound
-        $wmi = [wmiclass]"Win32_Process"
-        $wmi.Create("`"$dccFound`"", $dccDir, $null) | Out-Null
+        Start-Process -FilePath $dccFound -WorkingDirectory $dccDir
         Write-Host "   -> digiCamControl BERHASIL DIBUKA: $dccFound" -ForegroundColor Green
     } else {
         Write-Host "   -> digiCamControl tidak ditemukan di lokasi standar (lewati jika memakai webcam)." -ForegroundColor DarkGray
@@ -140,7 +147,7 @@ $needRestart = $false
 if ($laravelPort) {
     $hasGlobalBind = $false
     foreach ($conn in $laravelPort) {
-        if ($conn.LocalAddress -eq '0.0.0.0') {
+        if ($conn.LocalAddress -eq "0.0.0.0") {
             $hasGlobalBind = $true
             break
         }
@@ -158,8 +165,10 @@ if ($laravelPort) {
 
 if (-not $laravelPort -or $needRestart) {
     Write-Host "[4/4] Menyalakan server Laravel di port 8000 (0.0.0.0)..." -ForegroundColor Yellow
+    $phpExe = if ($xamppDir -and (Test-Path (Join-Path $xamppDir "php\php.exe"))) { Join-Path $xamppDir "php\php.exe" } else { "php" }
     $wmi = [wmiclass]"Win32_Process"
-    $wmi.Create("php artisan serve --host=0.0.0.0 --port=8000", $PSScriptRoot, $null) | Out-Null
+    $cmd = "`"$phpExe`" artisan serve --host=0.0.0.0 --port=8000"
+    $wmi.Create($cmd, $PSScriptRoot, $null) | Out-Null
 
     # Tunggu port 8000 siap
     for ($i = 0; $i -lt 8; $i++) {
@@ -177,11 +186,11 @@ Write-Host "==================================================================="
 Write-Host "      PHOTOBOOTH TIK - MODE JARINGAN LOKAL SIAP DIGUNAKAN!         " -ForegroundColor Green
 Write-Host "===================================================================" -ForegroundColor Green
 Write-Host ""
-Write-Host " 📶 [JARINGAN LOKAL - HP/TABLET] : http://${lanIp}:8000" -ForegroundColor Yellow
-Write-Host " 💻 [LOCAL HOST - BILIK FOTO]   : http://localhost:8000" -ForegroundColor Cyan
-Write-Host " 📷 [LOCAL HOST - KAMERA HUB]   : http://localhost:8000/admin/camera-hub" -ForegroundColor Magenta
-Write-Host " ⚙️  [LOCAL HOST - DASHBOARD]    : http://localhost:8000/admin/dashboard" -ForegroundColor White
-Write-Host " 🗄️  [LOCAL HOST - PHPMYADMIN]   : http://localhost/phpmyadmin" -ForegroundColor DarkGray
+Write-Host " [JARINGAN LOKAL - HP/TABLET] : http://$lanIp:8000" -ForegroundColor Yellow
+Write-Host " [LOCAL HOST - BILIK FOTO]   : http://localhost:8000" -ForegroundColor Cyan
+Write-Host " [LOCAL HOST - KAMERA HUB]   : http://localhost:8000/admin/camera-hub" -ForegroundColor Magenta
+Write-Host " [LOCAL HOST - DASHBOARD]    : http://localhost:8000/admin/dashboard" -ForegroundColor White
+Write-Host " [LOCAL HOST - PHPMYADMIN]   : http://localhost/phpmyadmin" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "===================================================================" -ForegroundColor Green
 Write-Host " STATUS SISTEM:" -ForegroundColor White
@@ -193,20 +202,17 @@ Write-Host "==================================================================="
 Write-Host ""
 Write-Host " PETUNJUK PENGGUNAAN JARINGAN LOKAL:" -ForegroundColor White
 Write-Host " 1. Sambungkan HP/Tablet pengunjung ke Wi-Fi yang sama dengan laptop ini." -ForegroundColor Cyan
-Write-Host " 2. QR Code pada hasil foto OTOMATIS mengarah ke: http://${lanIp}:8000" -ForegroundColor Yellow
+Write-Host " 2. QR Code pada hasil foto OTOMATIS mengarah ke: http://$lanIp:8000" -ForegroundColor Yellow
 Write-Host " 3. Pengunjung dapat scan QR code untuk langsung melihat & mengunduh foto." -ForegroundColor White
 Write-Host " 4. Admin dapat mengoperasikan Kamera Hub di laptop ini untuk siaran." -ForegroundColor White
 Write-Host ""
 Write-Host "Membuka halaman Kamera Hub Admin di browser..." -ForegroundColor DarkGray
 Start-Process "http://localhost:8000/admin/camera-hub"
 Write-Host ""
-Write-Host "Tekan Ctrl+C untuk menutup script (atau jalankan 'matikan-semua.bat')." -ForegroundColor DarkGray
-
-# Jaga jendela PowerShell tetap terbuka menampilkan info status
+Write-Host "Layanan Photobooth sedang berjalan di latar belakang." -ForegroundColor Green
+Write-Host "Tekan Enter untuk menutup jendela ini (layanan tetap aktif di background)..." -ForegroundColor White
+Write-Host "Tip: Untuk mematikan semua layanan, jalankan matikan-semua.bat." -ForegroundColor Cyan
 try {
-    while ($true) {
-        Start-Sleep -Seconds 60
-    }
-} finally {
-    Write-Host "Mode Jaringan Lokal selesai." -ForegroundColor Cyan
-}
+    $null = Read-Host
+} catch {}
+
