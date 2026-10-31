@@ -7,9 +7,30 @@ if (-not (Test-Path $storageDir)) {
 
 $tunnelFile = Join-Path $storageDir "tunnel_url.txt"
 $logFile = Join-Path $storageDir "cloudflared.log"
+$localIpFile = Join-Path $storageDir "local_ip.txt"
 
 if (Test-Path $tunnelFile) { Remove-Item $tunnelFile -Force -ErrorAction SilentlyContinue }
 if (Test-Path $logFile) { Remove-Item $logFile -Force -ErrorAction SilentlyContinue }
+
+# Deteksi IP Jaringan Lokal (Wi-Fi / LAN)
+$lanIp = $null
+try {
+    $netIps = Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias 'Wi-Fi*','Ethernet*','vEthernet*' -ErrorAction SilentlyContinue |
+        Where-Object { $_.IPAddress -notmatch '^(169\.254|127\.)' }
+    if ($netIps) {
+        $gwRoute = Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue | Sort-Object RouteMetric | Select-Object -First 1
+        if ($gwRoute) {
+            $gwIp = $netIps | Where-Object { $_.InterfaceIndex -eq $gwRoute.InterfaceIndex } | Select-Object -First 1
+            if ($gwIp) { $lanIp = $gwIp.IPAddress }
+        }
+        if (-not $lanIp) {
+            $lanIp = ($netIps | Select-Object -First 1).IPAddress
+        }
+    }
+} catch {}
+
+if (-not $lanIp) { $lanIp = "127.0.0.1" }
+Set-Content -Path $localIpFile -Value $lanIp -NoNewline -Force
 
 Write-Host "===================================================================" -ForegroundColor Cyan
 Write-Host "       PHOTOBOOTH TIK - ALL-IN-ONE SYSTEM LAUNCHER (AUTO)          " -ForegroundColor Cyan
@@ -117,12 +138,32 @@ if (-not $dccProc) {
     Write-Host "[3/5] digiCamControl (CameraControl.exe) sudah aktif." -ForegroundColor Green
 }
 
-# 4. Jalankan Laravel Artisan (php artisan serve) jika port 8000 belum aktif
+# 4. Jalankan Laravel Artisan (php artisan serve) di 0.0.0.0:8000
 $laravelPort = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue
-if (-not $laravelPort) {
-    Write-Host "[4/5] Menyalakan server Laravel di port 8000..." -ForegroundColor Yellow
+$needRestart = $false
+if ($laravelPort) {
+    $hasGlobalBind = $false
+    foreach ($conn in $laravelPort) {
+        if ($conn.LocalAddress -eq '0.0.0.0') {
+            $hasGlobalBind = $true
+            break
+        }
+    }
+    if (-not $hasGlobalBind) {
+        Write-Host "   -> Merestart Laravel ke 0.0.0.0 agar bisa diakses lewat Wi-Fi..." -ForegroundColor Yellow
+        foreach ($conn in $laravelPort) {
+            if ($conn.OwningProcess) {
+                Stop-Process -Id $conn.OwningProcess -Force -ErrorAction SilentlyContinue
+            }
+        }
+        $needRestart = $true
+    }
+}
+
+if (-not $laravelPort -or $needRestart) {
+    Write-Host "[4/5] Menyalakan server Laravel di port 8000 (0.0.0.0)..." -ForegroundColor Yellow
     $wmi = [wmiclass]"Win32_Process"
-    $wmi.Create("php artisan serve --port=8000", $PSScriptRoot, $null) | Out-Null
+    $wmi.Create("php artisan serve --host=0.0.0.0 --port=8000", $PSScriptRoot, $null) | Out-Null
 
     # Tunggu port 8000 siap
     for ($i = 0; $i -lt 8; $i++) {
@@ -130,9 +171,9 @@ if (-not $laravelPort) {
         $test = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue
         if ($test) { break }
     }
-    Write-Host "   -> Server Laravel BERHASIL AKTIF di http://127.0.0.1:8000" -ForegroundColor Green
+    Write-Host "   -> Server Laravel BERHASIL AKTIF di 0.0.0.0:8000" -ForegroundColor Green
 } else {
-    Write-Host "[4/5] Server Laravel port 8000 sudah aktif." -ForegroundColor Green
+    Write-Host "[4/5] Server Laravel port 8000 sudah aktif (0.0.0.0)." -ForegroundColor Green
 }
 
 # 5. Hubungkan ke Cloudflare Tunnel
@@ -159,23 +200,25 @@ if ($detectedUrl) {
     Write-Host "        SEMUA LAYANAN PHOTOBOOTH TIK BERHASIL DINYALAKAN!          " -ForegroundColor Green
     Write-Host "===================================================================" -ForegroundColor Green
     Write-Host ""
-    Write-Host " 🌐 [ONLINE URL - PENGUNJUNG] : $detectedUrl" -ForegroundColor Yellow
-    Write-Host " 💻 [LOCAL HOST - BILIK FOTO] : http://localhost:8000" -ForegroundColor Cyan
-    Write-Host " 📷 [LOCAL HOST - KAMERA HUB] : http://localhost:8000/admin/camera-hub" -ForegroundColor Magenta
-    Write-Host " ⚙️  [LOCAL HOST - DASHBOARD]  : http://localhost:8000/admin/dashboard" -ForegroundColor White
-    Write-Host " 🗄️  [LOCAL HOST - PHPMYADMIN] : http://localhost/phpmyadmin" -ForegroundColor DarkGray
+    Write-Host " 🌐 [ONLINE URL - PENGUNJUNG]    : $detectedUrl" -ForegroundColor Yellow
+    Write-Host " 📶 [JARINGAN LOKAL - WI-FI/LAN] : http://${lanIp}:8000" -ForegroundColor Cyan
+    Write-Host " 💻 [LOCAL HOST - BILIK FOTO]    : http://localhost:8000" -ForegroundColor White
+    Write-Host " 📷 [LOCAL HOST - KAMERA HUB]    : http://localhost:8000/admin/camera-hub" -ForegroundColor Magenta
+    Write-Host " ⚙️  [LOCAL HOST - DASHBOARD]     : http://localhost:8000/admin/dashboard" -ForegroundColor DarkGray
+    Write-Host " 🗄️  [LOCAL HOST - PHPMYADMIN]    : http://localhost/phpmyadmin" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "===================================================================" -ForegroundColor Green
     Write-Host " STATUS SISTEM:" -ForegroundColor White
     Write-Host "  * MySQL (Port 3306)      : RUNNING" -ForegroundColor Green
     Write-Host "  * Apache (Port 80)       : RUNNING" -ForegroundColor Green
-    Write-Host "  * Laravel (Port 8000)    : RUNNING" -ForegroundColor Green
+    Write-Host "  * Laravel (0.0.0.0:8000) : RUNNING (Localhost + Jaringan Lokal)" -ForegroundColor Green
     Write-Host "  * digiCamControl         : RUNNING" -ForegroundColor Green
     Write-Host "  * Cloudflare Tunnel      : CONNECTED" -ForegroundColor Green
     Write-Host "===================================================================" -ForegroundColor Green
     Write-Host ""
     Write-Host " * QR Code pada hasil foto OTOMATIS mengarah ke alamat Online!" -ForegroundColor White
     Write-Host " * Pengunjung bisa scan QR code dari HP menggunakan internet." -ForegroundColor White
+    Write-Host " * Pengunjung / Operator juga bisa akses langsung lewat Wi-Fi: http://${lanIp}:8000" -ForegroundColor White
     Write-Host " * Admin dapat membuka Kamera Hub di laptop ini untuk siaran." -ForegroundColor White
     Write-Host ""
     Write-Host "Membuka halaman Kamera Hub Admin di browser..." -ForegroundColor DarkGray
@@ -184,7 +227,9 @@ if ($detectedUrl) {
     Write-Host "Tekan Ctrl+C untuk menutup tunnel." -ForegroundColor DarkGray
 } else {
     Write-Host "[PERINGATAN] Belum mendeteksi URL trycloudflare. Cek file storage\cloudflared.log" -ForegroundColor Yellow
-    Write-Host "Namun server Localhost tetap aktif di http://localhost:8000" -ForegroundColor Cyan
+    Write-Host "Namun server Jaringan Lokal & Localhost tetap aktif:" -ForegroundColor Cyan
+    Write-Host " -> http://${lanIp}:8000 (Jaringan Lokal / Wi-Fi)" -ForegroundColor Yellow
+    Write-Host " -> http://localhost:8000 (Laptop ini)" -ForegroundColor Cyan
     Start-Process "http://localhost:8000/admin/camera-hub"
 }
 

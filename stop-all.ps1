@@ -7,7 +7,9 @@ Write-Host ""
 Write-Host "[1/5] Menghentikan Cloudflare Tunnel..." -ForegroundColor Yellow
 Get-Process -Name "cloudflared" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 $tunnelFile = Join-Path $PSScriptRoot "storage\tunnel_url.txt"
+$localIpFile = Join-Path $PSScriptRoot "storage\local_ip.txt"
 if (Test-Path $tunnelFile) { Remove-Item $tunnelFile -Force -ErrorAction SilentlyContinue }
+if (Test-Path $localIpFile) { Remove-Item $localIpFile -Force -ErrorAction SilentlyContinue }
 Write-Host "   -> Cloudflare Tunnel dihentikan." -ForegroundColor Green
 
 # 2. Hentikan Laravel Artisan (Port 8000)

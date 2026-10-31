@@ -211,7 +211,8 @@ class SessionController extends Controller
             'session'   => $session,
             'shareUrl'  => $shareUrl,
             'qrCode'    => QrCode::format('svg')->size(220)->margin(0)->errorCorrection('M')->generate($shareUrl),
-            'qrIsLocal' => $this->isLocalHost($host),
+            'qrIsLocal' => $this->isLoopback($host),
+            'qrIsLan'   => $this->isLanIp($host),
         ]);
     }
 
@@ -241,8 +242,8 @@ class SessionController extends Controller
         $path = route('photobooth.result', $token, false);
         $requestHost = request()->getHost();
 
-        // 1. Jika request yang sedang aktif BUKAN localhost/IP lokal (misal dibuka via Cloudflare / Ngrok / domain publik)
-        if (! $this->isLocalHost($requestHost)) {
+        // 1. Jika request yang sedang aktif adalah domain publik internet (Cloudflare / Ngrok / domain publik)
+        if (! $this->isLocalOrLanHost($requestHost)) {
             $scheme = request()->getScheme();
             if (str_contains($requestHost, 'trycloudflare.com') || str_contains($requestHost, 'ngrok')) {
                 $scheme = 'https';
@@ -250,37 +251,52 @@ class SessionController extends Controller
             return "{$scheme}://{$requestHost}{$path}";
         }
 
-        // 2. Cek apakah ada file tunnel aktif yang dicatat oleh cloudflared / script
+        // 2. Cek apakah ada file tunnel aktif yang dicatat oleh cloudflared
         $tunnelFile = storage_path('tunnel_url.txt');
         if (file_exists($tunnelFile)) {
             $tunnelUrl = trim((string) @file_get_contents($tunnelFile));
             if (! empty($tunnelUrl) && filter_var($tunnelUrl, FILTER_VALIDATE_URL)) {
                 $tHost = parse_url($tunnelUrl, PHP_URL_HOST);
-                if (! $this->isLocalHost($tHost)) {
+                if (! $this->isLocalOrLanHost($tHost)) {
                     return rtrim($tunnelUrl, '/') . $path;
                 }
             }
         }
 
         // 3. Cek apakah ada session active_public_url yang pernah dicatat
-        if (session('active_public_url') && ! $this->isLocalHost(parse_url(session('active_public_url'), PHP_URL_HOST))) {
+        if (session('active_public_url') && ! $this->isLocalOrLanHost(parse_url(session('active_public_url'), PHP_URL_HOST))) {
             return rtrim(session('active_public_url'), '/') . $path;
         }
 
-        // 4. Jika PHOTOBOOTH_PUBLIC_URL diatur dan bukan IP lokal
+        // 4. Jika PHOTOBOOTH_PUBLIC_URL diatur dan bukan loopback/LAN
         $base = config('photobooth.public_url');
         if (! empty($base)) {
             $baseHost = parse_url($base, PHP_URL_HOST);
-            if (! $this->isLocalHost($baseHost)) {
+            if (! $this->isLocalOrLanHost($baseHost)) {
                 return rtrim($base, '/') . $path;
             }
         }
 
-        // 5. Fallback ke URL request saat ini
+        // 5. Jaringan Lokal (Wi-Fi / LAN):
+        // Jika request dibuka langsung lewat IP LAN (misal HP membuka http://172.27.19.40:8000)
+        if ($this->isLanIp($requestHost)) {
+            return request()->getSchemeAndHttpHost() . $path;
+        }
+
+        // Jika request dibuka via loopback laptop (localhost / 127.0.0.1),
+        // gunakan IP LAN server agar QR code bisa dipindai oleh HP pengunjung di Wi-Fi yang sama
+        $detectedLanIp = $this->detectLocalIp();
+        if ($detectedLanIp) {
+            $port = request()->getPort();
+            $portPart = ($port && $port != 80 && $port != 443) ? ":{$port}" : '';
+            return "http://{$detectedLanIp}{$portPart}{$path}";
+        }
+
+        // 6. Fallback ke URL request saat ini
         return request()->getSchemeAndHttpHost() . $path;
     }
 
-    private function isLocalHost(?string $host): bool
+    private function isLoopback(?string $host): bool
     {
         if (empty($host)) {
             return true;
@@ -288,9 +304,83 @@ class SessionController extends Controller
 
         $host = strtolower(trim($host));
 
-        return in_array($host, ['localhost', '127.0.0.1', '::1', '[::1]'], true)
-            || preg_match('/^192\.168\./', $host) === 1
+        return in_array($host, ['localhost', '127.0.0.1', '::1', '[::1]'], true);
+    }
+
+    private function isLanIp(?string $host): bool
+    {
+        if (empty($host)) {
+            return false;
+        }
+
+        $host = strtolower(trim($host));
+
+        return preg_match('/^192\.168\./', $host) === 1
             || preg_match('/^10\./', $host) === 1
             || preg_match('/^172\.(1[6-9]|2[0-9]|3[0-1])\./', $host) === 1;
+    }
+
+    private function isLocalOrLanHost(?string $host): bool
+    {
+        return $this->isLoopback($host) || $this->isLanIp($host);
+    }
+
+    private function isLocalHost(?string $host): bool
+    {
+        return $this->isLocalOrLanHost($host);
+    }
+
+    private function detectLocalIp(): ?string
+    {
+        // 1. Cek storage/local_ip.txt (ditulis otomatis saat start oleh run-tunnel.ps1 / run-lokal.ps1)
+        $file = storage_path('local_ip.txt');
+        if (file_exists($file)) {
+            $ip = trim((string) @file_get_contents($file));
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $this->isLanIp($ip)) {
+                return $ip;
+            }
+        }
+
+        // 2. Cek cache
+        $cached = cache('server_lan_ip');
+        if ($cached && filter_var($cached, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $this->isLanIp($cached)) {
+            return $cached;
+        }
+
+        // 3. Deteksi via UDP socket ke IP publik (tidak mengirim paket data)
+        try {
+            $sock = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+            if ($sock) {
+                if (@socket_connect($sock, '8.8.8.8', 53)) {
+                    @socket_getsockname($sock, $sockIp);
+                    @socket_close($sock);
+                    if (! empty($sockIp) && filter_var($sockIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $this->isLanIp($sockIp)) {
+                        cache(['server_lan_ip' => $sockIp], 300);
+                        return $sockIp;
+                    }
+                }
+            }
+        } catch (\Throwable $t) {
+        }
+
+        // 4. Deteksi di Windows lewat PowerShell
+        if (DIRECTORY_SEPARATOR === '\\') {
+            try {
+                $output = @shell_exec('powershell -NoProfile -Command "(Get-NetRoute -DestinationPrefix \'0.0.0.0/0\' -ErrorAction SilentlyContinue | Sort-Object RouteMetric | Select-Object -First 1 | Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object IPAddress -notmatch \'169\.254\').IPAddress"');
+                if (! empty($output)) {
+                    $lines = explode("\n", trim($output));
+                    foreach ($lines as $line) {
+                        $candidate = trim($line);
+                        if (filter_var($candidate, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $this->isLanIp($candidate)) {
+                            cache(['server_lan_ip' => $candidate], 300);
+                            return $candidate;
+                        }
+                    }
+                }
+            } catch (\Throwable $t) {
+            }
+        }
+
+        return null;
     }
 }

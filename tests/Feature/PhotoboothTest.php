@@ -174,4 +174,50 @@ class PhotoboothTest extends TestCase
 
         $this->assertCount(3, $t->normalizedSlots());
     }
+
+    public function test_result_uses_detected_lan_ip_when_accessed_on_localhost(): void
+    {
+        $t = $this->makeTemplate();
+        $session = PhotoSession::create([
+            'template_id'      => $t->id,
+            'session_token'    => 'testlanip1234567890abcdef',
+            'final_image_path' => 'results/test_final.jpg',
+            'raw_photos'       => [],
+        ]);
+
+        $localIpFile = storage_path('local_ip.txt');
+        $tunnelFile = storage_path('tunnel_url.txt');
+        @unlink($tunnelFile);
+        file_put_contents($localIpFile, '172.27.19.40');
+
+        try {
+            $response = $this->get('/result/' . $session->session_token);
+            $response->assertOk();
+            $this->assertStringContainsString('172.27.19.40', $response->getContent());
+        } finally {
+            @unlink($localIpFile);
+        }
+    }
+
+    public function test_result_prefers_tunnel_url_when_present(): void
+    {
+        $t = $this->makeTemplate();
+        $session = PhotoSession::create([
+            'template_id'      => $t->id,
+            'session_token'    => 'testtunnel1234567890abcde',
+            'final_image_path' => 'results/test_final.jpg',
+            'raw_photos'       => [],
+        ]);
+
+        $tunnelFile = storage_path('tunnel_url.txt');
+        file_put_contents($tunnelFile, 'https://subdomain.trycloudflare.com');
+
+        try {
+            $response = $this->get('/result/' . $session->session_token);
+            $response->assertOk();
+            $this->assertStringContainsString('https://subdomain.trycloudflare.com', $response->getContent());
+        } finally {
+            @unlink($tunnelFile);
+        }
+    }
 }

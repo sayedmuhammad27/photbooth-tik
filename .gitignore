@@ -27,3 +27,4 @@ yarn-error.log
 /photbooth-tik/
 /storage/tunnel_url.txt
 /storage/cloudflared.log
+/storage/local_ip.txt
