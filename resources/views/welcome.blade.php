@@ -34,10 +34,10 @@
                 </div>
                 <div class="welcome__hero-actions">
                     <button type="button" class="btn btn--primary" id="btn-hero-take-ticket">
-                        <span aria-hidden="true">🎟️</span> Ambil Nomor Antrean
+                        @include('partials.icon', ['name' => 'ticket']) Ambil Nomor Antrean
                     </button>
                     <button type="button" class="btn btn--ghost" id="btn-hero-start-photo">
-                        <span aria-hidden="true">📸</span> Mulai Foto Antrean
+                        @include('partials.icon', ['name' => 'camera']) Mulai Foto Antrean
                     </button>
                 </div>
             </div>
@@ -46,7 +46,7 @@
             <div id="live-queue-container" style="width:100%">
                 @if($activeTicket && $activeTicket->status === 'in_session')
                     <div class="queue-banner queue-banner--session reveal is-in">
-                        <span class="queue-banner__tag"><span aria-hidden="true">★</span> GILIRAN SESI FOTO SEKARANG <span aria-hidden="true">★</span></span>
+                        <span class="queue-banner__tag">@include('partials.icon', ['name' => 'star']) GILIRAN SESI FOTO SEKARANG @include('partials.icon', ['name' => 'star'])</span>
                         <div class="queue-banner__num">ANTREAN #{{ $activeTicket->queue_number }}</div>
                         <div class="queue-banner__name">{{ $activeTicket->name }}</div>
                         <p style="color:var(--text-muted);font-size:var(--fs-sm)">
@@ -54,13 +54,13 @@
                         </p>
                         <div class="queue-banner__action">
                             <a class="btn btn--primary btn--lg" href="{{ route('photobooth.setup', ['queue' => $activeTicket->queue_number]) }}">
-                                <span aria-hidden="true">📸</span> MULAI SESI FOTO SEKARANG
+                                @include('partials.icon', ['name' => 'camera']) MULAI SESI FOTO SEKARANG
                             </a>
                         </div>
                     </div>
                 @elseif($activeTicket && $activeTicket->status === 'called')
                     <div class="queue-banner queue-banner--called reveal is-in">
-                        <span class="queue-banner__tag"><span aria-hidden="true">📢</span> PANGGILAN ANTREAN</span>
+                        <span class="queue-banner__tag">@include('partials.icon', ['name' => 'megaphone']) PANGGILAN ANTREAN</span>
                         <div class="queue-banner__num">ANTREAN #{{ $activeTicket->queue_number }}</div>
                         <div class="queue-banner__name">{{ $activeTicket->name }}</div>
                         <p style="color:var(--text-muted);font-size:var(--fs-sm)">
@@ -73,18 +73,30 @@
 
         <!-- Category / Feature Pill Bar (Image 1 Icon Bar) -->
         <div class="welcome__icon-bar reveal" aria-label="Ringkasan Layanan">
-            <div class="welcome__icon-item" title="Nomor Antrean" aria-label="Nomor Antrean">🎟️</div>
-            <div class="welcome__icon-item" title="Bilik Kamera" aria-label="Bilik Kamera">📸</div>
-            <div class="welcome__icon-item" title="Galeri Template" aria-label="Galeri Template">🎨</div>
-            <div class="welcome__icon-item" title="Unduh Hasil QR" aria-label="Unduh Hasil QR">📱</div>
-            <div class="welcome__icon-item" title="Uji Coba Kamera" aria-label="Uji Coba Kamera">🧪</div>
+            <div class="welcome__icon-item" title="Nomor Antrean" aria-label="Nomor Antrean">
+                @include('partials.icon', ['name' => 'ticket', 'size' => 20])
+            </div>
+            <div class="welcome__icon-item" title="Bilik Kamera" aria-label="Bilik Kamera">
+                @include('partials.icon', ['name' => 'camera', 'size' => 20])
+            </div>
+            <div class="welcome__icon-item" title="Galeri Template" aria-label="Galeri Template">
+                @include('partials.icon', ['name' => 'palette', 'size' => 20])
+            </div>
+            <div class="welcome__icon-item" title="Unduh Hasil QR" aria-label="Unduh Hasil QR">
+                @include('partials.icon', ['name' => 'phone', 'size' => 20])
+            </div>
+            <div class="welcome__icon-item" title="Uji Coba Kamera" aria-label="Uji Coba Kamera">
+                @include('partials.icon', ['name' => 'flask', 'size' => 20])
+            </div>
         </div>
 
         <!-- DUA MENU UTAMA KIOSK -->
         <div class="welcome__menu-grid reveal">
             <!-- Menu 1: Pengambilan Tiket -->
             <button type="button" class="welcome__menu-card" id="btn-menu-take-ticket" aria-label="Ambil nomor antrean sesi foto">
-                <div class="welcome__menu-icon" aria-hidden="true">🎟️</div>
+                <div class="welcome__menu-icon" aria-hidden="true">
+                    @include('partials.icon', ['name' => 'ticket', 'size' => 28])
+                </div>
                 <div>
                     <div class="welcome__menu-title">PENGAMBILAN TIKET</div>
                     <p class="welcome__menu-desc">Dapatkan nomor antrean digital untuk sesi fotomu</p>
@@ -94,7 +106,9 @@
 
             <!-- Menu 2: Mulai Foto Sesuai Antrean -->
             <button type="button" class="welcome__menu-card welcome__menu-card--primary" id="btn-menu-start-photo" aria-label="Mulai foto sesuai antrean">
-                <div class="welcome__menu-icon" aria-hidden="true">📸</div>
+                <div class="welcome__menu-icon" aria-hidden="true">
+                    @include('partials.icon', ['name' => 'camera', 'size' => 28])
+                </div>
                 <div>
                     <div class="welcome__menu-title">MULAI FOTO ANTREAN</div>
                     <p class="welcome__menu-desc">Masuk bilik foto dengan nomor antrean yang disetujui</p>
@@ -106,7 +120,7 @@
         <!-- Menu Alternatif: Test Foto (Uji Coba Kamera) -->
         <div class="welcome__test-cta reveal">
             <a class="btn btn--ghost btn--sm" href="{{ route('test.photo.setup') }}" style="border-color:var(--burgundy-400);color:var(--concrete);padding:12px 24px">
-                <span aria-hidden="true">🧪</span> UJI COBA KAMERA (TEST FOTO)
+                @include('partials.icon', ['name' => 'flask']) UJI COBA KAMERA (TEST FOTO)
             </a>
             <p style="font-size:var(--fs-xs);color:var(--text-dim);margin-top:8px">
                 Coba kamera dan template tanpa antrean. Hasil foto tes hanya ditampilkan di layar dan tidak disimpan ke database.
@@ -193,7 +207,7 @@
             </p>
 
             <div style="display:flex;gap:10px;justify-content:center">
-                <button type="button" class="btn btn--primary btn--sm" id="btn-print-ticket"><span aria-hidden="true">🖨️</span> Cetak Tiket</button>
+                <button type="button" class="btn btn--primary btn--sm" id="btn-print-ticket">@include('partials.icon', ['name' => 'printer']) Cetak Tiket</button>
                 <button type="button" class="btn btn--ghost btn--sm" id="btn-done-ticket">Tutup</button>
             </div>
         </div>
@@ -428,7 +442,7 @@
                     verifyStatusBox.style.borderColor = '#16a34a';
                     verifyStatusBox.style.color = '#bbf7d0';
                     verifyStatusBox.innerHTML = 
-                        '<div style="font-weight:bold;color:#86efac;margin-bottom:4px">✓ ANTREAN DISETUJUI ADMIN!</div>' +
+                        '<div style="font-weight:bold;color:#86efac;margin-bottom:4px">ANTREAN DISETUJUI ADMIN</div>' +
                         '<div>' + escapeHtml(result.data.message) + '</div>';
 
                     setTimeout(function() {
@@ -436,11 +450,11 @@
                     }, 800);
                 } else {
                     verifyStatusBox.hidden = false;
-                    verifyStatusBox.style.background = 'rgba(127, 5, 8, 0.35)';
-                    verifyStatusBox.style.borderColor = 'var(--burgundy-400)';
-                    verifyStatusBox.style.color = 'var(--danger-text)';
+                    verifyStatusBox.style.background = 'rgba(109, 0, 26, 0.4)';
+                    verifyStatusBox.style.borderColor = 'var(--burgundy)';
+                    verifyStatusBox.style.color = 'var(--white)';
                     verifyStatusBox.innerHTML = 
-                        '<div style="font-weight:bold;margin-bottom:4px">⚠️ BELUM BISA MULAI FOTO</div>' +
+                        '<div style="font-weight:bold;margin-bottom:4px;color:var(--white)">BELUM BISA MULAI FOTO</div>' +
                         '<div>' + escapeHtml((result.data && result.data.message) || 'Antrean belum disetujui admin.') + '</div>';
                 }
             })
@@ -448,9 +462,9 @@
                 btnSubmitVerify.disabled = false;
                 btnSubmitVerify.textContent = 'Periksa & Masuk';
                 verifyStatusBox.hidden = false;
-                verifyStatusBox.style.background = 'rgba(127, 5, 8, 0.35)';
-                verifyStatusBox.style.borderColor = 'var(--burgundy-400)';
-                verifyStatusBox.style.color = 'var(--danger-text)';
+                verifyStatusBox.style.background = 'rgba(109, 0, 26, 0.4)';
+                verifyStatusBox.style.borderColor = 'var(--burgundy)';
+                verifyStatusBox.style.color = 'var(--white)';
                 verifyStatusBox.textContent = 'Gagal menghubungi server. Periksa koneksi jaringan Anda.';
             });
         });
@@ -526,7 +540,7 @@
 
                     liveContainer.innerHTML = 
                         '<div class="queue-banner queue-banner--session reveal is-in">' +
-                            '<span class="queue-banner__tag">★ GILIRAN SESI FOTO SEKARANG ★</span>' +
+                            '<span class="queue-banner__tag">GILIRAN SESI FOTO SEKARANG</span>' +
                             '<div class="queue-banner__num">ANTREAN #' + ticket.queue_number + '</div>' +
                             '<div class="queue-banner__name">' + escapeHtml(ticket.name) + '</div>' +
                             '<p style="color:var(--text-muted);font-size:var(--fs-sm)">' +
@@ -534,14 +548,14 @@
                             '</p>' +
                             '<div class="queue-banner__action">' +
                                 '<a class="btn btn--primary btn--lg" href="' + sessionUrl + '">' +
-                                    '<span aria-hidden="true">📸</span> MASUK KE BILIK FOTO SEKARANG' +
+                                    'MULAI SESI FOTO SEKARANG' +
                                 '</a>' +
                             '</div>' +
                         '</div>';
                 } else if (ticket && ticket.status === 'called') {
                     liveContainer.innerHTML = 
                         '<div class="queue-banner queue-banner--called reveal is-in">' +
-                            '<span class="queue-banner__tag"><span aria-hidden="true">📢</span> PANGGILAN ANTREAN</span>' +
+                            '<span class="queue-banner__tag">PANGGILAN ANTREAN</span>' +
                             '<div class="queue-banner__num">ANTREAN #' + ticket.queue_number + '</div>' +
                             '<div class="queue-banner__name">' + escapeHtml(ticket.name) + '</div>' +
                             '<p style="color:var(--text-muted);font-size:var(--fs-sm)">' +

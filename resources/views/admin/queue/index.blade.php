@@ -15,7 +15,7 @@
                 LIVE REAL-TIME
             </span>
             <button type="button" class="btn btn--ghost btn--xs" id="btn-toggle-sound" title="Nyalakan/matikan suara notifikasi antrean baru">
-                <span aria-hidden="true">🔔</span> Suara: ON
+                @include('partials.icon', ['name' => 'bell']) <span id="sound-toggle-text">Suara: ON</span>
             </button>
         </div>
 
@@ -23,11 +23,11 @@
             @csrf
             @if($setting->is_open)
                 <button type="submit" class="btn btn--danger btn--sm">
-                    <span aria-hidden="true">●</span> Tutup Pendaftaran Antrean
+                    Tutup Pendaftaran Antrean
                 </button>
             @else
                 <button type="submit" class="btn btn--success btn--sm">
-                    <span aria-hidden="true">▶</span> Buka Pendaftaran Antrean
+                    @include('partials.icon', ['name' => 'play']) Buka Pendaftaran Antrean
                 </button>
             @endif
         </form>
@@ -90,10 +90,10 @@
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
                 <button type="submit" name="action" value="start_session" class="btn btn--danger btn--sm">
-                    <span aria-hidden="true">★</span> Langsung Mulai Foto
+                    @include('partials.icon', ['name' => 'star']) Langsung Mulai Foto
                 </button>
                 <button type="submit" name="action" value="call" class="btn btn--ghost btn--sm">
-                    <span aria-hidden="true">📢</span> Panggil Nomor Ini
+                    @include('partials.icon', ['name' => 'megaphone']) Panggil Nomor Ini
                 </button>
             </div>
         </form>
@@ -211,7 +211,12 @@
     updateSoundButton();
 
     function updateSoundButton() {
-        btnToggleSound.textContent = soundEnabled ? '🔔 Suara: ON' : '🔕 Suara: OFF';
+        var soundText = document.getElementById('sound-toggle-text');
+        if (soundText) {
+            soundText.textContent = soundEnabled ? 'Suara: ON' : 'Suara: OFF';
+        } else {
+            btnToggleSound.textContent = soundEnabled ? 'Suara: ON' : 'Suara: OFF';
+        }
         btnToggleSound.style.opacity = soundEnabled ? '1' : '0.6';
     }
 
@@ -222,7 +227,7 @@
         if (soundEnabled) playChime();
     });
 
-    // Nada Chime retro pixel-art dengan Web Audio API
+    // Nada Chime retro dengan Web Audio API
     function playChime() {
         if (!soundEnabled) return;
         try {
@@ -248,8 +253,8 @@
     // Toast notifikasi antrean baru
     function showToast(title, text) {
         var toast = document.createElement('div');
-        toast.style.cssText = 'pointer-events:auto;background:var(--night-900);border:2px solid var(--pink-400);box-shadow:0 0 16px rgba(254,1,104,0.6);padding:12px 18px;border-radius:4px;color:#fff;font-family:var(--font-display);font-size:13px;animation:slideIn 0.3s ease-out;display:flex;align-items:center;gap:12px;min-width:280px;';
-        toast.innerHTML = '<span style="font-size:1.8rem">🎟️</span><div><strong style="color:var(--pink-400);display:block">' + escapeHtml(title) + '</strong><span style="font-family:sans-serif;font-size:12px;color:var(--text-muted)">' + escapeHtml(text) + '</span></div>';
+        toast.style.cssText = 'pointer-events:auto;background:var(--bg-surface);border:2px solid var(--burgundy-500);box-shadow:0 0 16px rgba(109,0,26,0.6);padding:12px 18px;border-radius:4px;color:#fff;font-family:var(--font-display);font-size:13px;animation:slideIn 0.3s ease-out;display:flex;align-items:center;gap:12px;min-width:280px;';
+        toast.innerHTML = '<span style="font-size:1.4rem;color:var(--concrete)">•</span><div><strong style="color:var(--white);display:block">' + escapeHtml(title) + '</strong><span style="font-family:sans-serif;font-size:12px;color:var(--text-muted)">' + escapeHtml(text) + '</span></div>';
         toastContainer.appendChild(toast);
         setTimeout(function() {
             toast.style.opacity = '0';

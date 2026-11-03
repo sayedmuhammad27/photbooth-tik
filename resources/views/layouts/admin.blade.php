@@ -19,7 +19,7 @@
             </nav>
             <div class="adm-bar__actions" style="margin-left:auto;display:flex;align-items:center;gap:var(--sp-2);">
                 <button type="button" class="btn btn--ghost btn--sm btn-fullscreen" title="Masuk Layar Penuh (F11)" aria-label="Masuk Layar Penuh">
-                    <span class="fs-icon" aria-hidden="true">⛶</span>
+                    @include('partials.icon', ['name' => 'fullscreen', 'class' => 'fs-icon'])
                     <span class="fs-text">Layar Penuh</span>
                 </button>
                 <form action="{{ route('logout') }}" method="POST">

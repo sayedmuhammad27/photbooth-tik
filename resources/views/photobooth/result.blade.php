@@ -30,7 +30,7 @@
                         @if($qrIsLocal)
                             <p style="margin-top:8px;color:var(--burgundy-400)">Catatan: QR masih mengarah ke localhost. Sambungkan laptop ke Wi-Fi atau jalankan Cloudflare Tunnel agar bisa diakses dari HP.</p>
                         @elseif(!empty($qrIsLan))
-                            <p style="margin-top:8px;color:var(--aquamarine-400)"><span aria-hidden="true">🌐</span> Mode Jaringan Lokal: Pastikan HP terhubung ke Wi-Fi yang sama untuk mengunduh foto.</p>
+                            <p style="margin-top:8px;color:var(--concrete)">@include('partials.icon', ['name' => 'globe']) Mode Jaringan Lokal: Pastikan HP terhubung ke Wi-Fi yang sama untuk mengunduh foto.</p>
                         @endif
                     @endauth
                 </div>

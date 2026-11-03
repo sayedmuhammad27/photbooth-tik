@@ -5,13 +5,13 @@
 @section('content')
 <div class="adm-head">
     <div>
-        <h1><span aria-hidden="true">📡</span> KAMERA BILIK (SIARKAN KAMERA ADMIN)</h1>
+        <h1>@include('partials.icon', ['name' => 'broadcast']) KAMERA BILIK (SIARKAN KAMERA ADMIN)</h1>
         <p>Gunakan kamera yang terhubung di laptop/PC admin ini (Kamera Canon via digiCamControl atau Webcam) agar dapat diakses oleh perangkat bilik user (tablet/HP) tanpa kabel.</p>
     </div>
     <div style="display:flex;gap:10px;align-items:center">
         <span id="broadcast-badge" class="badge badge--off" style="font-size:var(--fs-d-xs)">SIARAN MATI</span>
         <button type="button" class="btn btn--primary btn--sm" id="btn-toggle-broadcast">
-            <span aria-hidden="true">▶</span> Mulai Siaran Kamera
+            @include('partials.icon', ['name' => 'play']) Mulai Siaran Kamera
         </button>
     </div>
 </div>
@@ -20,7 +20,7 @@
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-3);flex-wrap:wrap">
         <div>
             <div style="font-weight:bold;color:var(--concrete);display:flex;align-items:center;gap:6px">
-                <span aria-hidden="true">⚠️</span> <span id="cam-hub-error-title">Koneksi Kamera Terputus</span>
+                @include('partials.icon', ['name' => 'alert']) <span id="cam-hub-error-title">Koneksi Kamera Terputus</span>
             </div>
             <p id="cam-hub-error-desc" style="font-size:var(--fs-xs);margin:4px 0 0;color:var(--text-muted)">Gagal menghubungi kamera atau webserver digiCamControl.</p>
         </div>
@@ -40,7 +40,9 @@
 
             <!-- Layar Mati / Belum Aktif -->
             <div id="cam-offline-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--night-950);color:var(--text-muted);padding:20px">
-                <div style="font-size:3rem;margin-bottom:12px" id="placeholder-icon" aria-hidden="true">📷</div>
+                <div style="font-size:3rem;margin-bottom:12px;color:var(--concrete)" id="placeholder-icon" aria-hidden="true">
+                    @include('partials.icon', ['name' => 'camera', 'size' => 48])
+                </div>
                 <p style="font-size:var(--fs-md);margin-bottom:8px" id="placeholder-title">Kamera Belum Dinyalakan</p>
                 <span style="font-size:var(--fs-xs);color:var(--text-dim)" id="placeholder-hint">Pilih sumber kamera di panel kanan lalu klik tombol "Mulai Siaran Kamera" untuk menghubungkan kamera laptop/USB admin ini ke bilik user.</span>
             </div>
@@ -51,7 +53,7 @@
             <!-- Indikator Non-Intrusif Saat Memotret (Tidak menutupi layar / tidak freeze) -->
             <div id="capture-wait-indicator" style="position:absolute;top:12px;right:12px;display:none;align-items:center;gap:6px;background:rgba(12,18,48,0.88);border:1px solid var(--pink-400);color:#fff;padding:5px 12px;font-family:var(--font-display);font-size:var(--fs-d-xs);z-index:10;pointer-events:none">
                 <span style="width:8px;height:8px;border-radius:50%;background:var(--pink-400);animation:blink 0.5s infinite"></span>
-                <span aria-hidden="true">📸</span> MEMOTRET FOTO PENUH...
+                @include('partials.icon', ['name' => 'camera']) MEMOTRET FOTO PENUH...
             </div>
 
             <!-- Indikator On-Air -->
@@ -62,7 +64,7 @@
 
             <!-- Tag Tipe Kamera di Viewfinder -->
             <div id="cam-source-tag" style="position:absolute;bottom:12px;left:12px;background:rgba(0,0,0,0.7);color:var(--lamp-300);padding:3px 8px;font-size:11px;display:none">
-                <span aria-hidden="true">📷</span> CANON EOS
+                @include('partials.icon', ['name' => 'camera']) CANON EOS
             </div>
         </div>
 
@@ -81,8 +83,8 @@
             <div class="field" style="margin-bottom:12px">
                 <label class="field__label" for="select-source-type">Pilih Sumber Kamera:</label>
                 <select class="select" id="select-source-type" style="font-weight:bold;color:var(--lamp-300)">
-                    <option value="digicam" selected>📷 Kamera Canon (digiCamControl via USB)</option>
-                    <option value="webcam">💻 Webcam / Kamera USB Browser</option>
+                    <option value="digicam" selected>Kamera Canon (digiCamControl via USB)</option>
+                    <option value="webcam">Webcam / Kamera USB Browser</option>
                 </select>
                 <span class="field__hint">Pilih Canon untuk hasil jepretan DSLR profesional, atau Webcam untuk webcam laptop/USB bawaan.</span>
             </div>
@@ -91,7 +93,7 @@
             <div id="section-digicam" style="display:block;margin-bottom:14px;background:var(--aquamarine-950);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
                     <span style="font-size:var(--fs-xs);font-weight:bold;color:var(--concrete);display:flex;align-items:center;gap:6px">
-                        <span aria-hidden="true">📷</span> STATUS DIGICAMCONTROL
+                        @include('partials.icon', ['name' => 'camera']) STATUS DIGICAMCONTROL
                     </span>
                     <span id="badge-dcc-status" class="badge badge--off" style="font-size:10px">MENGECEK...</span>
                 </div>
@@ -102,10 +104,10 @@
 
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
                     <button type="button" class="btn btn--ghost btn--xs" id="btn-refresh-dcc">
-                        <span aria-hidden="true">🔄</span> Cek Ulang Koneksi
+                        @include('partials.icon', ['name' => 'refresh']) Cek Ulang Koneksi
                     </button>
                     <button type="button" class="btn btn--danger btn--xs" id="btn-test-capture">
-                        <span aria-hidden="true">📸</span> Test Jepret Canon
+                        @include('partials.icon', ['name' => 'camera']) Test Jepret Canon
                     </button>
                 </div>
             </div>
@@ -143,7 +145,7 @@
                 <li>Buka aplikasi <strong>digiCamControl</strong> di laptop admin.</li>
                 <li>Pastikan Webserver aktif di menu <strong>File → Settings → Webserver (Port 5513)</strong>.</li>
                 <li>Putar dial mode kamera ke <strong>P / Tv / Av / M</strong> dan pastikan kualitas gambar disetel ke <strong>JPEG</strong> (bukan RAW murni).</li>
-                <li>Klik tombol <strong>"▶ Mulai Siaran Kamera"</strong> di atas. Kamera Canon akan menyala dan feed-nya disiarkan ke bilik pengunjung!</li>
+                <li>Klik tombol <strong>"Mulai Siaran Kamera"</strong> di atas. Kamera Canon akan menyala dan feed-nya disiarkan ke bilik pengunjung!</li>
             </ol>
         </div>
     </div>
@@ -153,8 +155,8 @@
 <div id="modal-test-preview" class="modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(6,21,24,0.85);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:20px">
     <div class="px-box px-box--pad" style="max-width:680px;width:100%;max-height:90vh;display:flex;flex-direction:column;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-lg)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--border-subtle);padding-bottom:8px">
-            <h3 style="font-size:var(--fs-d-xs);color:var(--concrete);margin:0"><span aria-hidden="true">📸</span> HASIL TEST JEPRET KAMERA</h3>
-            <button type="button" class="btn btn--ghost btn--xs" id="btn-close-modal">✕ Tutup</button>
+            <h3 style="font-size:var(--fs-d-xs);color:var(--concrete);margin:0">@include('partials.icon', ['name' => 'camera']) HASIL TEST JEPRET KAMERA</h3>
+            <button type="button" class="btn btn--ghost btn--xs" id="btn-close-modal">Tutup</button>
         </div>
         <div style="flex:1;overflow:auto;text-align:center;background:#000;padding:8px">
             <img id="img-test-preview" src="" alt="Pratinjau foto test" style="max-width:100%;max-height:60vh;object-fit:contain;border:1px solid var(--outline)">
@@ -267,7 +269,7 @@
 
     function updateStatsDisplay() {
         var p2p = hasActivePeer();
-        streamStats.textContent = 'Frame: ' + frameCount + (p2p ? ' (⚡ Real-Time P2P Aktif)' : ' (Relay Server Aktif)');
+        streamStats.textContent = 'Frame: ' + frameCount + (p2p ? ' (P2P Aktif)' : ' (Relay Server Aktif)');
     }
 
     // 1. Ganti tampilan section sesuai tipe kamera yang dipilih
@@ -276,11 +278,11 @@
         if (val === 'digicam') {
             secDigicam.style.display = 'block';
             secWebcam.style.display = 'none';
-            camSourceTag.textContent = '📷 CANON (DIGICAMCONTROL)';
+            camSourceTag.textContent = 'CANON (DIGICAMCONTROL)';
         } else {
             secDigicam.style.display = 'none';
             secWebcam.style.display = 'block';
-            camSourceTag.textContent = '💻 WEBCAM BROWSER';
+            camSourceTag.textContent = 'WEBCAM BROWSER';
         }
         if (isBroadcasting) {
             stopBroadcasting();
@@ -302,22 +304,22 @@
                 if (data.ok) {
                     hideHubError();
                     badgeDcc.className = 'badge badge--green';
-                    badgeDcc.textContent = '🟢 TERHUBUNG';
+                    badgeDcc.textContent = 'TERHUBUNG';
                     var cam = data.cameras ? data.cameras.trim() : 'Kamera Canon Terdeteksi';
-                    dccInfoBox.innerHTML = '<strong style="color:var(--lamp-300)">' + escapeHtml(cam) + '</strong><br>' +
+                    dccInfoBox.innerHTML = '<strong style="color:var(--concrete)">' + escapeHtml(cam) + '</strong><br>' +
                         '<span style="color:var(--text-muted)">Aplikasi digiCamControl siap digunakan untuk siaran & pemotretan bilik.</span>';
                 } else {
                     badgeDcc.className = 'badge badge--danger';
-                    badgeDcc.textContent = '🔴 TERPUTUS';
-                    dccInfoBox.innerHTML = '<span style="color:#ff8080">' + escapeHtml(data.message || 'Tidak dapat terhubung.') + '</span><br>' +
+                    badgeDcc.textContent = 'TERPUTUS';
+                    dccInfoBox.innerHTML = '<span style="color:var(--burgundy-300)">' + escapeHtml(data.message || 'Tidak dapat terhubung.') + '</span><br>' +
                         '<span style="font-size:11px;color:var(--text-dim)">Buka aplikasi digiCamControl di laptop ini dan periksa port 5513.</span>';
                     showHubError('Kamera Canon / digiCamControl Terputus', data.message || 'Pastikan aplikasi digiCamControl dibuka dan kabel USB kamera terhubung.');
                 }
             })
             .catch(function(err) {
                 badgeDcc.className = 'badge badge--danger';
-                badgeDcc.textContent = '🔴 OFFLINE';
-                dccInfoBox.innerHTML = '<span style="color:#ff8080">Gagal terhubung ke webserver digiCamControl.</span><br>' +
+                badgeDcc.textContent = 'OFFLINE';
+                dccInfoBox.innerHTML = '<span style="color:var(--burgundy-300)">Gagal terhubung ke webserver digiCamControl.</span><br>' +
                     '<span style="font-size:11px;color:var(--text-dim)">Pastikan digiCamControl aktif di laptop admin (File → Settings → Webserver).</span>';
                 showHubError('Webserver digiCamControl Tidak Aktif', 'Buka aplikasi digiCamControl di laptop ini lalu periksa pengaturan webserver port 5513.');
             });
@@ -1048,7 +1050,7 @@
 
                 captureWait.style.display = 'none';
                 btnTestCapture.disabled = false;
-                btnTestCapture.textContent = '📸 Test Jepret Canon';
+                btnTestCapture.textContent = 'Test Jepret Canon';
                 if (isBroadcasting) startDigicamLivePolling();
             });
         } else {
@@ -1057,7 +1059,7 @@
                 alert('Nyalakan siaran kamera webcam terlebih dahulu untuk test jepret.');
                 captureWait.style.display = 'none';
                 btnTestCapture.disabled = false;
-                btnTestCapture.textContent = '📸 Test Jepret';
+                btnTestCapture.textContent = 'Test Jepret';
                 return;
             }
             canvas.width = video.videoWidth;
@@ -1073,7 +1075,7 @@
             canvas.toBlob(function(blob) {
                 captureWait.style.display = 'none';
                 btnTestCapture.disabled = false;
-                btnTestCapture.textContent = '📸 Test Jepret';
+                btnTestCapture.textContent = 'Test Jepret';
                 showTestPreview(blob, 'Webcam Browser');
             }, 'image/jpeg', 0.95);
         }

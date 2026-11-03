@@ -6,7 +6,7 @@
 @section('content')
 <div class="result">
     <div class="result__head reveal">
-        <span class="badge badge--danger" style="font-size:var(--fs-d-xs);margin-bottom:8px"><span aria-hidden="true">🧪</span> MODE TEST FOTO</span>
+        <span class="badge badge--danger" style="font-size:var(--fs-d-xs);margin-bottom:8px">@include('partials.icon', ['name' => 'flask']) MODE TEST FOTO</span>
         <h1 style="color:var(--concrete)">UJI COBA SELESAI</h1>
         <p>Foto ini adalah hasil percobaan kamera. <strong style="color:var(--concrete)">Foto ini TIDAK disimpan ke database</strong> dan tidak masuk ke riwayat antrean.</p>
     </div>
@@ -31,13 +31,13 @@
 
             <div class="result__actions">
                 <a class="btn btn--primary btn--block" href="{{ route('test.photo.download', $token) }}" download data-no-transition>
-                    <span aria-hidden="true">⬇</span> UNDUH STRIP TEST
+                    @include('partials.icon', ['name' => 'download']) UNDUH STRIP TEST
                 </a>
                 <a class="btn btn--ghost btn--block" href="{{ route('test.photo.setup') }}">
-                    <span aria-hidden="true">🔄</span> COBA TEST LAGI
+                    @include('partials.icon', ['name' => 'refresh']) COBA TEST LAGI
                 </a>
                 <a class="btn btn--ghost btn--block" href="{{ route('home') }}">
-                    <span aria-hidden="true">🏠</span> KEMBALI KE BERANDA
+                    @include('partials.icon', ['name' => 'home']) KEMBALI KE BERANDA
                 </a>
             </div>
         </div>

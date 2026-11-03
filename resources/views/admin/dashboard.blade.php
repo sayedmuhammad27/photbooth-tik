@@ -9,7 +9,7 @@
         <p>Aktivitas photobooth Expo Wisuda Jurusan TIK 2026.</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <a class="btn btn--primary btn--sm" href="{{ route('admin.queue.index') }}"><span aria-hidden="true">🎟️</span> Kelola Antrean</a>
+        <a class="btn btn--primary btn--sm" href="{{ route('admin.queue.index') }}">@include('partials.icon', ['name' => 'ticket']) Kelola Antrean</a>
         <a class="btn btn--ghost btn--sm" href="{{ route('admin.templates.create') }}">Tambah template</a>
     </div>
 </div>

@@ -160,7 +160,7 @@
     bar.className = 'fs-resume-banner';
     bar.setAttribute('role', 'button');
     bar.setAttribute('tabindex', '0');
-    bar.innerHTML = '<span class="fs-resume-icon" aria-hidden="true">⛶</span><span>Sentuh layar di mana saja untuk lanjut Layar Penuh</span>';
+    bar.innerHTML = '<span class="fs-resume-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></span><span>Sentuh layar di mana saja untuk lanjut Layar Penuh</span>';
     bar.addEventListener('click', function (e) {
       e.stopPropagation();
       PB.enterFullscreen().catch(function () {});
@@ -188,17 +188,17 @@
       var icon = btn.querySelector('.fs-icon');
       var label = btn.querySelector('.fs-text');
       if (inFs) {
-        if (icon) icon.textContent = '🗗';
+        if (icon && icon.tagName.toLowerCase() !== 'svg') icon.textContent = '';
         if (label) label.textContent = 'Keluar';
         btn.setAttribute('title', 'Keluar Layar Penuh (Esc / F11)');
         btn.setAttribute('aria-label', 'Keluar Layar Penuh');
       } else if (wanted) {
-        if (icon) icon.textContent = '⛶';
+        if (icon && icon.tagName.toLowerCase() !== 'svg') icon.textContent = '';
         if (label) label.textContent = 'Lanjut Fullscreen';
         btn.setAttribute('title', 'Klik untuk melanjutkan Layar Penuh');
         btn.setAttribute('aria-label', 'Lanjutkan Layar Penuh');
       } else {
-        if (icon) icon.textContent = '⛶';
+        if (icon && icon.tagName.toLowerCase() !== 'svg') icon.textContent = '';
         if (label) label.textContent = 'Layar Penuh';
         btn.setAttribute('title', 'Masuk Layar Penuh (F11)');
         btn.setAttribute('aria-label', 'Masuk Layar Penuh');

@@ -39,7 +39,7 @@
                     <form action="{{ route('admin.queue.start', $t) }}" method="POST" style="margin:0">
                         @csrf
                         <button type="submit" class="btn btn--danger btn--sm" title="Mulai sesi foto untuk nomor ini">
-                            <span aria-hidden="true">▶</span> Mulai Foto
+                            @include('partials.icon', ['name' => 'play']) Mulai Foto
                         </button>
                     </form>
                 @endif
@@ -59,7 +59,7 @@
                     <form action="{{ route('admin.queue.complete', $t) }}" method="POST" style="margin:0">
                         @csrf
                         <button type="submit" class="btn btn--success btn--sm" title="Tandai selesai">
-                            <span aria-hidden="true">✓</span> Selesai
+                            @include('partials.icon', ['name' => 'check']) Selesai
                         </button>
                     </form>
                 @endif

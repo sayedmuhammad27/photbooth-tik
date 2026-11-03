@@ -995,7 +995,7 @@
       btnMain.disabled = mode !== 'ready';
       if (btnRetake) {
         btnRetake.hidden = false;
-        btnRetake.textContent = '🔄 Ulangi Foto Terakhir';
+        btnRetake.textContent = 'Ulangi Foto Terakhir';
         btnRetake.disabled = mode !== 'ready';
       }
     } else if (n > 0) {
@@ -1006,7 +1006,7 @@
       if (btnRetake) {
         btnRetake.hidden = lastCapturedIdx === null || !shots[lastCapturedIdx];
         if (lastCapturedIdx !== null) {
-          btnRetake.textContent = '🔄 Ulangi Foto ' + (lastCapturedIdx + 1);
+          btnRetake.textContent = 'Ulangi Foto ' + (lastCapturedIdx + 1);
         }
         btnRetake.disabled = mode !== 'ready';
       }
@@ -1049,11 +1049,11 @@
           if (btnVfNext) btnVfNext.hidden = true;
           if (btnVfRetakeSession) {
             btnVfRetakeSession.hidden = false;
-            btnVfRetakeSession.textContent = '🔄 Ulangi Sesi';
+            btnVfRetakeSession.textContent = 'Ulangi Sesi';
           }
           if (btnVfFinish) {
             btnVfFinish.hidden = false;
-            btnVfFinish.textContent = '✔ Simpan & Selesai';
+            btnVfFinish.textContent = 'Simpan & Selesai';
           }
         } else {
           // Jeda manual setelah mengambil satu foto
@@ -1069,11 +1069,11 @@
           if (vfPromptSub) vfPromptSub.textContent = 'Puas dengan pose ini? Ulangi bila belum puas.';
           if (btnVfRetake) {
             btnVfRetake.hidden = false;
-            btnVfRetake.textContent = '🔄 Ulangi Foto ' + curNum;
+            btnVfRetake.textContent = 'Ulangi Foto ' + curNum;
           }
           if (btnVfNext) {
             btnVfNext.hidden = false;
-            btnVfNext.textContent = '▶ Lanjut ke Foto ' + nextSlotNum;
+            btnVfNext.textContent = 'Lanjut ke Foto ' + nextSlotNum;
           }
           if (btnVfRetakeSession) btnVfRetakeSession.hidden = true;
           if (btnVfFinish) btnVfFinish.hidden = true;
@@ -1244,7 +1244,7 @@
         clearTimeout(armVfTimer);
         armVfTimer = setTimeout(function () {
           armedVfReset = false;
-          if (btnVfRetakeSession) btnVfRetakeSession.textContent = '🔄 Ulangi Sesi';
+          if (btnVfRetakeSession) btnVfRetakeSession.textContent = 'Ulangi Sesi';
         }, 3200);
         return;
       }
