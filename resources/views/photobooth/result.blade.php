@@ -22,8 +22,8 @@
                     <h2>Bawa pulang lewat ponsel</h2>
                     <p>Arahkan kamera ponsel ke kode ini untuk membuka dan mengunduh fotomu.</p>
                     @if(!empty($shareUrl))
-                        <p style="margin-top:8px;font-size:0.8rem;color:var(--concrete);word-break:break-all">
-                            <a href="{{ $shareUrl }}" target="_blank" rel="noopener" style="color:var(--concrete);text-decoration:underline">{{ $shareUrl }}</a>
+                        <p style="margin-top:8px;font-size:0.8rem;color:var(--color-sky-blue);word-break:break-all">
+                            <a href="{{ $shareUrl }}" target="_blank" rel="noopener" style="color:var(--color-sky-blue);text-decoration:underline">{{ $shareUrl }}</a>
                         </p>
                         @if(str_contains($shareUrl, 'trycloudflare.com'))
                             <p style="margin-top:6px;font-size:var(--fs-xs);color:var(--text-dim);display:flex;align-items:center;gap:6px">
@@ -33,9 +33,9 @@
                     @endif
                     @auth
                         @if($qrIsLocal)
-                            <p style="margin-top:8px;color:var(--burgundy-400)">Catatan: QR masih mengarah ke localhost. Sambungkan laptop ke Wi-Fi atau jalankan Cloudflare Tunnel agar bisa diakses dari HP.</p>
+                            <p style="margin-top:8px;color:var(--color-crimson)">Catatan: QR masih mengarah ke localhost. Sambungkan laptop ke Wi-Fi atau jalankan Cloudflare Tunnel agar bisa diakses dari HP.</p>
                         @elseif(!empty($qrIsLan))
-                            <p style="margin-top:8px;color:var(--concrete)">@include('partials.icon', ['name' => 'globe']) Mode Jaringan Lokal: Pastikan HP terhubung ke Wi-Fi yang sama untuk mengunduh foto.</p>
+                            <p style="margin-top:8px;color:var(--color-sky-blue)">@include('partials.icon', ['name' => 'globe']) Mode Jaringan Lokal: Pastikan HP terhubung ke Wi-Fi yang sama untuk mengunduh foto.</p>
                         @endif
                     @endauth
                 </div>

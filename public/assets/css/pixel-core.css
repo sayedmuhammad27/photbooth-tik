@@ -1,20 +1,27 @@
 /* =====================================================================
    PHOTOBOOTH TIK : pixel-core.css
-   Sistem Desain Caesar Brutalist Editorial.
+   Sistem Desain Agensi Kreatif Modern.
    Palet Resmi:
-     - BLACK:    #000000 (RGB 0, 0, 0)
-     - BURGUNDY: #6D001A (RGB 109, 0, 26)
-     - WHITE:    #FFFFFF (RGB 255, 255, 255)
+     - CHARCOAL BLACK:  #0C0E0B
+     - LIGHT SKY BLUE:  #D6E7F3
+     - CRIMSON RED:     #D6303A
    Tipografi:
-     - Display: Greenth (Fallback: Cinzel, Playfair Display, Akira Expanded, serif)
+     - Display: Mecaros (Fallback: Syne, Cinzel, Playfair Display, sans-serif)
      - Body:    Plus Jakarta Sans, sans-serif
    ===================================================================== */
 
 @font-face {
-  font-family: 'Greenth';
-  src: local('Greenth'), local('Greenth Bold'), local('Greenth-Bold'), local('Greenth Regular'), local('Greenth-Regular');
+  font-family: 'Mecaros';
+  src: local('Mecaros'),
+       local('Mecaros Regular'),
+       local('Mecaros-Regular'),
+       local('Mecaros Bold'),
+       local('Mecaros-Bold'),
+       url('/fonts/Mecaros.woff2') format('woff2'),
+       url('/fonts/Mecaros.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
   font-display: swap;
-  font-weight: 400 900;
 }
 
 @font-face {
@@ -25,65 +32,86 @@
 }
 
 :root {
-  /* [Palet Utama: Project Caesar] */
-  --black:          #000000;
-  --black-surface:  #0a0a0a;
-  --black-card:     #121212;
-  --black-elevated: #181818;
-  --black-subtle:   #222222;
+  /* ===================================================================
+     DESIGN SYSTEM: Charcoal Black, Light Sky Blue, Crimson Red
+     =================================================================== */
+  --color-charcoal: #0C0E0B;
+  --color-sky-blue: #D6E7F3;
+  --color-crimson: #D6303A;
 
-  --burgundy:       #6D001A;
-  --burgundy-dark:  #42000f;
-  --burgundy-hover: #8f0223;
-  --burgundy-bright:#b8052e;
-  --burgundy-glass: rgba(109, 0, 26, 0.35);
+  --color-background: var(--color-charcoal);
+  --color-surface: #151713;
+  --color-surface-elevated: #1d211b;
+  --color-text: var(--color-sky-blue);
+  --color-accent: var(--color-crimson);
+  --color-muted: #AAB7BF;
+  --color-border: rgba(214, 231, 243, 0.18);
 
-  --white:          #FFFFFF;
-  --white-dim:      #e5e5e5;
-  --white-muted:    #a3a3a3;
-  --white-dark:     #666666;
+  /* [Pemetaan Palet Utama] */
+  --black:          var(--color-charcoal);
+  --black-surface:  var(--color-surface);
+  --black-card:     var(--color-surface);
+  --black-elevated: var(--color-surface-elevated);
+  --black-subtle:   #232821;
+
+  --burgundy:       var(--color-crimson);
+  --burgundy-dark:  #9C1D24;
+  --burgundy-hover: #E83B46;
+  --burgundy-bright:#FF4D58;
+  --burgundy-glass: rgba(214, 48, 58, 0.28);
+
+  --white:          var(--color-sky-blue);
+  --white-dim:      #B0CDDF;
+  --white-muted:    var(--color-muted);
+  --white-dark:     #788A94;
 
   /* [Pemetaan Semantik Sistem] */
-  --bg-canvas:      var(--black);
-  --bg-surface:     var(--black-card);
-  --bg-surface-elevated: var(--black-elevated);
-  --border-subtle:  rgba(255, 255, 255, 0.12);
-  --border-strong:  rgba(255, 255, 255, 0.28);
-  --border-burgundy:var(--burgundy);
-  --outline:        var(--burgundy);
+  --bg-canvas:      var(--color-background);
+  --bg-surface:     var(--color-surface);
+  --bg-surface-elevated: var(--color-surface-elevated);
+  --border-subtle:  var(--color-border);
+  --border-strong:  rgba(214, 231, 243, 0.35);
+  --border-burgundy:var(--color-crimson);
+  --outline:        var(--color-crimson);
 
   /* [Kompatibilitas Token] */
-  --night-950:      var(--black);
-  --night-900:      var(--black-surface);
-  --night-800:      var(--black-card);
-  --night-700:      var(--black-elevated);
+  --night-950:      var(--color-charcoal);
+  --night-900:      var(--color-surface);
+  --night-800:      var(--color-surface);
+  --night-700:      var(--color-surface-elevated);
   --night-600:      var(--black-subtle);
-  --peri-500:       var(--burgundy);
+  --peri-500:       var(--color-crimson);
   --peri-600:       var(--burgundy-dark);
   --peri-400:       var(--burgundy-bright);
-  --peri-200:       var(--white);
+  --peri-200:       var(--color-sky-blue);
   --pink-400:       var(--burgundy-bright);
-  --pink-500:       var(--burgundy);
+  --pink-500:       var(--color-crimson);
   --peach-300:      var(--white-dim);
-  --cream-200:      var(--white);
-  --lamp-500:       var(--white);
+  --cream-200:      var(--color-sky-blue);
+  --lamp-500:       var(--color-sky-blue);
   --lamp-600:       var(--white-dim);
-  --lamp-300:       var(--white);
+  --lamp-300:       var(--color-sky-blue);
+  --concrete:       var(--color-sky-blue);
+  --concrete-dim:   #B0CDDF;
+  --aquamarine-950: var(--color-surface);
+  --burgundy-700:   var(--burgundy-dark);
+  --burgundy-400:   var(--color-crimson);
+  --burgundy-900:   #1a0408;
   --green-500:      #15803d;
   --green-600:      #166534;
   --lime-400:       #4ade80;
-  --magenta-500:    var(--burgundy);
+  --magenta-500:    var(--color-crimson);
   --magenta-700:    var(--burgundy-dark);
-  --danger-text:    #ff8fa3;
+  --danger-text:    #ff707a;
 
   /* [Teks & Kontras] */
-  --text:           var(--white);
-  --text-muted:     var(--white-muted);
-  --text-dim:       var(--white-dark);
-  --text-inverse:   var(--black);
+  --text:           var(--color-sky-blue);
+  --text-muted:     var(--color-muted);
+  --text-dim:       #788A94;
+  --text-inverse:   #FFFFFF;
 
-  /* [Tipografi: Greenth, Cinzel & Plus Jakarta Sans] */
-  --font-display:   'Greenth', 'Cinzel', 'Playfair Display', 'Akira Expanded', serif;
+  /* [Tipografi: Mecaros, Syne, Cinzel & Plus Jakarta Sans] */
+  --font-display:   'Mecaros', 'Syne', 'Cinzel', 'Playfair Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-body:      'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --fs-xs: .875rem;   --fs-sm: 1rem;    --fs-md: 1.125rem; --fs-lg: 1.25rem;
   --fs-d-xs: .75rem;  --fs-d-sm: .875rem; --fs-d-md: 1rem; --fs-d-lg: 1.25rem; --fs-d-xl: 1.625rem;
@@ -115,8 +143,8 @@
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; background: var(--black); }
 body {
   margin: 0; min-height: 100vh; min-height: 100dvh;
-  color: var(--white); font-family: var(--font-body); font-size: var(--fs-md); font-weight: 500; line-height: 1.5;
-  background: radial-gradient(circle at 50% 0%, #110105 0%, var(--black) 80%) fixed;
+  color: var(--color-text); font-family: var(--font-body); font-size: var(--fs-md); font-weight: 500; line-height: 1.5;
+  background: radial-gradient(circle at 50% 0%, #1a1e17 0%, var(--color-charcoal) 75%) fixed;
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent; overflow-x: hidden;
 }
@@ -230,41 +258,46 @@ p { margin: 0; }
   box-shadow: none;
 }
 
-/* Tombol Primer: Solid White (#ffffff) dengan teks Black (#000000) */
+/* Tombol Primer: Crimson Red (#D6303A) dengan teks White (#FFFFFF) */
 .btn--primary {
-  background: var(--white);
-  color: var(--black);
-  border-color: var(--white);
+  background: var(--color-crimson);
+  color: #FFFFFF;
+  border-color: var(--color-crimson);
+  box-shadow: 0 4px 16px rgba(214, 48, 58, 0.35);
 }
 .btn--primary:hover {
-  background: var(--white-dim);
-  color: var(--black);
-  box-shadow: 0 6px 24px rgba(255, 255, 255, 0.25);
+  background: var(--burgundy-hover);
+  color: #FFFFFF;
+  border-color: var(--burgundy-bright);
+  box-shadow: 0 8px 26px rgba(214, 48, 58, 0.6);
 }
 
-/* Tombol Aksi Kritis / Rekam: Burgundy (#6d001a) */
+/* Tombol Aksi Kritis / Rekam: Burgundy / Crimson Dark (#9C1D24) */
 .btn--danger {
-  background: var(--burgundy);
-  border-color: var(--burgundy);
-  color: var(--white);
+  background: var(--burgundy-dark);
+  border-color: var(--color-crimson);
+  color: #FFFFFF;
 }
 .btn--danger:hover {
-  background: var(--burgundy-hover);
+  background: var(--color-crimson);
   border-color: var(--burgundy-bright);
-  box-shadow: 0 6px 24px rgba(109, 0, 26, 0.55);
+  box-shadow: 0 6px 24px rgba(214, 48, 58, 0.55);
 }
 
-/* Tombol Ghost: Border White halus di atas Black */
-.btn--ghost {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-strong);
-  color: var(--white);
+/* Tombol Ghost / Sekunder: Border Light Sky Blue (#D6E7F3) */
+.btn--ghost,
+.btn--secondary {
+  background: rgba(214, 231, 243, 0.04);
+  border: 1px solid var(--color-sky-blue);
+  color: var(--color-sky-blue);
   backdrop-filter: blur(8px);
 }
-.btn--ghost:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: var(--white);
-  color: var(--white);
+.btn--ghost:hover,
+.btn--secondary:hover {
+  background: rgba(214, 231, 243, 0.14);
+  border-color: var(--color-sky-blue);
+  color: #FFFFFF;
+  box-shadow: 0 4px 18px rgba(214, 231, 243, 0.2);
 }
 
 /* Tombol Sukses: Hijau Gelap Beraksen */

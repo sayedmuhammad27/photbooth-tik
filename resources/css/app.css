@@ -1,25 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  /* Palet Warna Ungu Retro kita */
-  --color-retro-darkest: #49225B;
-  --color-retro-dark: #6E3482;
-  --color-retro-medium: #A56ABD;
-  --color-retro-light: #E7DBEF;
-  --color-retro-text: #F5EBFA;
-  
-  /* Font Pixel */
-  --font-pixel: "Press Start 2P", cursive, system-ui;
+  --color-charcoal: #0C0E0B;
+  --color-sky-blue: #D6E7F3;
+  --color-crimson: #D6303A;
+
+  --color-background: var(--color-charcoal);
+  --color-surface: #151713;
+  --color-text: var(--color-sky-blue);
+  --color-accent: var(--color-crimson);
+  --color-muted: #AAB7BF;
+  --color-border: rgba(214, 231, 243, 0.18);
+
+  --font-display: "Mecaros", "Syne", "Cinzel", system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
 @layer base {
   body {
-    @apply bg-retro-darkest text-retro-text font-pixel antialiased;
-    -webkit-tap-highlight-color: transparent; 
+    background-color: var(--color-charcoal);
+    color: var(--color-sky-blue);
+    font-family: var(--font-body);
+    -webkit-tap-highlight-color: transparent;
   }
-}
-
-.pixel-border {
-  border: 4px solid #F5EBFA;
-  border-radius: 8px;
 }

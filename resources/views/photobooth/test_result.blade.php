@@ -7,8 +7,8 @@
 <div class="result">
     <div class="result__head reveal">
         <span class="badge badge--danger" style="font-size:var(--fs-d-xs);margin-bottom:8px">@include('partials.icon', ['name' => 'flask']) MODE TEST FOTO</span>
-        <h1 style="color:var(--concrete)">UJI COBA SELESAI</h1>
-        <p>Foto ini adalah hasil percobaan kamera. <strong style="color:var(--concrete)">Foto ini TIDAK disimpan ke database</strong> dan tidak masuk ke riwayat antrean.</p>
+        <h1 style="color:var(--color-sky-blue)">UJI COBA SELESAI</h1>
+        <p>Foto ini adalah hasil percobaan kamera. <strong style="color:var(--color-sky-blue)">Foto ini TIDAK disimpan ke database</strong> dan tidak masuk ke riwayat antrean.</p>
     </div>
 
     <div class="result__grid">
@@ -17,13 +17,13 @@
         </div>
 
         <div class="result__side">
-            <div class="px-box reveal" style="padding:var(--sp-5);border-left:4px solid var(--burgundy-700)">
-                <h2 style="font-size:var(--fs-d-sm);color:var(--concrete);margin-bottom:8px">INFORMASI UJI COBA</h2>
+            <div class="px-box reveal" style="padding:var(--sp-5);border-left:4px solid var(--color-crimson)">
+                <h2 style="font-size:var(--fs-d-sm);color:var(--color-sky-blue);margin-bottom:8px">INFORMASI UJI COBA</h2>
                 <p style="font-size:var(--fs-sm);color:var(--text-muted);line-height:1.5">
                     Kamera dan template berjalan dengan baik! Anda dapat mengunduh foto strip hasil tes ini atau kembali ke menu utama untuk mengambil nomor antrean resmi.
                 </p>
                 @if(!empty($metadata['template']))
-                    <div style="margin-top:12px;font-size:var(--fs-xs);color:var(--concrete-dim)">
+                    <div style="margin-top:12px;font-size:var(--fs-xs);color:var(--color-muted)">
                         Template: <strong>{{ $metadata['template'] }}</strong>
                     </div>
                 @endif

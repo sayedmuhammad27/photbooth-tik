@@ -10,9 +10,9 @@
     <img class="scene__city" src="{{ asset('assets/img/city-night.png') }}" alt="" width="384" height="112">
 
     <main class="welcome">
-        <!-- Top Pill Navigation Bar (Image 1 Style) -->
+        <!-- Top Pill Navigation Bar (Creative Agency Style) -->
         <nav class="welcome__nav-pill reveal" aria-label="Navigasi Utama">
-            <span style="font-family:var(--font-display);font-size:var(--fs-d-xs);font-weight:900;color:var(--concrete);letter-spacing:.08em;margin-right:8px">
+            <span style="font-family:var(--font-display);font-size:var(--fs-d-xs);font-weight:900;color:var(--color-sky-blue);letter-spacing:.08em;margin-right:8px">
                 PHOTOBOOTH TIK
             </span>
             <a href="{{ route('home') }}" class="welcome__nav-item is-active">Beranda</a>
@@ -21,24 +21,30 @@
             <a href="{{ route('login') }}" class="welcome__nav-item">Admin</a>
         </nav>
 
-        <!-- Big Display Header (Nebula / Orbitron Style) -->
+        <!-- Big Display Header (Creative Agency Style with Mecaros) -->
         <p class="welcome__kicker reveal">EXPO WISUDA JURUSAN TIK 2026</p>
-        <h1 class="welcome__title reveal">PHOTOBOOTH TIK</h1>
-        <p class="welcome__sub reveal">ABACIKAN MOMEN WISUDAMU DENGAN BINGKAI EKSKLUSIF</p>
+        <h1 class="welcome__title reveal">CAPTURE YOUR MOMENTS.</h1>
+        <p class="welcome__sub reveal">Abadikan momen terbaikmu bersama Photbooth TIK. Pilih template, ambil foto, dan bawa pulang kenanganmu.</p>
 
-        <!-- Hero Showcase Card (Centerpiece Image 1 Style) -->
-        <div class="welcome__hero-card reveal">
+        <!-- Hero Showcase Card (Centerpiece Creative Agency Style with Background Image) -->
+        <section class="hero welcome__hero-card reveal">
+            <!-- Centerpiece Visual Artwork Frame -->
+            <div class="welcome__hero-visual-wrap">
+                <img class="welcome__hero-art" src="{{ asset('images/hero-visual.png') }}" alt="Photobooth TIK Visual Art" width="856" height="420" loading="eager">
+            </div>
+
             <div class="welcome__hero-header">
                 <div class="welcome__hero-desc">
                     Sistem photobooth otomatis Expo Wisuda Jurusan TIK 2026. Ambil nomor antrean, abadikan pose terbaikmu di bilik kamera, dan unduh strip foto resolusi tinggi langsung ke ponselmu.
                 </div>
                 <div class="welcome__hero-actions">
                     <button type="button" class="btn btn--primary" id="btn-hero-take-ticket">
-                        @include('partials.icon', ['name' => 'ticket']) Ambil Nomor Antrean
+                        @include('partials.icon', ['name' => 'camera']) Mulai Photobooth
                     </button>
-                    <button type="button" class="btn btn--ghost" id="btn-hero-start-photo">
-                        @include('partials.icon', ['name' => 'camera']) Mulai Foto Antrean
-                    </button>
+                    <a class="btn btn--ghost" id="btn-hero-view-templates" href="{{ route('photobooth.setup') }}">
+                        @include('partials.icon', ['name' => 'palette']) Lihat Template
+                    </a>
+                    <button type="button" class="btn btn--ghost" id="btn-hero-start-photo" style="display:none" aria-hidden="true"></button>
                 </div>
             </div>
 

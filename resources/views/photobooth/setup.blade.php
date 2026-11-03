@@ -6,7 +6,7 @@
 @section('content')
 <header class="gallery-head">
     @if(!empty($isTestMode))
-        <div style="background:var(--burgundy-700);color:var(--concrete);padding:8px 16px;text-align:center;font-family:var(--font-display);font-size:var(--fs-d-xs);letter-spacing:.06em;margin:-12px -20px 12px;border-radius:var(--radius-sm)">
+        <div style="background:var(--burgundy-dark);color:var(--color-sky-blue);padding:8px 16px;text-align:center;font-family:var(--font-display);font-size:var(--fs-d-xs);letter-spacing:.06em;margin:-12px -20px 12px;border-radius:var(--radius-sm)">
             @include('partials.icon', ['name' => 'flask']) MODE TEST FOTO (UJI COBA KAMERA : HASIL TIDAK DISIMPAN KE DATABASE)
         </div>
     @endif

@@ -5,7 +5,7 @@
 
 @section('content')
 @if(!empty($isTestMode))
-    <div style="background:var(--burgundy-700);color:var(--concrete);padding:8px 16px;text-align:center;font-family:var(--font-display);font-size:var(--fs-d-xs);letter-spacing:.06em">
+    <div style="background:var(--burgundy-dark);color:var(--color-sky-blue);padding:8px 16px;text-align:center;font-family:var(--font-display);font-size:var(--fs-d-xs);letter-spacing:.06em">
         @include('partials.icon', ['name' => 'flask']) MODE TEST FOTO (UJI COBA KAMERA : HASIL TIDAK DISIMPAN KE DATABASE)
     </div>
 @endif
