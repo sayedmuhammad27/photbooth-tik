@@ -108,7 +108,7 @@
             <span class="welcome__quick-divider" aria-hidden="true">/</span>
             <a class="welcome__quick-link" href="{{ route('test.photo.setup') }}">
                 @include('partials.icon', ['name' => 'flask', 'size' => 18])
-                <span>Uji Coba Kamera (Test Foto)</span>
+                <span>Uji Coba Kamera</span>
             </a>
             <span class="welcome__quick-divider" aria-hidden="true">/</span>
             <a class="welcome__quick-link" href="{{ route('login') }}">
@@ -158,7 +158,6 @@
                 <div class="field">
                     <label class="field__label" for="ticket-name">Nama / Panggilan (opsional):</label>
                     <input class="input" type="text" id="ticket-name" name="name" placeholder="Misal: Rian & Tim" autocomplete="off" maxlength="50">
-                    <span class="field__hint">Nomor antrean akan otomatis digenerate berurutan.</span>
                 </div>
 
                 <div id="ticket-error-msg" class="field__error" hidden></div>
@@ -199,7 +198,7 @@
             </div>
 
             <p style="font-size:var(--fs-xs);color:var(--color-sand);margin-bottom:16px;line-height:1.4">
-                Simpan nomor ini. Saat admin menyetujui & memanggil giliranmu, Anda dapat memulai foto melalui menu <strong>Mulai Foto Antrean</strong>.
+                Simpan nomor antrean ini untuk memulai sesi fotomu di bilik.
             </p>
 
             <div style="display:flex;gap:10px;justify-content:center">
@@ -217,7 +216,7 @@
     <div class="ticket-card">
         <div class="ticket-card__header">
             <h2 id="verify-modal-title" style="font-size:var(--fs-d-sm);color:var(--color-cream);letter-spacing:.05em;margin-bottom:6px">MULAI SESI FOTO</h2>
-            <p style="font-size:var(--fs-sm);color:var(--color-sand)">Hanya antrean yang telah disetujui admin yang bisa mulai foto.</p>
+            <p style="font-size:var(--fs-sm);color:var(--color-sand)">Masukkan nomor antrean Anda untuk memulai sesi foto.</p>
         </div>
 
         <form id="form-verify-queue" style="display:grid;gap:14px;text-align:left">

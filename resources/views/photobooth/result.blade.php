@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('title', 'Hasil Foto : Photobooth TIK')
-@section('body_class', 'has-stars')
 
 @section('content')
 <div class="result">
@@ -22,22 +21,10 @@
                     <h2>Bawa pulang lewat ponsel</h2>
                     <p>Arahkan kamera ponsel ke kode ini untuk membuka dan mengunduh fotomu.</p>
                     @if(!empty($shareUrl))
-                        <p style="margin-top:8px;font-size:0.8rem;color:var(--color-sky-blue);word-break:break-all">
-                            <a href="{{ $shareUrl }}" target="_blank" rel="noopener" style="color:var(--color-sky-blue);text-decoration:underline">{{ $shareUrl }}</a>
+                        <p style="margin-top:10px;font-size:0.85rem;color:var(--color-sand);word-break:break-all">
+                            <a href="{{ $shareUrl }}" target="_blank" rel="noopener" style="color:var(--color-sand);text-decoration:underline">{{ $shareUrl }}</a>
                         </p>
-                        @if(str_contains($shareUrl, 'trycloudflare.com'))
-                            <p style="margin-top:6px;font-size:var(--fs-xs);color:var(--text-dim);display:flex;align-items:center;gap:6px">
-                                @include('partials.icon', ['name' => 'globe']) Online Cloudflare: Bisa diunduh dari HP via internet
-                            </p>
-                        @endif
                     @endif
-                    @auth
-                        @if($qrIsLocal)
-                            <p style="margin-top:8px;color:var(--color-crimson)">Catatan: QR masih mengarah ke localhost. Sambungkan laptop ke Wi-Fi atau jalankan Cloudflare Tunnel agar bisa diakses dari HP.</p>
-                        @elseif(!empty($qrIsLan))
-                            <p style="margin-top:8px;color:var(--color-sky-blue)">@include('partials.icon', ['name' => 'globe']) Mode Jaringan Lokal: Pastikan HP terhubung ke Wi-Fi yang sama untuk mengunduh foto.</p>
-                        @endif
-                    @endauth
                 </div>
             </div>
 

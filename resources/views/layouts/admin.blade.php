@@ -5,7 +5,7 @@
     <title>@yield('title', 'Admin : Photobooth TIK')</title>
     <meta name="robots" content="noindex, nofollow">
 </head>
-<body class="has-stars">
+<body>
     <header class="adm-bar">
         <div class="adm-bar__in">
             <a class="adm-logo" href="{{ route('admin.dashboard') }}">PHOTOBOOTH TIK</a>
