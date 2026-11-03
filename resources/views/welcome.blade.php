@@ -4,15 +4,10 @@
 
 @section('content')
 <div class="scene">
-    <div class="has-stars-layer scene__stars-a" aria-hidden="true"></div>
-    <div class="has-stars-layer scene__stars-b" aria-hidden="true"></div>
-    <img class="scene__moon" src="{{ asset('assets/img/moon.png') }}" alt="" width="32" height="32">
-    <img class="scene__city" src="{{ asset('assets/img/city-night.png') }}" alt="" width="384" height="112">
-
     <main class="welcome">
         <!-- Top Pill Navigation Bar (Creative Agency Style) -->
         <nav class="welcome__nav-pill reveal" aria-label="Navigasi Utama">
-            <span style="font-family:var(--font-display);font-size:var(--fs-d-xs);font-weight:900;color:var(--color-sky-blue);letter-spacing:.08em;margin-right:8px">
+            <span class="welcome__nav-brand">
                 PHOTOBOOTH TIK
             </span>
             <a href="{{ route('home') }}" class="welcome__nav-item is-active">Beranda</a>
@@ -21,135 +16,130 @@
             <a href="{{ route('login') }}" class="welcome__nav-item">Admin</a>
         </nav>
 
-        <!-- Big Display Header (Creative Agency Style with Mecaros) -->
-        <p class="welcome__kicker reveal">EXPO WISUDA JURUSAN TIK 2026</p>
-        <h1 class="welcome__title reveal">CAPTURE YOUR MOMENTS.</h1>
-        <p class="welcome__sub reveal">Abadikan momen terbaikmu bersama Photbooth TIK. Pilih template, ambil foto, dan bawa pulang kenanganmu.</p>
+        <!-- Header Section (Agency Display Typography) -->
+        <header class="welcome__header">
+            <p class="welcome__kicker reveal">EXPO WISUDA JURUSAN TIK 2026</p>
+            <h1 class="welcome__title reveal">CAPTURE YOUR MOMENTS.</h1>
+            <p class="welcome__sub reveal">Abadikan momen terbaikmu bersama Photbooth TIK. Ambil nomor antrean, pilih bingkai foto favorit, dan bawa pulang kenangan wisudamu.</p>
 
-        <!-- Hero Showcase Card (Centerpiece Creative Agency Style with Background Image) -->
-        <section class="hero welcome__hero-card reveal">
-            <!-- Centerpiece Visual Artwork Frame -->
-            <div class="welcome__hero-visual-wrap">
-                <img class="welcome__hero-art" src="{{ asset('images/hero-visual.png') }}" alt="Photobooth TIK Visual Art" width="856" height="420" loading="eager">
-            </div>
-
-            <div class="welcome__hero-header">
-                <div class="welcome__hero-desc">
-                    Sistem photobooth otomatis Expo Wisuda Jurusan TIK 2026. Ambil nomor antrean, abadikan pose terbaikmu di bilik kamera, dan unduh strip foto resolusi tinggi langsung ke ponselmu.
+            <!-- Baris Status Antrean Hari Ini -->
+            <div class="queue-kiosk-bar reveal" aria-label="Status Antrean Hari Ini">
+                <div class="queue-kiosk-item">
+                    <span>Melayani Sekarang: </span>
+                    <strong id="kiosk-current-serving" class="queue-kiosk-val">#{{ $setting->current_serving ?: '-' }}</strong>
                 </div>
-                <div class="welcome__hero-actions">
-                    <button type="button" class="btn btn--primary" id="btn-hero-take-ticket">
-                        @include('partials.icon', ['name' => 'camera']) Mulai Photobooth
-                    </button>
-                    <a class="btn btn--ghost" id="btn-hero-view-templates" href="{{ route('photobooth.setup') }}">
-                        @include('partials.icon', ['name' => 'palette']) Lihat Template
-                    </a>
-                    <button type="button" class="btn btn--ghost" id="btn-hero-start-photo" style="display:none" aria-hidden="true"></button>
+                <div class="queue-kiosk-divider" aria-hidden="true">•</div>
+                <div class="queue-kiosk-item">
+                    <span>Antrean Menunggu: </span>
+                    <strong id="kiosk-waiting-count" class="queue-kiosk-val">{{ $waitingCount }}</strong> orang
                 </div>
             </div>
+        </header>
 
-            <!-- Dynamic Live Queue Session Banner (Muncul bila antrean disetujui admin) -->
-            <div id="live-queue-container" style="width:100%">
-                @if($activeTicket && $activeTicket->status === 'in_session')
-                    <div class="queue-banner queue-banner--session reveal is-in">
-                        <span class="queue-banner__tag">@include('partials.icon', ['name' => 'star']) GILIRAN SESI FOTO SEKARANG @include('partials.icon', ['name' => 'star'])</span>
-                        <div class="queue-banner__num">ANTREAN #{{ $activeTicket->queue_number }}</div>
-                        <div class="queue-banner__name">{{ $activeTicket->name }}</div>
-                        <p style="color:var(--text-muted);font-size:var(--fs-sm)">
-                            Admin telah menyetujui dan memulai sesimu! Silakan masuk ke bilik foto sekarang.
-                        </p>
-                        <div class="queue-banner__action">
-                            <a class="btn btn--primary btn--lg" href="{{ route('photobooth.setup', ['queue' => $activeTicket->queue_number]) }}">
-                                @include('partials.icon', ['name' => 'camera']) MULAI SESI FOTO SEKARANG
-                            </a>
-                        </div>
+        <!-- Dynamic Live Queue Session Banner (Muncul bila antrean disetujui admin) -->
+        <div id="live-queue-container" style="width:min(100%, 820px);margin:0 auto">
+            @if($activeTicket && $activeTicket->status === 'in_session')
+                <div class="queue-banner queue-banner--session reveal is-in">
+                    <span class="queue-banner__tag">@include('partials.icon', ['name' => 'star']) GILIRAN SESI FOTO SEKARANG @include('partials.icon', ['name' => 'star'])</span>
+                    <div class="queue-banner__num">ANTREAN #{{ $activeTicket->queue_number }}</div>
+                    <div class="queue-banner__name">{{ $activeTicket->name }}</div>
+                    <p style="color:var(--color-muted);font-size:var(--fs-sm)">
+                        Admin telah menyetujui dan memulai sesimu. Silakan masuk ke bilik foto sekarang.
+                    </p>
+                    <div class="queue-banner__action">
+                        <a class="btn btn--primary btn--lg" href="{{ route('photobooth.setup', ['queue' => $activeTicket->queue_number]) }}">
+                            @include('partials.icon', ['name' => 'camera']) MULAI SESI FOTO SEKARANG
+                        </a>
                     </div>
-                @elseif($activeTicket && $activeTicket->status === 'called')
-                    <div class="queue-banner queue-banner--called reveal is-in">
-                        <span class="queue-banner__tag">@include('partials.icon', ['name' => 'megaphone']) PANGGILAN ANTREAN</span>
-                        <div class="queue-banner__num">ANTREAN #{{ $activeTicket->queue_number }}</div>
-                        <div class="queue-banner__name">{{ $activeTicket->name }}</div>
-                        <p style="color:var(--text-muted);font-size:var(--fs-sm)">
-                            Silakan bersiap menuju bilik foto. Petugas admin akan segera memulai sesi fotomu.
-                        </p>
-                    </div>
-                @endif
-            </div>
+                </div>
+            @elseif($activeTicket && $activeTicket->status === 'called')
+                <div class="queue-banner queue-banner--called reveal is-in">
+                    <span class="queue-banner__tag">@include('partials.icon', ['name' => 'megaphone']) PANGGILAN ANTREAN</span>
+                    <div class="queue-banner__num">ANTREAN #{{ $activeTicket->queue_number }}</div>
+                    <div class="queue-banner__name">{{ $activeTicket->name }}</div>
+                    <p style="color:var(--color-muted);font-size:var(--fs-sm)">
+                        Silakan bersiap menuju bilik foto. Petugas admin akan segera memulai sesi fotomu.
+                    </p>
+                </div>
+            @endif
         </div>
 
-        <!-- Category / Feature Pill Bar (Image 1 Icon Bar) -->
-        <div class="welcome__icon-bar reveal" aria-label="Ringkasan Layanan">
-            <div class="welcome__icon-item" title="Nomor Antrean" aria-label="Nomor Antrean">
-                @include('partials.icon', ['name' => 'ticket', 'size' => 20])
-            </div>
-            <div class="welcome__icon-item" title="Bilik Kamera" aria-label="Bilik Kamera">
-                @include('partials.icon', ['name' => 'camera', 'size' => 20])
-            </div>
-            <div class="welcome__icon-item" title="Galeri Template" aria-label="Galeri Template">
-                @include('partials.icon', ['name' => 'palette', 'size' => 20])
-            </div>
-            <div class="welcome__icon-item" title="Unduh Hasil QR" aria-label="Unduh Hasil QR">
-                @include('partials.icon', ['name' => 'phone', 'size' => 20])
-            </div>
-            <div class="welcome__icon-item" title="Uji Coba Kamera" aria-label="Uji Coba Kamera">
-                @include('partials.icon', ['name' => 'flask', 'size' => 20])
-            </div>
-        </div>
-
-        <!-- DUA MENU UTAMA KIOSK -->
-        <div class="welcome__menu-grid reveal">
+        <!-- DUA MENU UTAMA KIOSK (PENGAMBILAN TIKET & MULAI FOTO) -->
+        <div class="welcome__action-grid reveal" role="region" aria-label="Menu Utama Kiosk">
             <!-- Menu 1: Pengambilan Tiket -->
-            <button type="button" class="welcome__menu-card" id="btn-menu-take-ticket" aria-label="Ambil nomor antrean sesi foto">
-                <div class="welcome__menu-icon" aria-hidden="true">
-                    @include('partials.icon', ['name' => 'ticket', 'size' => 28])
-                </div>
+            <div class="kiosk-action-card kiosk-action-card--ticket" id="card-take-ticket">
                 <div>
-                    <div class="welcome__menu-title">PENGAMBILAN TIKET</div>
-                    <p class="welcome__menu-desc">Dapatkan nomor antrean digital untuk sesi fotomu</p>
+                    <div class="kiosk-action-card__icon" aria-hidden="true">
+                        @include('partials.icon', ['name' => 'ticket', 'size' => 30])
+                    </div>
+                    <span class="kiosk-action-card__badge">PENGUNJUNG BARU</span>
+                    <h2 class="kiosk-action-card__title">Ambil Nomor Antrean</h2>
+                    <p class="kiosk-action-card__desc">Dapatkan nomor antrean digital untuk sesi fotomu di Expo Wisuda 2026.</p>
                 </div>
-                <span class="btn btn--ghost btn--sm welcome__menu-action">Ambil Tiket</span>
-            </button>
+                <button type="button" class="btn btn--primary btn--block kiosk-action-card__btn" id="btn-menu-take-ticket">
+                    @include('partials.icon', ['name' => 'ticket']) AMBIL NOMOR TIKET
+                </button>
+                <button type="button" id="btn-hero-take-ticket" style="display:none" aria-hidden="true"></button>
+            </div>
 
             <!-- Menu 2: Mulai Foto Sesuai Antrean -->
-            <button type="button" class="welcome__menu-card welcome__menu-card--primary" id="btn-menu-start-photo" aria-label="Mulai foto sesuai antrean">
-                <div class="welcome__menu-icon" aria-hidden="true">
-                    @include('partials.icon', ['name' => 'camera', 'size' => 28])
-                </div>
+            <div class="kiosk-action-card kiosk-action-card--photo" id="card-start-photo">
                 <div>
-                    <div class="welcome__menu-title">MULAI FOTO ANTREAN</div>
-                    <p class="welcome__menu-desc">Masuk bilik foto dengan nomor antrean yang disetujui</p>
+                    <div class="kiosk-action-card__icon" aria-hidden="true">
+                        @include('partials.icon', ['name' => 'camera', 'size' => 30])
+                    </div>
+                    <span class="kiosk-action-card__badge kiosk-action-card__badge--ready">SUDAH MEMILIKI NOMOR</span>
+                    <h2 class="kiosk-action-card__title">Masuk Bilik Foto</h2>
+                    <p class="kiosk-action-card__desc">Nomor antreanmu sudah dipanggil? Masuk ke bilik dan pilih template favoritmu.</p>
                 </div>
-                <span class="btn btn--primary btn--sm welcome__menu-action">Mulai Foto</span>
-            </button>
+                <button type="button" class="btn btn--ghost btn--block kiosk-action-card__btn" id="btn-menu-start-photo">
+                    @include('partials.icon', ['name' => 'camera']) MULAI FOTO SEKARANG
+                </button>
+                <button type="button" id="btn-hero-start-photo" style="display:none" aria-hidden="true"></button>
+            </div>
         </div>
 
-        <!-- Menu Alternatif: Test Foto (Uji Coba Kamera) -->
-        <div class="welcome__test-cta reveal">
-            <a class="btn btn--ghost btn--sm" href="{{ route('test.photo.setup') }}" style="border-color:var(--burgundy-400);color:var(--concrete);padding:12px 24px">
-                @include('partials.icon', ['name' => 'flask']) UJI COBA KAMERA (TEST FOTO)
+        <!-- Baris Navigasi Sekunder (Quick Utilities) -->
+        <div class="welcome__quick-bar reveal" role="navigation" aria-label="Aksi Tambahan">
+            <a class="welcome__quick-link" href="{{ route('photobooth.setup') }}">
+                @include('partials.icon', ['name' => 'palette', 'size' => 18])
+                <span>Lihat Galeri Template</span>
             </a>
-            <p style="font-size:var(--fs-xs);color:var(--text-dim);margin-top:8px">
-                Coba kamera dan template tanpa antrean. Hasil foto tes hanya ditampilkan di layar dan tidak disimpan ke database.
-            </p>
+            <span class="welcome__quick-divider" aria-hidden="true">/</span>
+            <a class="welcome__quick-link" href="{{ route('test.photo.setup') }}">
+                @include('partials.icon', ['name' => 'flask', 'size' => 18])
+                <span>Uji Coba Kamera (Test Foto)</span>
+            </a>
+            <span class="welcome__quick-divider" aria-hidden="true">/</span>
+            <a class="welcome__quick-link" href="{{ route('login') }}">
+                @include('partials.icon', ['name' => 'lock', 'size' => 18])
+                <span>Masuk Admin</span>
+            </a>
         </div>
 
-        <!-- Baris Status Antrean Hari Ini -->
-        <div class="queue-kiosk-bar reveal">
-            <div>
-                <span>Melayani Sekarang: </span>
-                <strong id="kiosk-current-serving">#{{ $setting->current_serving ?: '-' }}</strong>
+        <!-- 4 Langkah Alur Mudah Photobooth -->
+        <div class="welcome__steps-bar reveal" aria-label="Alur Penggunaan">
+            <div class="welcome__step-item">
+                <span class="welcome__step-num">01</span>
+                <span class="welcome__step-text">Ambil Tiket</span>
             </div>
-            <div style="opacity:.4">|</div>
-            <div>
-                <span>Antrean Menunggu: </span>
-                <strong id="kiosk-waiting-count">{{ $waitingCount }}</strong> orang
+            <div class="welcome__step-arrow" aria-hidden="true">&rsaquo;</div>
+            <div class="welcome__step-item">
+                <span class="welcome__step-num">02</span>
+                <span class="welcome__step-text">Pilih Template</span>
+            </div>
+            <div class="welcome__step-arrow" aria-hidden="true">&rsaquo;</div>
+            <div class="welcome__step-item">
+                <span class="welcome__step-num">03</span>
+                <span class="welcome__step-text">Pose di Bilik</span>
+            </div>
+            <div class="welcome__step-arrow" aria-hidden="true">&rsaquo;</div>
+            <div class="welcome__step-item">
+                <span class="welcome__step-num">04</span>
+                <span class="welcome__step-text">Unduh via QR</span>
             </div>
         </div>
-
-        <p class="welcome__steps reveal">Pilih template, ambil foto dengan hitung mundur otomatis, lalu bawa pulang hasilnya lewat ponselmu.</p>
     </main>
-
-    <a class="welcome__admin" href="{{ route('login') }}">Masuk Admin</a>
 </div>
 
 <!-- ======================================================== -->
@@ -160,7 +150,7 @@
         <!-- Tampilan 1: Form Ambil Tiket -->
         <div id="ticket-form-view">
             <div class="ticket-card__header">
-                <h2 id="queue-modal-title" style="font-size:var(--fs-d-sm);color:var(--concrete);letter-spacing:.05em;margin-bottom:6px">AMBIL ANTREAN</h2>
+                <h2 id="queue-modal-title" style="font-size:var(--fs-d-sm);color:var(--color-sky-blue);letter-spacing:.05em;margin-bottom:6px">AMBIL ANTREAN</h2>
                 <p style="font-size:var(--fs-sm);color:var(--text-muted)">Expo Wisuda Jurusan TIK 2026</p>
             </div>
 
@@ -189,18 +179,18 @@
 
             <div style="font-size:var(--fs-xs);color:var(--text-dim);letter-spacing:.05em">NOMOR ANTREAN ANDA</div>
             <div class="ticket-card__num" id="res-ticket-num">#0</div>
-            <div id="res-ticket-name" style="font-size:var(--fs-md);font-weight:bold;color:var(--concrete);margin-bottom:4px">-</div>
+            <div id="res-ticket-name" style="font-size:var(--fs-md);font-weight:bold;color:var(--color-sky-blue);margin-bottom:4px">-</div>
             
             <div class="ticket-card__barcode" aria-hidden="true"></div>
 
-            <div style="background:var(--aquamarine-950);padding:14px;margin-bottom:14px;border:1px dashed var(--border-subtle);border-radius:var(--radius-md);font-size:var(--fs-xs);display:grid;gap:8px">
+            <div style="background:var(--color-surface);padding:14px;margin-bottom:14px;border:1px dashed var(--border-subtle);border-radius:var(--radius-md);font-size:var(--fs-xs);display:grid;gap:8px">
                 <div style="display:flex;justify-content:space-between">
                     <span style="color:var(--text-muted)">Waktu Ambil:</span>
-                    <span id="res-ticket-time" style="color:var(--concrete);font-weight:600">-</span>
+                    <span id="res-ticket-time" style="color:var(--color-sky-blue);font-weight:600">-</span>
                 </div>
                 <div style="display:flex;justify-content:space-between">
                     <span style="color:var(--text-muted)">Antrean di Depan:</span>
-                    <span id="res-ticket-ahead" style="color:var(--concrete);font-weight:700">0 orang</span>
+                    <span id="res-ticket-ahead" style="color:var(--color-sky-blue);font-weight:700">0 orang</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center">
                     <span style="color:var(--text-muted)">Status:</span>
@@ -226,7 +216,7 @@
 <dialog class="queue-modal" id="verify-queue-modal" aria-labelledby="verify-modal-title">
     <div class="ticket-card">
         <div class="ticket-card__header">
-            <h2 id="verify-modal-title" style="font-size:var(--fs-d-sm);color:var(--concrete);letter-spacing:.05em;margin-bottom:6px">MULAI SESI FOTO</h2>
+            <h2 id="verify-modal-title" style="font-size:var(--fs-d-sm);color:var(--color-sky-blue);letter-spacing:.05em;margin-bottom:6px">MULAI SESI FOTO</h2>
             <p style="font-size:var(--fs-sm);color:var(--text-muted)">Hanya antrean yang telah disetujui admin yang bisa mulai foto.</p>
         </div>
 
@@ -234,7 +224,7 @@
             <div class="field">
                 <label class="field__label" for="input-verify-queue-num">Masukkan Nomor Antrean Anda:</label>
                 <div style="display:flex;gap:8px;align-items:center">
-                    <span style="font-family:var(--font-display);font-size:var(--fs-lg);color:var(--concrete)">#</span>
+                    <span style="font-family:var(--font-display);font-size:var(--fs-lg);color:var(--color-sky-blue)">#</span>
                     <input class="input" type="number" id="input-verify-queue-num" name="queue_number" min="1" placeholder="Contoh: 1" required style="font-size:var(--fs-lg);font-weight:bold">
                 </div>
             </div>
@@ -251,7 +241,7 @@
         </form>
 
         <div style="margin-top:16px;padding-top:12px;border-top:1px dashed var(--border-subtle);font-size:var(--fs-xs);color:var(--text-dim)">
-            Belum punya nomor antrean? <a href="#" id="link-switch-to-take" style="color:var(--concrete);text-decoration:underline">Ambil tiket di sini</a>
+            Belum punya nomor antrean? <a href="#" id="link-switch-to-take" style="color:var(--color-sky-blue);text-decoration:underline">Ambil tiket di sini</a>
         </div>
     </div>
 </dialog>

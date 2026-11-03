@@ -144,9 +144,29 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; background: var(-
 body {
   margin: 0; min-height: 100vh; min-height: 100dvh;
   color: var(--color-text); font-family: var(--font-body); font-size: var(--fs-md); font-weight: 500; line-height: 1.5;
-  background: radial-gradient(circle at 50% 0%, #1a1e17 0%, var(--color-charcoal) 75%) fixed;
+  background-color: var(--color-charcoal);
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent; overflow-x: hidden;
+  position: relative;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--color-charcoal);
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(12, 14, 11, 0.82) 0%,
+      rgba(12, 14, 11, 0.90) 45%,
+      rgba(12, 14, 11, 0.96) 100%
+    ),
+    url('/images/retro-wavy-bg.png');
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
+  pointer-events: none;
 }
 img, svg, video, canvas { display: block; max-width: 100%; }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -161,10 +181,8 @@ p { margin: 0; }
 :focus { outline: none; }
 :focus-visible { outline: 2px solid var(--white); outline-offset: 4px; border-radius: var(--radius-sm); }
 
-/* Partikel bintang monokrom */
-.has-stars::before, .has-stars::after { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; background-repeat: repeat; }
-.has-stars::before { background-image: radial-gradient(1px 1px at 30px 40px, rgba(255, 255, 255, 0.35), transparent); background-size: 240px 240px; animation: twinkle 6s ease-in-out infinite; }
-.has-stars::after  { background-image: radial-gradient(1px 1px at 80px 100px, rgba(109, 0, 26, 0.45), transparent); background-size: 320px 320px; animation: twinkle 8s ease-in-out -3s infinite; }
+/* Partikel bintang monokrom (dinonaktifkan untuk gaya modern agency) */
+.has-stars::before, .has-stars::after { display: none !important; }
 .has-stars > * { position: relative; z-index: 1; }
 
 /* ---------- Ikon Standar Palet (Black / Burgundy / White) ---------- */

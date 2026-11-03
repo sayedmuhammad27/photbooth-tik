@@ -1,16 +1,14 @@
 @extends('layouts.app')
 
 @section('title', 'Masuk Admin : Photobooth TIK')
-@section('body_class', 'has-stars')
 
 @section('inline_errors', '1')
 
 @section('content')
-<img class="auth-city" src="{{ asset('assets/img/city-night.png') }}" alt="" width="384" height="112">
 <main class="auth">
-    <div class="auth__card">
+    <div class="auth__card reveal is-in">
         <div style="display:flex;justify-content:center;margin-bottom:var(--sp-2)">
-            <span class="chip" style="border-color:var(--burgundy);color:var(--white);background:rgba(109,0,26,0.35);padding:4px 14px;font-size:var(--fs-xs);letter-spacing:.08em">PANEL KONTROL</span>
+            <span class="chip" style="border-color:rgba(214,48,58,0.4);color:var(--color-crimson);background:rgba(214,48,58,0.15);padding:4px 14px;font-size:var(--fs-xs);letter-spacing:.08em;font-weight:700">PANEL KONTROL</span>
         </div>
         <h1>MASUK ADMIN</h1>
         <p>Kelola template, nomor antrean, dan riwayat sesi foto.</p>
