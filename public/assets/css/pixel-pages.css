@@ -1119,3 +1119,198 @@
   .tgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); }
   .tcard__desc { display: none; }
 }
+
+/* =====================================================================
+   HALAMAN MASUK ADMIN (AUTH / LOGIN)
+   ===================================================================== */
+.auth {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--sp-6) var(--sp-4);
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+}
+.auth__card {
+  width: min(100%, 460px);
+  margin: 0 auto;
+  background: var(--black-card);
+  border: 1px solid var(--border-subtle);
+  border-top: 4px solid var(--burgundy);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 30px rgba(109, 0, 26, 0.25);
+  padding: var(--sp-6);
+  text-align: center;
+}
+.auth__card h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+  color: var(--white);
+  letter-spacing: .08em;
+  margin: var(--sp-2) 0 var(--sp-2);
+}
+.auth__card > p {
+  color: var(--white-muted);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--sp-5);
+  line-height: 1.5;
+}
+.auth__form {
+  display: grid;
+  gap: var(--sp-4);
+  text-align: left;
+}
+.auth__form .field {
+  display: grid;
+  gap: var(--sp-1);
+}
+.auth__form .field__label {
+  color: var(--white);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.auth__form .input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 16px;
+  background: var(--black-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--white);
+  font-size: var(--fs-md);
+  transition: all var(--dur-fast);
+}
+.auth__form .input:focus {
+  border-color: var(--burgundy-bright);
+  box-shadow: 0 0 0 3px rgba(109, 0, 26, 0.45);
+  outline: none;
+}
+.auth__form .check {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--white-muted);
+  font-size: var(--fs-sm);
+  margin: var(--sp-1) 0;
+  cursor: pointer;
+}
+.auth__form .btn--primary {
+  min-height: 48px;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  letter-spacing: .06em;
+  font-weight: 800;
+  width: 100%;
+  background: var(--white);
+  color: var(--black);
+  border: 1px solid var(--white);
+  margin-top: var(--sp-2);
+}
+.auth__form .btn--primary:hover {
+  background: var(--burgundy);
+  color: var(--white);
+  border-color: var(--burgundy-bright);
+  box-shadow: 0 0 20px rgba(109, 0, 26, 0.7);
+}
+.auth__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+}
+.auth-city {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  z-index: 0;
+  width: min(100%, 680px);
+  height: auto;
+  opacity: .18;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+/* =====================================================================
+   KOMPONEN PAGINASI ADMIN (PAGER & PAGINATION BAR)
+   ===================================================================== */
+.pagination-bar {
+  margin: var(--sp-5) 0 var(--sp-6);
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.pager {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-5);
+  background: var(--black-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  width: auto;
+  max-width: 100%;
+}
+.pager__info {
+  font-size: var(--fs-xs);
+  color: var(--white-muted);
+  letter-spacing: .02em;
+}
+.pager__info strong {
+  color: var(--white);
+  font-family: var(--font-display);
+}
+.pager__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+}
+.pager__btn,
+.pager a,
+.pager span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--white);
+  background: var(--black-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  transition: all var(--dur-fast) var(--ease-out);
+  user-select: none;
+}
+.pager a:hover {
+  background: var(--black-elevated);
+  border-color: var(--white);
+  color: var(--white);
+  transform: translateY(-1px);
+}
+.pager .is-current {
+  background: var(--burgundy) !important;
+  color: var(--white) !important;
+  border-color: var(--burgundy-bright) !important;
+  box-shadow: 0 0 16px rgba(109, 0, 26, 0.65);
+  font-weight: 800;
+}
+.pager .is-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: transparent;
+}
+.pager__btn--dots {
+  border-color: transparent;
+  background: transparent;
+}

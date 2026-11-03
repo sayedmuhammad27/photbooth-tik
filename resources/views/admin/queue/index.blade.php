@@ -150,7 +150,7 @@
     </table>
 </div>
 
-<div id="queue-pagination" style="margin-top:16px">
+<div id="queue-pagination" class="pagination-bar">
     {{ $tickets->links('vendor.pagination.pixel') }}
 </div>
 

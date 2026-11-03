@@ -35,5 +35,7 @@
     </table>
 </div>
 
-{{ $sessions->links('vendor.pagination.pixel') }}
+<div class="pagination-bar">
+    {{ $sessions->links('vendor.pagination.pixel') }}
+</div>
 @endsection

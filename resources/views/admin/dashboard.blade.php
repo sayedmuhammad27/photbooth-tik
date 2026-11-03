@@ -46,6 +46,10 @@
         @endforelse
         </tbody>
     </table>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-top:1px solid var(--border-subtle);background:var(--black-surface);border-radius:0 0 var(--radius-lg) var(--radius-lg)">
+        <span style="font-size:var(--fs-xs);color:var(--white-muted)">Menampilkan {{ count($recent) }} sesi foto terbaru</span>
+        <a class="btn btn--ghost btn--sm" href="{{ route('admin.sessions') }}">Lihat Semua Sesi & Paginasi &rarr;</a>
+    </div>
 </div>
 
 <h2 class="section-title" style="margin-top:48px">Template terpopuler</h2>
@@ -60,5 +64,9 @@
         @endforelse
         </tbody>
     </table>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-top:1px solid var(--border-subtle);background:var(--black-surface);border-radius:0 0 var(--radius-lg) var(--radius-lg)">
+        <span style="font-size:var(--fs-xs);color:var(--white-muted)">Peringkat berdasarkan frekuensi pemakaian</span>
+        <a class="btn btn--ghost btn--sm" href="{{ route('admin.templates.index') }}">Kelola Semua Template &rarr;</a>
+    </div>
 </div>
 @endsection
