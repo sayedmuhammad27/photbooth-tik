@@ -13,8 +13,8 @@
   --color-muted: #E5D3AF;
   --color-border: rgba(229, 211, 175, 0.22);
 
-  --font-display: "Bayside", "Syne", "Cinzel", system-ui, sans-serif;
-  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-display: "Lanterosy", "Lanterosy Sans Serif", sans-serif;
+  --font-body: "Lanterosy", "Lanterosy Sans Serif", sans-serif;
 }
 
 @layer base {
