@@ -6,9 +6,9 @@
 @section('content')
 <div class="result">
     <div class="result__head reveal">
-        <span class="badge badge--pink" style="font-size:var(--fs-d-xs);margin-bottom:8px"><span aria-hidden="true">🧪</span> MODE TEST FOTO</span>
-        <h1 style="color:var(--pink-400)">UJI COBA SELESAI</h1>
-        <p>Foto ini adalah hasil percobaan kamera. <strong style="color:var(--lamp-300)">Foto ini TIDAK disimpan ke database</strong> dan tidak masuk ke riwayat antrean.</p>
+        <span class="badge badge--danger" style="font-size:var(--fs-d-xs);margin-bottom:8px"><span aria-hidden="true">🧪</span> MODE TEST FOTO</span>
+        <h1 style="color:var(--concrete)">UJI COBA SELESAI</h1>
+        <p>Foto ini adalah hasil percobaan kamera. <strong style="color:var(--concrete)">Foto ini TIDAK disimpan ke database</strong> dan tidak masuk ke riwayat antrean.</p>
     </div>
 
     <div class="result__grid">
@@ -17,13 +17,13 @@
         </div>
 
         <div class="result__side">
-            <div class="px-box reveal" style="padding:var(--sp-5);border-left:4px solid var(--pink-400)">
-                <h2 style="font-size:var(--fs-d-sm);color:var(--lamp-300);margin-bottom:8px">INFORMASI UJI COBA</h2>
+            <div class="px-box reveal" style="padding:var(--sp-5);border-left:4px solid var(--burgundy-700)">
+                <h2 style="font-size:var(--fs-d-sm);color:var(--concrete);margin-bottom:8px">INFORMASI UJI COBA</h2>
                 <p style="font-size:var(--fs-sm);color:var(--text-muted);line-height:1.5">
                     Kamera dan template berjalan dengan baik! Anda dapat mengunduh foto strip hasil tes ini atau kembali ke menu utama untuk mengambil nomor antrean resmi.
                 </p>
                 @if(!empty($metadata['template']))
-                    <div style="margin-top:12px;font-size:var(--fs-xs);color:var(--peri-200)">
+                    <div style="margin-top:12px;font-size:var(--fs-xs);color:var(--concrete-dim)">
                         Template: <strong>{{ $metadata['template'] }}</strong>
                     </div>
                 @endif

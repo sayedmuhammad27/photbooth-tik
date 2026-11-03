@@ -1,14 +1,14 @@
 @forelse($tickets as $t)
-    <tr class="queue-row queue-row--{{ $t->status }}" data-ticket-id="{{ $t->id }}" data-queue-number="{{ $t->queue_number }}" style="{{ $t->status === 'in_session' ? 'background:rgba(234, 132, 169, 0.15);' : ($t->status === 'called' ? 'background:rgba(224, 211, 38, 0.12);' : '') }}">
+    <tr class="queue-row queue-row--{{ $t->status }}" data-ticket-id="{{ $t->id }}" data-queue-number="{{ $t->queue_number }}" style="{{ $t->status === 'in_session' ? 'background:rgba(127, 5, 8, 0.2);' : ($t->status === 'called' ? 'background:rgba(236, 230, 223, 0.1);' : '') }}">
         <td>
-            <span style="font-family:var(--font-display);font-size:var(--fs-d-md);color:{{ $t->status === 'in_session' ? 'var(--pink-400)' : ($t->status === 'called' ? 'var(--lamp-300)' : 'var(--text)') }}">
+            <span style="font-family:var(--font-display);font-size:var(--fs-d-md);font-weight:700;color:{{ $t->status === 'in_session' ? 'var(--burgundy-400)' : 'var(--concrete)' }}">
                 #{{ $t->queue_number }}
             </span>
         </td>
         <td>
-            <div style="font-weight:bold">{{ $t->name }}</div>
+            <div style="font-weight:bold;color:var(--concrete)">{{ $t->name }}</div>
             @if($t->template)
-                <div style="font-size:var(--fs-xs);color:var(--peri-200)">Template: {{ $t->template->name }}</div>
+                <div style="font-size:var(--fs-xs);color:var(--concrete-dim)">Template: {{ $t->template->name }}</div>
             @endif
         </td>
         <td>
@@ -26,9 +26,9 @@
                     Lihat Foto ↗
                 </a>
             @elseif($t->status === 'in_session')
-                <span style="font-size:var(--fs-xs);color:var(--pink-400)">Sedang di bilik foto</span>
+                <span style="font-size:var(--fs-xs);color:var(--burgundy-400);font-weight:700">Sedang di bilik foto</span>
             @elseif($t->status === 'called')
-                <span style="font-size:var(--fs-xs);color:var(--lamp-300)">Dipanggil {{ $t->called_at?->format('H:i') }}</span>
+                <span style="font-size:var(--fs-xs);color:var(--concrete);font-weight:700">Dipanggil {{ $t->called_at?->format('H:i') }}</span>
             @else
                 <span style="font-size:var(--fs-xs);color:var(--text-dim)">-</span>
             @endif
@@ -38,7 +38,7 @@
                 @if($t->status !== 'in_session')
                     <form action="{{ route('admin.queue.start', $t) }}" method="POST" style="margin:0">
                         @csrf
-                        <button type="submit" class="btn btn--primary btn--sm" style="background:var(--pink-400);color:#fff" title="Mulai sesi foto untuk nomor ini">
+                        <button type="submit" class="btn btn--danger btn--sm" title="Mulai sesi foto untuk nomor ini">
                             <span aria-hidden="true">▶</span> Mulai Foto
                         </button>
                     </form>

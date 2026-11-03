@@ -44,17 +44,17 @@
         <div class="stat__label">Sedang Menunggu</div>
         <div class="stat__value" id="stat-waiting" style="color:var(--text)">{{ $stats['waiting'] }}</div>
     </div>
-    <div class="px-box stat reveal" style="border-left:4px solid var(--pink-400)">
+    <div class="px-box stat reveal" style="border-left:4px solid var(--burgundy-700)">
         <div class="stat__label">Sedang Berfoto</div>
-        <div class="stat__value" id="stat-in-session" style="color:var(--pink-400)">{{ $stats['in_session'] }}</div>
+        <div class="stat__value" id="stat-in-session" style="color:var(--concrete)">{{ $stats['in_session'] }}</div>
     </div>
-    <div class="px-box stat reveal" style="border-left:4px solid var(--lamp-500)">
+    <div class="px-box stat reveal" style="border-left:4px solid var(--concrete)">
         <div class="stat__label">Sedang Dipanggil</div>
-        <div class="stat__value" id="stat-called" style="color:var(--lamp-300)">{{ $stats['called'] }}</div>
+        <div class="stat__value" id="stat-called" style="color:var(--concrete)">{{ $stats['called'] }}</div>
     </div>
-    <div class="px-box stat reveal" style="border-left:4px solid var(--green-500)">
+    <div class="px-box stat reveal" style="border-left:4px solid #16a34a">
         <div class="stat__label">Selesai</div>
-        <div class="stat__value" id="stat-completed" style="color:var(--lime-400)">{{ $stats['completed'] }}</div>
+        <div class="stat__value" id="stat-completed" style="color:#86efac">{{ $stats['completed'] }}</div>
     </div>
 </div>
 
@@ -89,7 +89,7 @@
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
-                <button type="submit" name="action" value="start_session" class="btn btn--primary btn--sm" style="background:var(--pink-400);color:#fff">
+                <button type="submit" name="action" value="start_session" class="btn btn--danger btn--sm">
                     <span aria-hidden="true">★</span> Langsung Mulai Foto
                 </button>
                 <button type="submit" name="action" value="call" class="btn btn--ghost btn--sm">

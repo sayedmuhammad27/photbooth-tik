@@ -25,9 +25,9 @@
                 <input class="input" id="password" type="password" name="password" required autocomplete="current-password">
             </div>
             <label class="check"><input type="checkbox" name="remember" value="1"> Ingat saya di perangkat ini</label>
-            <button type="submit" class="btn btn--primary btn--block">MASUK</button>
+            <button type="submit" class="btn btn--primary btn--block">MASUK KE DASHBOARD</button>
         </form>
-        <a class="auth__back" href="{{ route('home') }}">‹ Kembali ke booth</a>
+        <a class="auth__back back-link" href="{{ route('home') }}" style="margin-top:16px;justify-content:center">‹ Kembali ke Beranda</a>
     </div>
 </main>
 @endsection

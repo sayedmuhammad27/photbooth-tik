@@ -9,7 +9,7 @@
     </div>
 
     @if($currentTicket)
-        <div style="background:var(--night-950);padding:var(--sp-4);margin-bottom:16px;border:1px solid var(--outline)">
+        <div style="background:var(--aquamarine-950);padding:var(--sp-4);margin-bottom:16px;border:1px solid var(--border-subtle);border-radius:var(--radius-md)">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
                 <span class="badge badge--{{ $currentTicket->status_badge }}" style="font-size:var(--fs-d-xs)">
                     {{ strtoupper($currentTicket->status_label) }}
@@ -19,22 +19,22 @@
                 </span>
             </div>
             
-            <div style="font-family:var(--font-display);font-size:clamp(1.6rem, 3.5vw, 2.4rem);color:var(--lamp-300);line-height:1.2;margin:8px 0">
+            <div style="font-family:var(--font-display);font-size:clamp(1.6rem, 3.5vw, 2.4rem);color:var(--concrete);font-weight:900;line-height:1.2;margin:8px 0">
                 #{{ $currentTicket->queue_number }}
             </div>
             
-            <div style="font-size:var(--fs-md);color:var(--text);font-weight:bold">
+            <div style="font-size:var(--fs-md);color:var(--concrete);font-weight:bold">
                 {{ $currentTicket->name }}
             </div>
 
             @if($currentTicket->template)
-                <div style="font-size:var(--fs-sm);color:var(--peri-200);margin-top:6px">
+                <div style="font-size:var(--fs-sm);color:var(--concrete-dim);margin-top:6px">
                     Template: {{ $currentTicket->template->name }}
                 </div>
             @endif
 
             @if($currentTicket->status === 'in_session')
-                <p style="font-size:var(--fs-xs);color:var(--pink-400);margin-top:10px;animation:blink 1.2s steps(2) infinite">
+                <p style="font-size:var(--fs-xs);color:var(--burgundy-400);font-weight:700;margin-top:10px;animation:blink 1.2s steps(2) infinite">
                     <span aria-hidden="true">★</span> Layar depan booth saat ini siap berfoto untuk nomor ini!
                 </p>
             @endif
@@ -67,7 +67,7 @@
             </form>
         </div>
     @else
-        <div style="background:var(--night-950);padding:var(--sp-5);text-align:center;color:var(--text-muted);border:1px dashed var(--outline);margin-bottom:16px">
+        <div style="background:var(--aquamarine-950);padding:var(--sp-5);text-align:center;color:var(--text-muted);border:1px dashed var(--border-subtle);border-radius:var(--radius-md);margin-bottom:16px">
             <p style="font-size:var(--fs-md);margin-bottom:8px">Tidak ada antrean yang sedang aktif.</p>
             <span style="font-size:var(--fs-sm);color:var(--text-dim)">Panggil antrean berikutnya atau tentukan nomor di samping.</span>
         </div>

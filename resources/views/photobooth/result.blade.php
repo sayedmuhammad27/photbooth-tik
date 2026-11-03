@@ -22,15 +22,15 @@
                     <h2>Bawa pulang lewat ponsel</h2>
                     <p>Arahkan kamera ponsel ke kode ini untuk membuka dan mengunduh fotomu.</p>
                     @if(!empty($shareUrl))
-                        <p style="margin-top:8px;font-size:0.75rem;color:var(--lamp-400);word-break:break-all">
-                            <a href="{{ $shareUrl }}" target="_blank" rel="noopener" style="color:var(--lamp-400);text-decoration:underline">{{ $shareUrl }}</a>
+                        <p style="margin-top:8px;font-size:0.8rem;color:var(--concrete);word-break:break-all">
+                            <a href="{{ $shareUrl }}" target="_blank" rel="noopener" style="color:var(--concrete);text-decoration:underline">{{ $shareUrl }}</a>
                         </p>
                     @endif
                     @auth
                         @if($qrIsLocal)
-                            <p style="margin-top:8px;color:var(--pink-400)">Catatan: QR masih mengarah ke localhost. Sambungkan laptop ke Wi-Fi atau jalankan Cloudflare Tunnel agar bisa diakses dari HP.</p>
+                            <p style="margin-top:8px;color:var(--burgundy-400)">Catatan: QR masih mengarah ke localhost. Sambungkan laptop ke Wi-Fi atau jalankan Cloudflare Tunnel agar bisa diakses dari HP.</p>
                         @elseif(!empty($qrIsLan))
-                            <p style="margin-top:8px;color:var(--cyan-300)"><span aria-hidden="true">🌐</span> Mode Jaringan Lokal: Pastikan HP terhubung ke Wi-Fi yang sama untuk mengunduh foto.</p>
+                            <p style="margin-top:8px;color:var(--aquamarine-400)"><span aria-hidden="true">🌐</span> Mode Jaringan Lokal: Pastikan HP terhubung ke Wi-Fi yang sama untuk mengunduh foto.</p>
                         @endif
                     @endauth
                 </div>

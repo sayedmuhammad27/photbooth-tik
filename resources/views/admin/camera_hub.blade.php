@@ -16,15 +16,15 @@
     </div>
 </div>
 
-<div id="cam-hub-error-alert" class="px-box" style="display:none;background:var(--crimson-900);border-color:var(--crimson-400);padding:var(--sp-3);margin-bottom:var(--sp-4);color:#fff">
+<div id="cam-hub-error-alert" class="px-box" style="display:none;background:var(--burgundy-900);border-color:var(--burgundy-400);padding:var(--sp-3);margin-bottom:var(--sp-4);color:var(--concrete)">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-3);flex-wrap:wrap">
         <div>
-            <div style="font-weight:bold;color:var(--crimson-300);display:flex;align-items:center;gap:6px">
+            <div style="font-weight:bold;color:var(--concrete);display:flex;align-items:center;gap:6px">
                 <span aria-hidden="true">⚠️</span> <span id="cam-hub-error-title">Koneksi Kamera Terputus</span>
             </div>
-            <p id="cam-hub-error-desc" style="font-size:var(--fs-xs);margin:4px 0 0;color:var(--text)">Gagal menghubungi kamera atau webserver digiCamControl.</p>
+            <p id="cam-hub-error-desc" style="font-size:var(--fs-xs);margin:4px 0 0;color:var(--text-muted)">Gagal menghubungi kamera atau webserver digiCamControl.</p>
         </div>
-        <button type="button" class="btn btn--sm" id="btn-retry-camera" style="min-height:36px;padding:6px 12px;background:var(--crimson-400);color:#fff">Coba Hubungkan Ulang</button>
+        <button type="button" class="btn btn--danger btn--sm" id="btn-retry-camera" style="min-height:36px;padding:6px 14px">Coba Hubungkan Ulang</button>
     </div>
 </div>
 
@@ -88,9 +88,9 @@
             </div>
 
             <!-- Section Khusus Canon digiCamControl -->
-            <div id="section-digicam" style="display:block;margin-bottom:14px;background:rgba(0,0,0,0.25);border:1px solid var(--outline);padding:12px">
+            <div id="section-digicam" style="display:block;margin-bottom:14px;background:var(--aquamarine-950);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                    <span style="font-size:var(--fs-xs);font-weight:bold;color:var(--pink-400);display:flex;align-items:center;gap:6px">
+                    <span style="font-size:var(--fs-xs);font-weight:bold;color:var(--concrete);display:flex;align-items:center;gap:6px">
                         <span aria-hidden="true">📷</span> STATUS DIGICAMCONTROL
                     </span>
                     <span id="badge-dcc-status" class="badge badge--off" style="font-size:10px">MENGECEK...</span>
@@ -104,7 +104,7 @@
                     <button type="button" class="btn btn--ghost btn--xs" id="btn-refresh-dcc">
                         <span aria-hidden="true">🔄</span> Cek Ulang Koneksi
                     </button>
-                    <button type="button" class="btn btn--primary btn--xs" id="btn-test-capture" style="background:var(--pink-500)">
+                    <button type="button" class="btn btn--danger btn--xs" id="btn-test-capture">
                         <span aria-hidden="true">📸</span> Test Jepret Canon
                     </button>
                 </div>
@@ -136,8 +136,8 @@
         </div>
 
         <!-- Panduan & Petunjuk Canon -->
-        <div class="px-box px-box--pad" style="border-left:4px solid var(--lamp-500)">
-            <h3 style="font-size:var(--fs-d-xs);color:var(--lamp-300);margin-bottom:8px">PANDUAN KAMERA CANON (DIGICAMCONTROL):</h3>
+        <div class="px-box px-box--pad" style="border-left:4px solid var(--concrete)">
+            <h3 style="font-size:var(--fs-d-xs);color:var(--concrete);margin-bottom:8px">PANDUAN KAMERA CANON (DIGICAMCONTROL):</h3>
             <ol style="font-size:var(--fs-sm);color:var(--text-muted);padding-left:18px;margin:0;line-height:1.6">
                 <li>Colokkan kabel USB kamera Canon ke laptop/PC admin ini.</li>
                 <li>Buka aplikasi <strong>digiCamControl</strong> di laptop admin.</li>
@@ -150,10 +150,10 @@
 </div>
 
 <!-- Modal Pratinjau Test Foto -->
-<div id="modal-test-preview" class="modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;padding:20px">
-    <div class="px-box px-box--pad" style="max-width:680px;width:100%;max-height:90vh;display:flex;flex-direction:column;background:var(--night-900);border:2px solid var(--pink-400)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--outline);padding-bottom:8px">
-            <h3 style="font-size:var(--fs-d-xs);color:var(--pink-400);margin:0"><span aria-hidden="true">📸</span> HASIL TEST JEPRET KAMERA</h3>
+<div id="modal-test-preview" class="modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(6,21,24,0.85);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:20px">
+    <div class="px-box px-box--pad" style="max-width:680px;width:100%;max-height:90vh;display:flex;flex-direction:column;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-lg)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--border-subtle);padding-bottom:8px">
+            <h3 style="font-size:var(--fs-d-xs);color:var(--concrete);margin:0"><span aria-hidden="true">📸</span> HASIL TEST JEPRET KAMERA</h3>
             <button type="button" class="btn btn--ghost btn--xs" id="btn-close-modal">✕ Tutup</button>
         </div>
         <div style="flex:1;overflow:auto;text-align:center;background:#000;padding:8px">

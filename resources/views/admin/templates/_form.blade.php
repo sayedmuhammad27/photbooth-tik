@@ -26,18 +26,18 @@
             @error('category')<p class="field__error">{{ $message }}</p>@enderror
         </div>
         <div class="field">
-            <label class="field__label" for="slot_count">Jumlah foto (1–4)</label>
+            <label class="field__label" for="slot_count">Jumlah foto (1 sampai 4)</label>
             <input class="input" id="slot_count" type="number" name="slot_count" min="1" max="4" value="{{ old('slot_count', $t->slot_count ?? 3) }}" required>
             @error('slot_count')<p class="field__error">{{ $message }}</p>@enderror
         </div>
         <div class="field">
             <label class="field__label" for="tags">Tag (pisahkan dengan koma)</label>
-            <input class="input" id="tags" type="text" name="tags" value="{{ old('tags', isset($t) && is_array($t->tags) ? implode(', ', $t->tags) : '') }}" maxlength="200" placeholder="strip, malam, pixel">
+            <input class="input" id="tags" type="text" name="tags" value="{{ old('tags', isset($t) && is_array($t->tags) ? implode(', ', $t->tags) : '') }}" maxlength="200" placeholder="strip, expo, wisuda">
             @error('tags')<p class="field__error">{{ $message }}</p>@enderror
         </div>
         <div class="field">
             <label class="field__label" for="bg_color">Warna latar</label>
-            <input class="input" id="bg_color" type="text" name="bg_color" value="{{ old('bg_color', $t->bg_color ?? '#131947') }}" maxlength="7" pattern="#[0-9A-Fa-f]{6}" placeholder="#131947">
+            <input class="input" id="bg_color" type="text" name="bg_color" value="{{ old('bg_color', $t->bg_color ?? '#0f3f49') }}" maxlength="7" pattern="#[0-9A-Fa-f]{6}" placeholder="#0f3f49">
             @error('bg_color')<p class="field__error">{{ $message }}</p>@enderror
         </div>
         <div class="field">

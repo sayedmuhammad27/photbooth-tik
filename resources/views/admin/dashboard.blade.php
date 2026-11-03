@@ -17,13 +17,13 @@
 <div class="stats">
     <div class="px-box stat reveal"><div class="stat__label">Total sesi foto</div><div class="stat__value">{{ number_format($stats['total_sesi'], 0, ',', '.') }}</div></div>
     <div class="px-box stat reveal"><div class="stat__label">Sesi hari ini</div><div class="stat__value">{{ number_format($stats['sesi_hari_ini'], 0, ',', '.') }}</div></div>
-    <div class="px-box stat reveal" style="border-left:4px solid var(--lamp-500)">
+    <div class="px-box stat reveal" style="border-left:4px solid var(--concrete)">
         <div class="stat__label">Antrean Menunggu</div>
-        <div class="stat__value" style="color:var(--lamp-300)">{{ $stats['antrean_menunggu'] }}</div>
+        <div class="stat__value" style="color:var(--concrete)">{{ $stats['antrean_menunggu'] }}</div>
     </div>
-    <div class="px-box stat reveal" style="border-left:4px solid var(--pink-400)">
+    <div class="px-box stat reveal" style="border-left:4px solid var(--burgundy-700)">
         <div class="stat__label">Antrean Aktif</div>
-        <div class="stat__value" style="color:var(--pink-400);font-size:clamp(1.1rem, 2.5vw, 1.5rem)">
+        <div class="stat__value" style="color:var(--concrete);font-size:clamp(1.1rem, 2.5vw, 1.5rem)">
             {{ $stats['antrean_aktif'] ? '#' . $stats['antrean_aktif']->queue_number : 'Kosong' }}
         </div>
     </div>
