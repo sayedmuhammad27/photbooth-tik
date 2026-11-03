@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Photobooth TIK — Expo Wisuda Jurusan TIK 2026')
+@section('title', 'Photobooth TIK : Expo Wisuda Jurusan TIK 2026')
 
 @section('content')
 <div class="scene">
@@ -21,21 +21,21 @@
         <div id="live-queue-container" style="width:100%">
             @if($activeTicket && $activeTicket->status === 'in_session')
                 <div class="queue-banner queue-banner--session reveal is-in">
-                    <span class="queue-banner__tag">★ GILIRAN SESI FOTO SEKARANG ★</span>
+                    <span class="queue-banner__tag"><span aria-hidden="true">★</span> GILIRAN SESI FOTO SEKARANG <span aria-hidden="true">★</span></span>
                     <div class="queue-banner__num">ANTREAN #{{ $activeTicket->queue_number }}</div>
                     <div class="queue-banner__name">{{ $activeTicket->name }}</div>
                     <p style="color:var(--text-muted);font-size:var(--fs-sm)">
-                        Admin telah menyetujui & memulai sesimu! Silakan masuk ke bilik foto sekarang.
+                        Admin telah menyetujui dan memulai sesimu! Silakan masuk ke bilik foto sekarang.
                     </p>
                     <div class="queue-banner__action">
-                        <a class="btn btn--primary btn--lg" href="{{ route('photobooth.setup', ['queue' => $activeTicket->queue_number]) }}" style="box-shadow:0 0 24px rgba(234, 132, 169, 0.7)">
-                            📸 MULAI SESI FOTO SEKARANG
+                        <a class="btn btn--primary btn--lg" href="{{ route('photobooth.setup', ['queue' => $activeTicket->queue_number]) }}">
+                            <span aria-hidden="true">📸</span> MULAI SESI FOTO SEKARANG
                         </a>
                     </div>
                 </div>
             @elseif($activeTicket && $activeTicket->status === 'called')
                 <div class="queue-banner queue-banner--called reveal is-in">
-                    <span class="queue-banner__tag">📢 PANGGILAN ANTREAN</span>
+                    <span class="queue-banner__tag"><span aria-hidden="true">📢</span> PANGGILAN ANTREAN</span>
                     <div class="queue-banner__num">ANTREAN #{{ $activeTicket->queue_number }}</div>
                     <div class="queue-banner__name">{{ $activeTicket->name }}</div>
                     <p style="color:var(--text-muted);font-size:var(--fs-sm)">
@@ -48,33 +48,33 @@
         <!-- DUA MENU UTAMA -->
         <div class="welcome__menu-grid reveal">
             <!-- Menu 1: Pengambilan Tiket -->
-            <button type="button" class="welcome__menu-card px-box px-box--raised" id="btn-menu-take-ticket">
-                <div class="welcome__menu-icon">🎟️</div>
+            <button type="button" class="welcome__menu-card px-box px-box--raised" id="btn-menu-take-ticket" aria-label="Ambil nomor antrean sesi foto">
+                <div class="welcome__menu-icon" aria-hidden="true">🎟️</div>
                 <div>
                     <div class="welcome__menu-title">PENGAMBILAN TIKET</div>
                     <p class="welcome__menu-desc">Ambil nomor antrean untuk sesi fotomu</p>
                 </div>
-                <span class="btn btn--ghost btn--sm" style="width:100%">Ambil Tiket ➔</span>
+                <span class="btn btn--ghost btn--sm welcome__menu-action">Ambil Tiket</span>
             </button>
 
             <!-- Menu 2: Mulai Foto Sesuai Antrean -->
-            <button type="button" class="welcome__menu-card welcome__menu-card--primary px-box px-box--raised" id="btn-menu-start-photo">
-                <div class="welcome__menu-icon">📸</div>
+            <button type="button" class="welcome__menu-card welcome__menu-card--primary px-box px-box--raised" id="btn-menu-start-photo" aria-label="Mulai foto sesuai antrean">
+                <div class="welcome__menu-icon" aria-hidden="true">📸</div>
                 <div>
                     <div class="welcome__menu-title" style="color:var(--pink-400)">MULAI FOTO ANTREAN</div>
                     <p class="welcome__menu-desc">Masuk bilik foto dengan nomor antrean yang disetujui</p>
                 </div>
-                <span class="btn btn--primary btn--sm" style="width:100%;background:var(--pink-400);color:#0c1230">Mulai Foto ➔</span>
+                <span class="btn btn--primary btn--sm welcome__menu-action" style="background:var(--pink-400);color:var(--night-950)">Mulai Foto</span>
             </button>
         </div>
 
         <!-- Menu Alternatif: Test Foto (Uji Coba Kamera) -->
         <div class="welcome__test-cta reveal">
             <a class="btn btn--ghost btn--sm" href="{{ route('test.photo.setup') }}" style="border:1px dashed var(--pink-400);color:var(--pink-400);padding:10px 18px">
-                🧪 UJI COBA KAMERA (TEST FOTO)
+                <span aria-hidden="true">🧪</span> UJI COBA KAMERA (TEST FOTO)
             </a>
             <p style="font-size:var(--fs-xs);color:var(--text-dim);margin-top:6px">
-                Coba kamera & template tanpa antrean. Hasil foto tes hanya ditampilkan di layar dan tidak disimpan ke database.
+                Coba kamera dan template tanpa antrean. Hasil foto tes hanya ditampilkan di layar dan tidak disimpan ke database.
             </p>
         </div>
 

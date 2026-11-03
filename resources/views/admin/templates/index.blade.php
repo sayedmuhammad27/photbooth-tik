@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Template — Admin Photobooth TIK')
+@section('title', 'Template : Admin Photobooth TIK')
 
 @section('content')
 <div class="adm-head">

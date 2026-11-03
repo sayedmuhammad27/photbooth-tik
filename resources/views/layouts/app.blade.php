@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     @include('partials.head')
-    <title>@yield('title', 'Photobooth TIK — Expo Wisuda Jurusan TIK 2026')</title>
+    <title>@yield('title', 'Photobooth TIK : Expo Wisuda Jurusan TIK 2026')</title>
     @stack('head')
 </head>
 <body class="@yield('body_class')">

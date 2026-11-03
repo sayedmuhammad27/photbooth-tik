@@ -1,5 +1,5 @@
 /* =====================================================================
-   PHOTOBOOTH TIK — pixel-pages.css
+   PHOTOBOOTH TIK : pixel-pages.css
    Gaya per halaman. Bergantung pada token di pixel-core.css.
    ===================================================================== */
 
@@ -135,7 +135,7 @@
 .vf__msg--error h2 { color: var(--danger-text); }
 .vf__msg-actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); justify-content: center; }
 .vf__badge { position: absolute; z-index: 4; top: var(--sp-3); left: var(--sp-3); padding: 6px 10px; font-family: var(--font-display); font-size: var(--fs-d-xs); color: var(--night-950); background: var(--lamp-500); }
-.vf__prompt { position: absolute; z-index: 6; bottom: var(--sp-3); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: var(--sp-3); padding: 10px 16px; background: rgba(8, 12, 36, .94); border: 2px solid var(--lamp-500); box-shadow: 0 6px 20px rgba(0, 0, 0, .8); animation: pop-in 240ms var(--ease-out); max-width: 95%; border-radius: 4px; }
+.vf__prompt { position: absolute; z-index: 6; bottom: var(--sp-3); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: var(--sp-3); padding: 10px 16px; background: rgba(8, 12, 36, .94); border: 2px solid var(--lamp-500); box-shadow: var(--shadow-drop); animation: pop-in 240ms var(--ease-out); max-width: 95%; border-radius: 0; }
 .vf__prompt-thumb { width: 44px; height: 44px; object-fit: cover; border: 2px solid var(--lamp-400); flex-shrink: 0; background: #000; box-shadow: 0 2px 8px rgba(0, 0, 0, .5); }
 .vf__prompt-info { display: flex; flex-direction: column; min-width: 0; text-align: left; }
 .vf__prompt-title { font-family: var(--font-display); font-size: var(--fs-d-xs); color: var(--lamp-300); letter-spacing: .05em; white-space: nowrap; }
@@ -291,7 +291,7 @@
   padding: var(--sp-5);
   background: var(--night-900);
   border: var(--px) solid var(--pink-400);
-  box-shadow: 0 0 0 var(--px) var(--night-950), 0 0 24px rgba(234, 132, 169, 0.4), var(--shadow-drop);
+  box-shadow: 0 0 0 var(--px) var(--night-950), var(--shadow-drop);
   animation: pop-in var(--dur-slow) var(--ease-out) both;
   text-align: center;
   position: relative;
@@ -303,7 +303,7 @@
 }
 .queue-banner--called {
   border-color: var(--lamp-500);
-  box-shadow: 0 0 0 var(--px) var(--night-950), 0 0 24px rgba(224, 211, 38, 0.35), var(--shadow-drop);
+  box-shadow: 0 0 0 var(--px) var(--night-950), var(--shadow-drop);
 }
 .queue-banner__tag {
   display: inline-block;
@@ -428,7 +428,7 @@
 }
 .welcome__menu-card--primary:hover {
   border-color: var(--pink-400);
-  box-shadow: 0 0 0 var(--px) var(--pink-400), 0 0 20px rgba(234, 132, 169, 0.4), var(--shadow-drop);
+  box-shadow: 0 0 0 var(--px) var(--pink-400), var(--shadow-drop);
 }
 .welcome__menu-icon {
   font-size: 2.8rem;
@@ -446,10 +446,29 @@
   margin-bottom: var(--sp-4);
   line-height: 1.4;
 }
+.welcome__menu-action {
+  width: 100%;
+}
 .welcome__test-cta {
   margin: var(--sp-3) auto var(--sp-4);
   text-align: center;
   z-index: 5;
 }
+
+/* =====================================================================
+   KAMERA HUB RESPONSIVE GRID
+   ===================================================================== */
+.camera-hub-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: var(--sp-5);
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .camera-hub-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 
 

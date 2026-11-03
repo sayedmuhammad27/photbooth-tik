@@ -35,7 +35,7 @@
 
             @if($currentTicket->status === 'in_session')
                 <p style="font-size:var(--fs-xs);color:var(--pink-400);margin-top:10px;animation:blink 1.2s steps(2) infinite">
-                    ★ Layar depan booth saat ini siap berfoto untuk nomor ini!
+                    <span aria-hidden="true">★</span> Layar depan booth saat ini siap berfoto untuk nomor ini!
                 </p>
             @endif
         </div>
@@ -45,7 +45,7 @@
                 <form action="{{ route('admin.queue.start', $currentTicket) }}" method="POST" style="margin:0;flex:1">
                     @csrf
                     <button type="submit" class="btn btn--primary btn--sm" style="width:100%">
-                        ▶ Mulai Sesi Foto Sekarang
+                        <span aria-hidden="true">▶</span> Mulai Sesi Foto Sekarang
                     </button>
                 </form>
             @endif
@@ -54,7 +54,7 @@
                 <form action="{{ route('admin.queue.complete', $currentTicket) }}" method="POST" style="margin:0;flex:1">
                     @csrf
                     <button type="submit" class="btn btn--success btn--sm" style="width:100%">
-                        ✓ Selesaikan Sesi
+                        <span aria-hidden="true">✓</span> Selesaikan Sesi
                     </button>
                 </form>
             @endif
@@ -75,7 +75,7 @@
         <form action="{{ route('admin.queue.call-next') }}" method="POST">
             @csrf
             <button type="submit" class="btn btn--primary btn--block" {{ $stats['waiting'] == 0 ? 'disabled' : '' }}>
-                📢 Panggil Antrean Berikutnya (Next)
+                <span aria-hidden="true">📢</span> Panggil Antrean Berikutnya (Next)
             </button>
         </form>
     @endif

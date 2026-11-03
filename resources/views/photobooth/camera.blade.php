@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Sesi Foto — '.$template->name)
+@section('title', 'Sesi Foto : '.$template->name)
 @section('body_class', 'booth-page')
 
 @section('content')
 @if(!empty($isTestMode))
-    <div style="background:var(--pink-400);color:#0c1230;padding:6px 16px;text-align:center;font-family:var(--font-display);font-size:var(--fs-d-xs);letter-spacing:.06em">
-        🧪 MODE TEST FOTO (UJI COBA KAMERA — HASIL TIDAK DISIMPAN KE DATABASE)
+    <div style="background:var(--pink-400);color:var(--night-950);padding:6px 16px;text-align:center;font-family:var(--font-display);font-size:var(--fs-d-xs);letter-spacing:.06em">
+        <span aria-hidden="true">🧪</span> MODE TEST FOTO (UJI COBA KAMERA : HASIL TIDAK DISIMPAN KE DATABASE)
     </div>
 @endif
 
@@ -33,10 +33,10 @@
                         <span class="vf__prompt-sub" id="vf-prompt-sub">Puas dengan hasilnya?</span>
                     </div>
                     <div class="vf__prompt-actions">
-                        <button type="button" class="btn btn--ghost btn--sm" id="btn-vf-retake">🔄 Ulangi Foto Ini</button>
-                        <button type="button" class="btn btn--primary btn--sm" id="btn-vf-next">▶ Lanjut ke Foto 2</button>
-                        <button type="button" class="btn btn--ghost btn--sm" id="btn-vf-retake-session" hidden>🔄 Ulangi Sesi</button>
-                        <button type="button" class="btn btn--success btn--sm" id="btn-vf-finish" hidden>✔ Simpan & Selesai</button>
+                        <button type="button" class="btn btn--ghost btn--sm" id="btn-vf-retake"><span aria-hidden="true">🔄</span> Ulangi Foto Ini</button>
+                        <button type="button" class="btn btn--primary btn--sm" id="btn-vf-next"><span aria-hidden="true">▶</span> Lanjut ke Foto 2</button>
+                        <button type="button" class="btn btn--ghost btn--sm" id="btn-vf-retake-session" hidden><span aria-hidden="true">🔄</span> Ulangi Sesi</button>
+                        <button type="button" class="btn btn--success btn--sm" id="btn-vf-finish" hidden><span aria-hidden="true">✔</span> Simpan & Selesai</button>
                     </div>
                 </div>
                 <div class="vf__msg" id="vf-msg" hidden role="alert">
@@ -56,9 +56,9 @@
             <div class="controls__group" id="source-group" hidden>
                 <label for="source-select">Sumber Kamera</label>
                 <select class="select" id="source-select">
-                    <option value="hub">📡 Kamera Admin (Bilik)</option>
-                    <option value="webcam">💻 Webcam Perangkat Ini</option>
-                    <option value="digicam">📷 Canon (digiCamControl)</option>
+                    <option value="hub">Kamera Admin (Bilik)</option>
+                    <option value="webcam">Webcam Perangkat Ini</option>
+                    <option value="digicam">Canon (digiCamControl)</option>
                 </select>
             </div>
             <div class="controls__group" role="group" aria-label="Hitung mundur">
@@ -87,9 +87,9 @@
         </div>
 
         <div class="actions">
-            <button type="button" class="btn btn--primary btn--lg" id="btn-main" disabled>Mulai foto</button>
-            <button type="button" class="btn btn--ghost btn--lg" id="btn-retake" hidden>🔄 Ulangi foto ini</button>
-            <button type="button" class="btn btn--ghost" id="btn-reset" hidden>Ulangi semua</button>
+            <button type="button" class="btn btn--primary btn--lg" id="btn-main" disabled>Ambil Foto Sekarang</button>
+            <button type="button" class="btn btn--ghost btn--lg" id="btn-retake" hidden><span aria-hidden="true">🔄</span> Ulangi foto ini</button>
+            <button type="button" class="btn btn--ghost" id="btn-reset" hidden>Reset Semua Foto</button>
         </div>
         <p class="hint" id="hint"></p>
     </section>

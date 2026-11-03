@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Pilih Template — Photobooth TIK')
+@section('title', 'Pilih Template : Photobooth TIK')
 @section('body_class', 'has-stars')
 
 @section('content')
 <header class="gallery-head">
     @if(!empty($isTestMode))
-        <div style="background:var(--pink-400);color:#0c1230;padding:6px 16px;text-align:center;font-family:var(--font-display);font-size:var(--fs-d-xs);letter-spacing:.06em;margin:-12px -20px 12px">
-            🧪 MODE TEST FOTO (UJI COBA KAMERA — HASIL TIDAK DISIMPAN KE DATABASE)
+        <div style="background:var(--pink-400);color:var(--night-950);padding:6px 16px;text-align:center;font-family:var(--font-display);font-size:var(--fs-d-xs);letter-spacing:.06em;margin:-12px -20px 12px">
+            <span aria-hidden="true">🧪</span> MODE TEST FOTO (UJI COBA KAMERA : HASIL TIDAK DISIMPAN KE DATABASE)
         </div>
     @endif
     <div class="gallery-head__row">
@@ -18,16 +18,16 @@
         </div>
         <div class="gallery-tools">
             <div class="search"><label class="sr-only" for="gallery-search">Cari template</label>
-                <input class="input" id="gallery-search" type="search" placeholder="Cari template…" autocomplete="off" spellcheck="false"></div>
+                <input class="input" id="gallery-search" type="search" placeholder="Cari template..." autocomplete="off" spellcheck="false"></div>
             <div class="sort"><label class="sr-only" for="gallery-sort">Urutkan</label>
                 <select class="select" id="gallery-sort">
                     <option value="default">Urutan default</option>
                     <option value="newest">Terbaru</option>
                     <option value="poses-asc">Foto: sedikit dulu</option>
                     <option value="poses-desc">Foto: banyak dulu</option>
-                    <option value="name">Nama A–Z</option>
+                    <option value="name">Nama A sampai Z</option>
                 </select></div>
-            <span class="gallery-count" id="gallery-count" aria-live="polite">— template</span>
+            <span class="gallery-count" id="gallery-count" aria-live="polite">0 template</span>
         </div>
     </div>
     <div class="gallery-tabs" id="gallery-tabs" role="group" aria-label="Kategori template"></div>

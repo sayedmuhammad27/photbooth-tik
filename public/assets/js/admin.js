@@ -1,4 +1,4 @@
-/* PHOTOBOOTH TIK — admin.js
+/* PHOTOBOOTH TIK : admin.js
    1) Pratinjau tata letak template (kanvas 1200 x 1800) di form template
    2) Cetak hasil 4R lewat iframe tersembunyi (tanpa jendela popup) */
 (function () {

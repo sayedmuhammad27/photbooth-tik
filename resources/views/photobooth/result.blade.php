@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Hasil Foto — Photobooth TIK')
+@section('title', 'Hasil Foto : Photobooth TIK')
 @section('body_class', 'has-stars')
 
 @section('content')
@@ -30,7 +30,7 @@
                         @if($qrIsLocal)
                             <p style="margin-top:8px;color:var(--pink-400)">Catatan: QR masih mengarah ke localhost. Sambungkan laptop ke Wi-Fi atau jalankan Cloudflare Tunnel agar bisa diakses dari HP.</p>
                         @elseif(!empty($qrIsLan))
-                            <p style="margin-top:8px;color:var(--cyan-300)">🌐 Mode Jaringan Lokal: Pastikan HP terhubung ke Wi-Fi yang sama untuk mengunduh foto.</p>
+                            <p style="margin-top:8px;color:var(--cyan-300)"><span aria-hidden="true">🌐</span> Mode Jaringan Lokal: Pastikan HP terhubung ke Wi-Fi yang sama untuk mengunduh foto.</p>
                         @endif
                     @endauth
                 </div>

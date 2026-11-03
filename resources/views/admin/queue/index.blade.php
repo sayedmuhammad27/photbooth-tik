@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Manajemen Antrean — Admin Photobooth TIK')
+@section('title', 'Manajemen Antrean : Admin Photobooth TIK')
 
 @section('content')
 <div class="adm-head">
@@ -9,13 +9,13 @@
         <p>Kelola antrean pengunjung secara langsung. Data antrean diperbarui otomatis secara real-time tanpa perlu refresh.</p>
     </div>
     <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.3);padding:6px 12px;border:1px solid var(--outline);border-radius:4px">
+        <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.3);padding:6px 12px;border:1px solid var(--outline)">
             <span id="realtime-indicator" class="badge badge--green" style="font-size:11px;display:flex;align-items:center;gap:6px">
                 <span style="width:7px;height:7px;border-radius:50%;background:#fff;animation:blink 1s infinite"></span>
                 LIVE REAL-TIME
             </span>
-            <button type="button" class="btn btn--ghost btn--xs" id="btn-toggle-sound" style="padding:3px 8px;font-size:11px" title="Nyalakan/matikan suara notifikasi antrean baru">
-                🔔 Suara: ON
+            <button type="button" class="btn btn--ghost btn--xs" id="btn-toggle-sound" title="Nyalakan/matikan suara notifikasi antrean baru">
+                <span aria-hidden="true">🔔</span> Suara: ON
             </button>
         </div>
 
@@ -23,11 +23,11 @@
             @csrf
             @if($setting->is_open)
                 <button type="submit" class="btn btn--danger btn--sm">
-                    ● Tutup Pendaftaran Antrean
+                    <span aria-hidden="true">●</span> Tutup Pendaftaran Antrean
                 </button>
             @else
                 <button type="submit" class="btn btn--success btn--sm">
-                    ▶ Buka Pendaftaran Antrean
+                    <span aria-hidden="true">▶</span> Buka Pendaftaran Antrean
                 </button>
             @endif
         </form>
@@ -90,10 +90,10 @@
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
                 <button type="submit" name="action" value="start_session" class="btn btn--primary btn--sm" style="background:var(--pink-400);color:#fff">
-                    ★ Langsung Mulai Foto
+                    <span aria-hidden="true">★</span> Langsung Mulai Foto
                 </button>
                 <button type="submit" name="action" value="call" class="btn btn--ghost btn--sm">
-                    📢 Panggil Nomor Ini
+                    <span aria-hidden="true">📢</span> Panggil Nomor Ini
                 </button>
             </div>
         </form>
@@ -107,7 +107,7 @@
             <div style="display:flex;gap:8px">
                 <input class="input" type="text" name="name" id="manual-name" placeholder="Nama Pengunjung (opsional)" style="flex:1">
                 <button type="submit" class="btn btn--ghost btn--sm" id="btn-submit-manual">
-                    + Ambil Nomor
+                    <span aria-hidden="true">+</span> Ambil Nomor
                 </button>
             </div>
             <label class="check" style="font-size:var(--fs-xs);color:var(--text-muted)">

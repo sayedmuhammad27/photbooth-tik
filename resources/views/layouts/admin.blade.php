@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     @include('partials.head')
-    <title>@yield('title', 'Admin — Photobooth TIK')</title>
+    <title>@yield('title', 'Admin : Photobooth TIK')</title>
     <meta name="robots" content="noindex, nofollow">
 </head>
 <body class="has-stars">

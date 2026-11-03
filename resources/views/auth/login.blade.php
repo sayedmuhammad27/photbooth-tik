@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Masuk Admin — Photobooth TIK')
+@section('title', 'Masuk Admin : Photobooth TIK')
 @section('body_class', 'has-stars')
 
 @section('inline_errors', '1')

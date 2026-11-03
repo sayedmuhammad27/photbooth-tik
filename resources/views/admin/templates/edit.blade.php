@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Ubah Template — Admin Photobooth TIK')
+@section('title', 'Ubah Template : Admin Photobooth TIK')
 @section('inline_errors', '1')
 
 @section('content')

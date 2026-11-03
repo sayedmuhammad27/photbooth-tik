@@ -1,4 +1,4 @@
-/* PHOTOBOOTH TIK — strip.js
+/* PHOTOBOOTH TIK : strip.js
    Merender komposisi strip (latar + slot foto + bingkai) dengan posisi persentase
    yang SAMA dengan hitungan server (kanvas 1200 x 1800, cetak 4R). */
 (function () {

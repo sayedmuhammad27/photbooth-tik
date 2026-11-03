@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Hasil Test Foto — Photobooth TIK')
+@section('title', 'Hasil Test Foto : Photobooth TIK')
 @section('body_class', 'has-stars')
 
 @section('content')
 <div class="result">
     <div class="result__head reveal">
-        <span class="badge badge--pink" style="font-size:var(--fs-d-xs);margin-bottom:8px">🧪 MODE TEST FOTO</span>
+        <span class="badge badge--pink" style="font-size:var(--fs-d-xs);margin-bottom:8px"><span aria-hidden="true">🧪</span> MODE TEST FOTO</span>
         <h1 style="color:var(--pink-400)">UJI COBA SELESAI</h1>
         <p>Foto ini adalah hasil percobaan kamera. <strong style="color:var(--lamp-300)">Foto ini TIDAK disimpan ke database</strong> dan tidak masuk ke riwayat antrean.</p>
     </div>
@@ -31,13 +31,13 @@
 
             <div class="result__actions">
                 <a class="btn btn--primary btn--block" href="{{ route('test.photo.download', $token) }}" download data-no-transition>
-                    ⬇ UNDUH STRIP TEST
+                    <span aria-hidden="true">⬇</span> UNDUH STRIP TEST
                 </a>
                 <a class="btn btn--ghost btn--block" href="{{ route('test.photo.setup') }}">
-                    🔄 COBA TEST LAGI
+                    <span aria-hidden="true">🔄</span> COBA TEST LAGI
                 </a>
                 <a class="btn btn--ghost btn--block" href="{{ route('home') }}">
-                    🏠 KEMBALI KE BERANDA
+                    <span aria-hidden="true">🏠</span> KEMBALI KE BERANDA
                 </a>
             </div>
         </div>

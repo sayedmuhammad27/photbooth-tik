@@ -1,5 +1,5 @@
 /* =====================================================================
-   PHOTOBOOTH TIK — pixel-core.css
+   PHOTOBOOTH TIK : pixel-core.css
    Sistem desain terpusat. Palet disampel dari poster
    "Welcome to Expo Wisuda Jurusan TIK 2026" (kota malam pixel-art).
    Tanpa build step: dimuat langsung lewat <link>.
@@ -15,57 +15,58 @@
   src: local('Pixelify Sans'); /* , url('../fonts/PixelifySans.woff2') format('woff2') */ }
 
 :root {
-  /* — Warna: langit malam — */
+  /* [Warna: langit malam] */
   --night-950: #0C1230;
   --night-900: #131947;
   --night-800: #192746;
   --night-700: #233E74;
   --night-600: #2F4F96;
-  /* — Warna: judul periwinkle — */
+  /* [Warna: judul periwinkle] */
   --peri-500: #5C6BF5;
   --peri-600: #3B47C4;
   --peri-400: #718EF9;
   --peri-200: #A9B8FF;
   --outline:  #4B57B2;
-  /* — Warna: awan & lampu — */
+  /* [Warna: awan & lampu] */
   --pink-400:  #EA84A9;
+  --pink-500:  #DE5B8B;
   --peach-300: #FBAA8F;
   --cream-200: #FFD66B;
   --violet-400:#BE69C7;
   --lamp-500:  #E0D326;
   --lamp-600:  #A8A015;
   --lamp-300:  #FFE98A;
-  /* — Status — */
+  /* [Status] */
   --green-500: #049A5C;
   --green-600: #07653E;
   --lime-400:  #72A750;
   --magenta-500:#FE0168;
   --magenta-700:#B90865;
   --danger-text:#FF8FB8;
-  /* — Teks — */
+  /* [Teks] */
   --text:       #F3F4FF;
   --text-muted: #A9B3E8;
-  --text-dim:   #8F9BDB;
+  --text-dim:   #A2AFEE;
 
-  /* — Tipografi — */
+  /* [Tipografi] */
   --font-display: 'Press Start 2P', 'PB Press Start 2P', ui-monospace, 'Courier New', monospace;
   --font-body:    'Pixelify Sans', 'PB Pixelify Sans', ui-monospace, 'Courier New', monospace;
   --fs-xs: .8125rem;  --fs-sm: .9375rem; --fs-md: 1.0625rem; --fs-lg: 1.25rem;
   --fs-d-xs: .625rem; --fs-d-sm: .75rem; --fs-d-md: .875rem; --fs-d-lg: 1.125rem; --fs-d-xl: 1.5rem;
 
-  /* — Spasi, bentuk, bayangan — */
+  /* [Spasi, bentuk, bayangan] */
   --px: 4px;                      /* satu "piksel" UI */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
   --radius: 0;                    /* bahasa visual pixel: tanpa radius */
   --shadow-drop: 8px 8px 0 0 rgba(8, 12, 36, .6);
   --tap: 52px;                    /* target sentuh minimum */
 
-  /* — Gerak — */
+  /* [Gerak] */
   --dur-fast: 120ms; --dur: 220ms; --dur-slow: 420ms;
   --ease-out: cubic-bezier(.2, .8, .2, 1);
   --ease-step: steps(4, end);
 
-  /* — Breakpoint (acuan, dipakai di @media): 600 / 960 / 1280 — */
+  /* [Breakpoint acuan: 600 / 960 / 1280] */
 }
 
 /* ---------- Reset ringan ---------- */
@@ -119,7 +120,8 @@ p { margin: 0; }
   box-shadow: 0 calc(var(--px) * -1) 0 0 var(--outline), 0 var(--px) 0 0 var(--outline), calc(var(--px) * -1) 0 0 0 var(--outline), var(--px) 0 0 0 var(--outline), inset var(--px) var(--px) 0 0 var(--hi); }
 .btn--ghost:hover { --fg: var(--lamp-300); filter: none; background: var(--night-800); }
 .btn--ghost:active { box-shadow: 0 calc(var(--px) * -1) 0 0 var(--outline), 0 var(--px) 0 0 var(--outline), calc(var(--px) * -1) 0 0 0 var(--outline), var(--px) 0 0 0 var(--outline); }
-.btn--sm { min-height: 40px; padding: 10px 14px; font-size: var(--fs-d-sm); }
+.btn--xs { min-height: 44px; padding: 8px 12px; font-size: var(--fs-d-xs); }
+.btn--sm { min-height: 44px; padding: 10px 14px; font-size: var(--fs-d-sm); }
 .btn--lg { min-height: 64px; padding: 18px 32px; font-size: var(--fs-d-lg); }
 .btn--block { display: flex; width: calc(100% - var(--px) * 2); }
 .btn svg { width: 1.25em; height: 1.25em; flex: none; shape-rendering: crispEdges; }
@@ -162,7 +164,7 @@ p { margin: 0; }
 .chip[aria-pressed='true'], .chip.is-active { color: var(--night-950); background: var(--lamp-500); box-shadow: 0 calc(var(--px) * -1) 0 0 var(--lamp-500), 0 var(--px) 0 0 var(--lamp-500), calc(var(--px) * -1) 0 0 0 var(--lamp-500), var(--px) 0 0 0 var(--lamp-500); }
 .chip__count { font-size: var(--fs-xs); opacity: .75; }
 .badge { display: inline-block; padding: 4px 8px; font-family: var(--font-display); font-size: var(--fs-d-xs); line-height: 1.2; color: var(--night-950); background: var(--peri-200); }
-.badge--lamp { background: var(--lamp-500); } .badge--pink { background: var(--pink-400); } .badge--green { background: var(--lime-400); } .badge--off { color: var(--text); background: var(--night-600); }
+.badge--lamp { background: var(--lamp-500); } .badge--pink { background: var(--pink-400); } .badge--green { background: var(--lime-400); } .badge--off { color: var(--night-950); background: #A9B8FF; }
 .seg { display: inline-flex; align-items: center; gap: 0; }
 .seg .chip { margin: var(--px) 0 var(--px) var(--px); min-height: 36px; padding: 6px 12px; }
 
