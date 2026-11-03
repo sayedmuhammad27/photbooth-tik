@@ -187,6 +187,8 @@ class PhotoboothTest extends TestCase
 
         $localIpFile = storage_path('local_ip.txt');
         $tunnelFile = storage_path('tunnel_url.txt');
+        $backupTunnel = file_exists($tunnelFile) ? file_get_contents($tunnelFile) : null;
+        $backupLocalIp = file_exists($localIpFile) ? file_get_contents($localIpFile) : null;
         @unlink($tunnelFile);
         file_put_contents($localIpFile, '172.27.19.40');
 
@@ -195,7 +197,14 @@ class PhotoboothTest extends TestCase
             $response->assertOk();
             $this->assertStringContainsString('172.27.19.40', $response->getContent());
         } finally {
-            @unlink($localIpFile);
+            if ($backupLocalIp !== null) {
+                file_put_contents($localIpFile, $backupLocalIp);
+            } else {
+                @unlink($localIpFile);
+            }
+            if ($backupTunnel !== null) {
+                file_put_contents($tunnelFile, $backupTunnel);
+            }
         }
     }
 
@@ -210,6 +219,7 @@ class PhotoboothTest extends TestCase
         ]);
 
         $tunnelFile = storage_path('tunnel_url.txt');
+        $backupTunnel = file_exists($tunnelFile) ? file_get_contents($tunnelFile) : null;
         file_put_contents($tunnelFile, 'https://subdomain.trycloudflare.com');
 
         try {
@@ -217,7 +227,11 @@ class PhotoboothTest extends TestCase
             $response->assertOk();
             $this->assertStringContainsString('https://subdomain.trycloudflare.com', $response->getContent());
         } finally {
-            @unlink($tunnelFile);
+            if ($backupTunnel !== null) {
+                file_put_contents($tunnelFile, $backupTunnel);
+            } else {
+                @unlink($tunnelFile);
+            }
         }
     }
 }

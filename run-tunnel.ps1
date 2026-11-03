@@ -185,6 +185,15 @@ if (-not $laravelPort -or $needRestart) {
 # 5. Hubungkan ke Cloudflare Tunnel
 Write-Host "[5/5] Menghubungkan ke Cloudflare Tunnel..." -ForegroundColor Yellow
 $cfExe = Join-Path $PSScriptRoot "cloudflared.exe"
+
+# Hentikan proses cloudflared lama jika ada agar tidak terjadi konflik port / tunnel
+$oldCf = Get-Process -Name "cloudflared" -ErrorAction SilentlyContinue
+if ($oldCf) {
+    Write-Host "   -> Menghentikan instance cloudflared lama..." -ForegroundColor DarkGray
+    $oldCf | Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 1
+}
+
 $cfProcess = Start-Process -FilePath $cfExe -ArgumentList "tunnel", "--url", "http://127.0.0.1:8000" -WorkingDirectory $PSScriptRoot -NoNewWindow -PassThru -RedirectStandardError $logFile
 
 $detectedUrl = $null
@@ -192,10 +201,13 @@ for ($i = 0; $i -lt 35; $i++) {
     Start-Sleep -Seconds 1
     if (Test-Path $logFile) {
         $logContent = Get-Content $logFile -Raw -ErrorAction SilentlyContinue
-        if ($logContent -match '(https:\/\/[a-z0-9-]+\.trycloudflare\.com)') {
-            $detectedUrl = $matches[1]
-            Set-Content -Path $tunnelFile -Value $detectedUrl -NoNewline -Force
-            break
+        if ($logContent) {
+            $allMatches = [regex]::Matches($logContent, 'https:\/\/[a-z0-9-]+\.trycloudflare\.com')
+            if ($allMatches.Count -gt 0) {
+                $detectedUrl = $allMatches[$allMatches.Count - 1].Value
+                Set-Content -Path $tunnelFile -Value $detectedUrl -NoNewline -Force
+                break
+            }
         }
     }
 }
@@ -248,6 +260,7 @@ try {
     if ($cfProcess -and -not $cfProcess.HasExited) {
         $cfProcess.Kill()
     }
+    Get-Process -Name "cloudflared" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     if (Test-Path $tunnelFile) { Remove-Item $tunnelFile -Force -ErrorAction SilentlyContinue }
 
     Write-Host "Tunnel Cloudflare telah ditutup." -ForegroundColor Green

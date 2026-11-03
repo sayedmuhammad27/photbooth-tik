@@ -25,6 +25,11 @@
                         <p style="margin-top:8px;font-size:0.8rem;color:var(--concrete);word-break:break-all">
                             <a href="{{ $shareUrl }}" target="_blank" rel="noopener" style="color:var(--concrete);text-decoration:underline">{{ $shareUrl }}</a>
                         </p>
+                        @if(str_contains($shareUrl, 'trycloudflare.com'))
+                            <p style="margin-top:6px;font-size:var(--fs-xs);color:var(--text-dim);display:flex;align-items:center;gap:6px">
+                                @include('partials.icon', ['name' => 'globe']) Online Cloudflare: Bisa diunduh dari HP via internet
+                            </p>
+                        @endif
                     @endif
                     @auth
                         @if($qrIsLocal)
