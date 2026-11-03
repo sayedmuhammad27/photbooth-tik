@@ -8,7 +8,7 @@
 <main class="auth">
     <div class="auth__card reveal is-in">
         <div style="display:flex;justify-content:center;margin-bottom:var(--sp-2)">
-            <span class="chip" style="border-color:rgba(214,48,58,0.4);color:var(--color-crimson);background:rgba(214,48,58,0.15);padding:4px 14px;font-size:var(--fs-xs);letter-spacing:.08em;font-weight:700">PANEL KONTROL</span>
+            <span class="chip" style="border-color:rgba(229,211,175,0.4);color:var(--color-sand);background:rgba(121,13,22,0.35);padding:4px 14px;font-size:var(--fs-xs);letter-spacing:.08em;font-weight:700">PANEL KONTROL</span>
         </div>
         <h1>MASUK ADMIN</h1>
         <p>Kelola template, nomor antrean, dan riwayat sesi foto.</p>

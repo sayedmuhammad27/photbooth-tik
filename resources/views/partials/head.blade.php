@@ -1,13 +1,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<meta name="theme-color" content="#0C0E0B">
+<meta name="theme-color" content="#790D16">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="{{ asset('manifest.json') }}">
-<link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-<link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}">
+<link rel="icon" type="image/svg+xml" href="{{ asset('assets/img/favicon.svg') }}?v={{ @filemtime(public_path('assets/img/favicon.svg')) }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/favicon.png') }}?v={{ @filemtime(public_path('assets/img/favicon.png')) }}">
+<link rel="apple-touch-icon" href="{{ asset('assets/img/apple-touch-icon.png') }}?v={{ @filemtime(public_path('assets/img/apple-touch-icon.png')) }}">
+<link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v={{ @filemtime(public_path('favicon.ico')) }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&family=Unbounded:wght@400;600;700;800;900&display=swap" rel="stylesheet">

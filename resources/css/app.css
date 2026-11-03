@@ -1,25 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-charcoal: #0C0E0B;
-  --color-sky-blue: #D6E7F3;
-  --color-crimson: #D6303A;
+  --color-burgundy: #790D16;
+  --color-sand: #E5D3AF;
+  --color-cream: #F5EFE1;
+  --color-sky-blue: #AEC4D4;
 
-  --color-background: var(--color-charcoal);
-  --color-surface: #151713;
-  --color-text: var(--color-sky-blue);
-  --color-accent: var(--color-crimson);
-  --color-muted: #AAB7BF;
-  --color-border: rgba(214, 231, 243, 0.18);
+  --color-background: #0F0406;
+  --color-surface: #17070A;
+  --color-text: #F5EFE1;
+  --color-accent: #790D16;
+  --color-muted: #E5D3AF;
+  --color-border: rgba(229, 211, 175, 0.22);
 
-  --font-display: "Mecaros", "Syne", "Cinzel", system-ui, sans-serif;
+  --font-display: "Bayside", "Syne", "Cinzel", system-ui, sans-serif;
   --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
 @layer base {
   body {
-    background-color: var(--color-charcoal);
-    color: var(--color-sky-blue);
+    background-color: var(--color-background);
+    color: var(--color-text);
     font-family: var(--font-body);
     -webkit-tap-highlight-color: transparent;
   }

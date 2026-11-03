@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="burgundyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#96121D"/>
+      <stop offset="100%" stop-color="#790D16"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Squircle Shield -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#burgundyGrad)" stroke="#E5D3AF" stroke-width="2.5"/>
+  
+  <!-- Viewfinder Bump -->
+  <rect x="18" y="14" width="16" height="8" rx="3" fill="#F5EFE1"/>
+  
+  <!-- Flash Dot -->
+  <circle cx="45" cy="19" r="3" fill="#AEC4D4"/>
+
+  <!-- Camera Body -->
+  <rect x="11" y="20" width="42" height="30" rx="6" fill="#F5EFE1"/>
+  
+  <!-- Lens Outer Ring -->
+  <circle cx="32" cy="35" r="12" fill="#790D16" stroke="#E5D3AF" stroke-width="2"/>
+  
+  <!-- Lens Pupil -->
+  <circle cx="32" cy="35" r="6" fill="#AEC4D4"/>
+  
+  <!-- Lens Catchlight -->
+  <circle cx="30" cy="33" r="1.8" fill="#F5EFE1"/>
+</svg>

@@ -1,22 +1,50 @@
 /* =====================================================================
    PHOTOBOOTH TIK : pixel-core.css
-   Sistem Desain Agensi Kreatif Modern.
+   Sistem Desain Agensi Kreatif Modern & Retro Luxury.
    Palet Resmi:
-     - CHARCOAL BLACK:  #0C0E0B
-     - LIGHT SKY BLUE:  #D6E7F3
-     - CRIMSON RED:     #D6303A
+     - BURGUNDY WINE:   #790D16
+     - WARM SAND:       #E5D3AF
+     - WARM CREAM:      #F5EFE1
+     - SOFT SKY BLUE:   #AEC4D4
    Tipografi:
-     - Display: Mecaros (Fallback: Syne, Cinzel, Playfair Display, sans-serif)
+     - Display: Bayside (Fallback: Syne, Cinzel, Playfair Display, sans-serif)
      - Body:    Plus Jakarta Sans, sans-serif
    ===================================================================== */
 
 @font-face {
+  font-family: 'Bayside';
+  src: local('Bayside Demo'),
+       local('BaysideDemoRegular'),
+       local('Bayside'),
+       url('/fonts/BaysideFont-Regular-Demo.otf') format('opentype');
+  font-weight: 400 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bayside';
+  src: local('Bayside Condensed Demo'),
+       local('BaysideCondensedDemo'),
+       url('/fonts/BaysideFont-Condensed-Demo.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bayside';
+  src: local('Bayside Ultra Condensed Demo'),
+       local('BaysideUltraCondensedDemo'),
+       url('/fonts/BaysideFont-UltraCondensed-Demo.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'Mecaros';
   src: local('Mecaros'),
-       local('Mecaros Regular'),
-       local('Mecaros-Regular'),
-       local('Mecaros Bold'),
-       local('Mecaros-Bold'),
        url('/fonts/Mecaros.woff2') format('woff2'),
        url('/fonts/Mecaros.ttf') format('truetype');
   font-weight: 100 900;
@@ -33,46 +61,50 @@
 
 :root {
   /* ===================================================================
-     DESIGN SYSTEM: Charcoal Black, Light Sky Blue, Crimson Red
+     DESIGN SYSTEM: 790D16, E5D3AF, F5EFE1, AEC4D4
      =================================================================== */
-  --color-charcoal: #0C0E0B;
-  --color-sky-blue: #D6E7F3;
-  --color-crimson: #D6303A;
+  --color-burgundy: #790D16;   /* Deep Wine / Crimson */
+  --color-sand:     #E5D3AF;   /* Warm Sand / Antique Gold */
+  --color-cream:    #F5EFE1;   /* Warm Cream / Ivory */
+  --color-sky-blue: #AEC4D4;   /* Soft Dusty Sky Blue */
+  --color-crimson:  var(--color-burgundy);
 
+  --color-charcoal: #0F0406;   /* Deep Wine-Charcoal Base */
+  --color-surface:  #17070A;   /* Deep Wine Surface */
+  --color-surface-elevated: #240C11; /* Elevated Card Surface */
   --color-background: var(--color-charcoal);
-  --color-surface: #151713;
-  --color-surface-elevated: #1d211b;
-  --color-text: var(--color-sky-blue);
-  --color-accent: var(--color-crimson);
-  --color-muted: #AAB7BF;
-  --color-border: rgba(214, 231, 243, 0.18);
+  --color-text:     var(--color-cream);
+  --color-accent:   var(--color-burgundy);
+  --color-muted:    var(--color-sand);
+  --color-border:   rgba(229, 211, 175, 0.22);
+  --color-border-strong: rgba(245, 239, 225, 0.38);
 
   /* [Pemetaan Palet Utama] */
   --black:          var(--color-charcoal);
   --black-surface:  var(--color-surface);
   --black-card:     var(--color-surface);
   --black-elevated: var(--color-surface-elevated);
-  --black-subtle:   #232821;
+  --black-subtle:   #2e0f16;
 
-  --burgundy:       var(--color-crimson);
-  --burgundy-dark:  #9C1D24;
-  --burgundy-hover: #E83B46;
-  --burgundy-bright:#FF4D58;
-  --burgundy-glass: rgba(214, 48, 58, 0.28);
+  --burgundy:       var(--color-burgundy);
+  --burgundy-dark:  #54090F;
+  --burgundy-hover: #96121D;
+  --burgundy-bright:#B81825;
+  --burgundy-glass: rgba(121, 13, 22, 0.35);
 
-  --white:          var(--color-sky-blue);
-  --white-dim:      #B0CDDF;
-  --white-muted:    var(--color-muted);
-  --white-dark:     #788A94;
+  --white:          var(--color-cream);
+  --white-dim:      var(--color-sand);
+  --white-muted:    var(--color-sky-blue);
+  --white-dark:     #7F93A3;
 
   /* [Pemetaan Semantik Sistem] */
   --bg-canvas:      var(--color-background);
   --bg-surface:     var(--color-surface);
   --bg-surface-elevated: var(--color-surface-elevated);
   --border-subtle:  var(--color-border);
-  --border-strong:  rgba(214, 231, 243, 0.35);
-  --border-burgundy:var(--color-crimson);
-  --outline:        var(--color-crimson);
+  --border-strong:  var(--color-border-strong);
+  --border-burgundy:var(--color-burgundy);
+  --outline:        var(--color-sand);
 
   /* [Kompatibilitas Token] */
   --night-950:      var(--color-charcoal);
@@ -80,38 +112,38 @@
   --night-800:      var(--color-surface);
   --night-700:      var(--color-surface-elevated);
   --night-600:      var(--black-subtle);
-  --peri-500:       var(--color-crimson);
+  --peri-500:       var(--color-burgundy);
   --peri-600:       var(--burgundy-dark);
   --peri-400:       var(--burgundy-bright);
   --peri-200:       var(--color-sky-blue);
   --pink-400:       var(--burgundy-bright);
-  --pink-500:       var(--color-crimson);
-  --peach-300:      var(--white-dim);
-  --cream-200:      var(--color-sky-blue);
-  --lamp-500:       var(--color-sky-blue);
-  --lamp-600:       var(--white-dim);
-  --lamp-300:       var(--color-sky-blue);
-  --concrete:       var(--color-sky-blue);
-  --concrete-dim:   #B0CDDF;
+  --pink-500:       var(--color-burgundy);
+  --peach-300:      var(--color-sand);
+  --cream-200:      var(--color-cream);
+  --lamp-500:       var(--color-sand);
+  --lamp-600:       var(--color-cream);
+  --lamp-300:       var(--color-sand);
+  --concrete:       var(--color-cream);
+  --concrete-dim:   var(--color-sand);
   --aquamarine-950: var(--color-surface);
   --burgundy-700:   var(--burgundy-dark);
-  --burgundy-400:   var(--color-crimson);
-  --burgundy-900:   #1a0408;
+  --burgundy-400:   var(--color-burgundy);
+  --burgundy-900:   #250508;
   --green-500:      #15803d;
   --green-600:      #166534;
   --lime-400:       #4ade80;
-  --magenta-500:    var(--color-crimson);
+  --magenta-500:    var(--color-burgundy);
   --magenta-700:    var(--burgundy-dark);
   --danger-text:    #ff707a;
 
   /* [Teks & Kontras] */
-  --text:           var(--color-sky-blue);
-  --text-muted:     var(--color-muted);
-  --text-dim:       #788A94;
+  --text:           var(--color-cream);
+  --text-muted:     var(--color-sand);
+  --text-dim:       var(--color-sky-blue);
   --text-inverse:   #FFFFFF;
 
-  /* [Tipografi: Mecaros, Syne, Cinzel & Plus Jakarta Sans] */
-  --font-display:   'Mecaros', 'Syne', 'Cinzel', 'Playfair Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* [Tipografi: Bayside, Mecaros, Syne, Cinzel & Plus Jakarta Sans] */
+  --font-display:   'Bayside', 'Mecaros', 'Syne', 'Cinzel', 'Playfair Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-body:      'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --fs-xs: .875rem;   --fs-sm: 1rem;    --fs-md: 1.125rem; --fs-lg: 1.25rem;
   --fs-d-xs: .75rem;  --fs-d-sm: .875rem; --fs-d-md: 1rem; --fs-d-lg: 1.25rem; --fs-d-xl: 1.625rem;
@@ -129,7 +161,7 @@
   --shadow-card:     0 8px 32px rgba(0, 0, 0, 0.7);
   --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.85);
   --shadow-drop:     0 6px 24px rgba(0, 0, 0, 0.6);
-  --shadow-burgundy: 0 0 28px rgba(109, 0, 26, 0.5);
+  --shadow-burgundy: 0 0 28px rgba(121, 13, 22, 0.5);
   --tap: 48px;
 
   /* [Gerak] */
@@ -276,46 +308,46 @@ p { margin: 0; }
   box-shadow: none;
 }
 
-/* Tombol Primer: Crimson Red (#D6303A) dengan teks White (#FFFFFF) */
+/* Tombol Primer: Burgundy Wine (#790D16) dengan teks Cream (#F5EFE1) & border Sand (#E5D3AF) */
 .btn--primary {
-  background: var(--color-crimson);
-  color: #FFFFFF;
-  border-color: var(--color-crimson);
-  box-shadow: 0 4px 16px rgba(214, 48, 58, 0.35);
+  background: var(--color-burgundy);
+  color: var(--color-cream);
+  border: 1px solid var(--color-sand);
+  box-shadow: 0 4px 16px rgba(121, 13, 22, 0.45);
 }
 .btn--primary:hover {
   background: var(--burgundy-hover);
-  color: #FFFFFF;
-  border-color: var(--burgundy-bright);
-  box-shadow: 0 8px 26px rgba(214, 48, 58, 0.6);
+  color: var(--color-cream);
+  border-color: var(--color-cream);
+  box-shadow: 0 8px 26px rgba(121, 13, 22, 0.7);
 }
 
-/* Tombol Aksi Kritis / Rekam: Burgundy / Crimson Dark (#9C1D24) */
+/* Tombol Aksi Kritis / Rekam: Burgundy Dark (#54090F) */
 .btn--danger {
   background: var(--burgundy-dark);
-  border-color: var(--color-crimson);
-  color: #FFFFFF;
+  border-color: var(--color-burgundy);
+  color: var(--color-cream);
 }
 .btn--danger:hover {
-  background: var(--color-crimson);
+  background: var(--color-burgundy);
   border-color: var(--burgundy-bright);
-  box-shadow: 0 6px 24px rgba(214, 48, 58, 0.55);
+  box-shadow: 0 6px 24px rgba(121, 13, 22, 0.6);
 }
 
-/* Tombol Ghost / Sekunder: Border Light Sky Blue (#D6E7F3) */
+/* Tombol Ghost / Sekunder: Border Warm Sand (#E5D3AF) dengan teks Cream (#F5EFE1) */
 .btn--ghost,
 .btn--secondary {
-  background: rgba(214, 231, 243, 0.04);
-  border: 1px solid var(--color-sky-blue);
-  color: var(--color-sky-blue);
+  background: rgba(229, 211, 175, 0.05);
+  border: 1px solid var(--color-sand);
+  color: var(--color-cream);
   backdrop-filter: blur(8px);
 }
 .btn--ghost:hover,
 .btn--secondary:hover {
-  background: rgba(214, 231, 243, 0.14);
-  border-color: var(--color-sky-blue);
-  color: #FFFFFF;
-  box-shadow: 0 4px 18px rgba(214, 231, 243, 0.2);
+  background: rgba(229, 211, 175, 0.15);
+  border-color: var(--color-cream);
+  color: var(--color-cream);
+  box-shadow: 0 4px 18px rgba(229, 211, 175, 0.25);
 }
 
 /* Tombol Sukses: Hijau Gelap Beraksen */
@@ -519,10 +551,10 @@ body.is-leaving { opacity: 0; transition: opacity 160ms ease-in; }
   font-size: var(--fs-d-xs);
   font-weight: 800;
   letter-spacing: .06em;
-  color: var(--white);
-  background: rgba(18, 18, 18, 0.85);
+  color: var(--color-sand);
+  background: rgba(23, 7, 10, 0.90);
   backdrop-filter: blur(12px);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   cursor: pointer;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
@@ -531,10 +563,11 @@ body.is-leaving { opacity: 0; transition: opacity 160ms ease-in; }
 }
 .btn-fullscreen-floating:hover,
 .btn-fullscreen:hover {
-  background: var(--burgundy);
-  border-color: var(--burgundy-bright);
-  color: var(--white);
+  background: var(--color-burgundy);
+  border-color: var(--color-sand);
+  color: var(--color-cream);
   transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(121, 13, 22, 0.6);
 }
 .btn-fullscreen-floating:active,
 .btn-fullscreen:active {
@@ -542,9 +575,9 @@ body.is-leaving { opacity: 0; transition: opacity 160ms ease-in; }
 }
 .btn-fullscreen-floating.is-active,
 .btn-fullscreen.is-active {
-  color: var(--black);
-  background: var(--white);
-  border-color: var(--white);
+  color: var(--color-cream);
+  background: var(--color-burgundy);
+  border-color: var(--color-sand);
 }
 
 @media (max-width: 600px) {

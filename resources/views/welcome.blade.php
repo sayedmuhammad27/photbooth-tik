@@ -150,8 +150,8 @@
         <!-- Tampilan 1: Form Ambil Tiket -->
         <div id="ticket-form-view">
             <div class="ticket-card__header">
-                <h2 id="queue-modal-title" style="font-size:var(--fs-d-sm);color:var(--color-sky-blue);letter-spacing:.05em;margin-bottom:6px">AMBIL ANTREAN</h2>
-                <p style="font-size:var(--fs-sm);color:var(--text-muted)">Expo Wisuda Jurusan TIK 2026</p>
+                <h2 id="queue-modal-title" style="font-size:var(--fs-d-sm);color:var(--color-cream);letter-spacing:.05em;margin-bottom:6px">AMBIL ANTREAN</h2>
+                <p style="font-size:var(--fs-sm);color:var(--color-sand)">Expo Wisuda Jurusan TIK 2026</p>
             </div>
 
             <form id="form-take-ticket" style="display:grid;gap:14px;text-align:left">
@@ -174,31 +174,31 @@
         <div id="ticket-result-view" hidden>
             <div class="ticket-card__header">
                 <span class="badge badge--lamp" style="margin-bottom:6px">PHOTOBOOTH TIK EXPO 2026</span>
-                <p style="font-size:var(--fs-xs);color:var(--text-muted)">TIKET ANTREAN FOTO</p>
+                <p style="font-size:var(--fs-xs);color:var(--color-sand)">TIKET ANTREAN FOTO</p>
             </div>
 
-            <div style="font-size:var(--fs-xs);color:var(--text-dim);letter-spacing:.05em">NOMOR ANTREAN ANDA</div>
+            <div style="font-size:var(--fs-xs);color:var(--color-sand);letter-spacing:.05em">NOMOR ANTREAN ANDA</div>
             <div class="ticket-card__num" id="res-ticket-num">#0</div>
-            <div id="res-ticket-name" style="font-size:var(--fs-md);font-weight:bold;color:var(--color-sky-blue);margin-bottom:4px">-</div>
+            <div id="res-ticket-name" style="font-size:var(--fs-md);font-weight:bold;color:var(--color-cream);margin-bottom:4px">-</div>
             
             <div class="ticket-card__barcode" aria-hidden="true"></div>
 
             <div style="background:var(--color-surface);padding:14px;margin-bottom:14px;border:1px dashed var(--border-subtle);border-radius:var(--radius-md);font-size:var(--fs-xs);display:grid;gap:8px">
                 <div style="display:flex;justify-content:space-between">
-                    <span style="color:var(--text-muted)">Waktu Ambil:</span>
-                    <span id="res-ticket-time" style="color:var(--color-sky-blue);font-weight:600">-</span>
+                    <span style="color:var(--color-sand)">Waktu Ambil:</span>
+                    <span id="res-ticket-time" style="color:var(--color-cream);font-weight:600">-</span>
                 </div>
                 <div style="display:flex;justify-content:space-between">
-                    <span style="color:var(--text-muted)">Antrean di Depan:</span>
-                    <span id="res-ticket-ahead" style="color:var(--color-sky-blue);font-weight:700">0 orang</span>
+                    <span style="color:var(--color-sand)">Antrean di Depan:</span>
+                    <span id="res-ticket-ahead" style="color:var(--color-cream);font-weight:700">0 orang</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center">
-                    <span style="color:var(--text-muted)">Status:</span>
+                    <span style="color:var(--color-sand)">Status:</span>
                     <span id="res-ticket-status" class="badge badge--off">Menunggu Persetujuan Admin</span>
                 </div>
             </div>
 
-            <p style="font-size:var(--fs-xs);color:var(--text-muted);margin-bottom:16px;line-height:1.4">
+            <p style="font-size:var(--fs-xs);color:var(--color-sand);margin-bottom:16px;line-height:1.4">
                 Simpan nomor ini. Saat admin menyetujui & memanggil giliranmu, Anda dapat memulai foto melalui menu <strong>Mulai Foto Antrean</strong>.
             </p>
 
@@ -216,15 +216,15 @@
 <dialog class="queue-modal" id="verify-queue-modal" aria-labelledby="verify-modal-title">
     <div class="ticket-card">
         <div class="ticket-card__header">
-            <h2 id="verify-modal-title" style="font-size:var(--fs-d-sm);color:var(--color-sky-blue);letter-spacing:.05em;margin-bottom:6px">MULAI SESI FOTO</h2>
-            <p style="font-size:var(--fs-sm);color:var(--text-muted)">Hanya antrean yang telah disetujui admin yang bisa mulai foto.</p>
+            <h2 id="verify-modal-title" style="font-size:var(--fs-d-sm);color:var(--color-cream);letter-spacing:.05em;margin-bottom:6px">MULAI SESI FOTO</h2>
+            <p style="font-size:var(--fs-sm);color:var(--color-sand)">Hanya antrean yang telah disetujui admin yang bisa mulai foto.</p>
         </div>
 
         <form id="form-verify-queue" style="display:grid;gap:14px;text-align:left">
             <div class="field">
                 <label class="field__label" for="input-verify-queue-num">Masukkan Nomor Antrean Anda:</label>
                 <div style="display:flex;gap:8px;align-items:center">
-                    <span style="font-family:var(--font-display);font-size:var(--fs-lg);color:var(--color-sky-blue)">#</span>
+                    <span style="font-family:var(--font-display);font-size:var(--fs-lg);color:var(--color-sand)">#</span>
                     <input class="input" type="number" id="input-verify-queue-num" name="queue_number" min="1" placeholder="Contoh: 1" required style="font-size:var(--fs-lg);font-weight:bold">
                 </div>
             </div>
@@ -241,7 +241,7 @@
         </form>
 
         <div style="margin-top:16px;padding-top:12px;border-top:1px dashed var(--border-subtle);font-size:var(--fs-xs);color:var(--text-dim)">
-            Belum punya nomor antrean? <a href="#" id="link-switch-to-take" style="color:var(--color-sky-blue);text-decoration:underline">Ambil tiket di sini</a>
+            Belum punya nomor antrean? <a href="#" id="link-switch-to-take" style="color:var(--color-sand);text-decoration:underline">Ambil tiket di sini</a>
         </div>
     </div>
 </dialog>
