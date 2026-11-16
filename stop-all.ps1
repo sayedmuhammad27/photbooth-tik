@@ -1,4 +1,4 @@
-Write-Host "===================================================================" -ForegroundColor Red
+﻿Write-Host "===================================================================" -ForegroundColor Red
 Write-Host "         PHOTOBOOTH TIK - MEMATIKAN SEMUA LAYANAN...               " -ForegroundColor Red
 Write-Host "===================================================================" -ForegroundColor Red
 Write-Host ""
@@ -12,8 +12,8 @@ if (Test-Path $tunnelFile) { Remove-Item $tunnelFile -Force -ErrorAction Silentl
 if (Test-Path $localIpFile) { Remove-Item $localIpFile -Force -ErrorAction SilentlyContinue }
 Write-Host "   -> Cloudflare Tunnel dihentikan." -ForegroundColor Green
 
-# 2. Hentikan Laravel Artisan (Port 8000)
-Write-Host "[2/5] Menghentikan Laravel Artisan (port 8000)..." -ForegroundColor Yellow
+# 2. Hentikan Apache Photobooth (Port 8000)
+Write-Host "[2/5] Menghentikan Apache Photobooth (port 8000)..." -ForegroundColor Yellow
 $laravelConn = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue
 if ($laravelConn) {
     foreach ($c in $laravelConn) {

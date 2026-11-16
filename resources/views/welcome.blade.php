@@ -787,14 +787,24 @@
         } catch(e) {}
     }
 
+    var queuePolling = false;
+    var queueRequest = null;
+    var lastQueueTicket = null;
     function pollQueueStatus() {
-        fetch("{{ route('queue.status') }}")
+        if (document.hidden || queuePolling) return;
+        queuePolling = true;
+        queueRequest = new AbortController();
+        var timeout = setTimeout(function() { queueRequest.abort(); }, 10000);
+        fetch("{{ route('queue.status') }}", { signal: queueRequest.signal })
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (kioskServing) kioskServing.textContent = '#' + (data.current_serving || '-');
                 if (kioskWaiting) kioskWaiting.textContent = data.waiting_count;
 
                 var ticket = data.active_ticket;
+                var ticketState = JSON.stringify(ticket);
+                if (ticketState === lastQueueTicket) return;
+                lastQueueTicket = ticketState;
 
                 if (ticket && ticket.status === 'in_session') {
                     if (lastActiveSessionId !== ticket.id) {
@@ -833,7 +843,8 @@
                     liveContainer.innerHTML = '';
                 }
             })
-            .catch(function(err) {});
+            .catch(function(err) {})
+            .finally(function() { clearTimeout(timeout); queuePolling = false; });
     }
 
     function escapeHtml(str) {
@@ -842,6 +853,10 @@
     }
 
     setInterval(pollQueueStatus, 3000);
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) pollQueueStatus();
+        else if (queueRequest) queueRequest.abort();
+    });
 })();
 </script>
 @endpush

@@ -4,9 +4,7 @@ Aplikasi photobooth berbasis Laravel 12: pilih template → izinkan kamera → h
 tinjau/ulangi → strip disusun di server (4R, 1200×1800) → unduh atau ambil lewat QR code.
 Tampilan mengikuti poster "Welcome to Expo Wisuda Jurusan TIK 2026" (pixel-art kota malam).
 
-> **Status jujur:** PHP/Composer tidak tersedia di lingkungan tempat kode ini dikerjakan, jadi
-> seluruh kode PHP **belum dijalankan** (lihat bagian *Status pengujian*). Frontend (galeri, kamera,
-> countdown, retake, upload) sudah diuji di Chromium. Jalankan langkah verifikasi di bagian 4 sebelum event.
+> **Versi optimasi:** launcher memakai Apache khusus proyek pada port 8000. Panduan penggunaan satu laptop, bilik terpisah, dan pengujian ada di [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
 
 ---
 
@@ -39,7 +37,7 @@ Composer, MySQL dari XAMPP.
 7. **Jalankan:**
    ```bat
    php artisan optimize:clear
-   php artisan serve
+   jalankan-lokal.bat
    ```
    Buka **http://127.0.0.1:8000** atau **http://localhost:8000**. Tidak perlu `storage:link`: file hasil
    disajikan lewat route `/media/...`.
@@ -104,8 +102,7 @@ Lalu manual: buka `/` → Mulai → pilih template → izinkan kamera → ambil 
 - Gerak: `--dur-fast/--dur/--dur-slow` (120/220/420 ms) dan `--ease-out`; reveal bertahap, hover-lift kartu, countdown skala+fade,
   flash 260 ms, pop thumbnail, "cetak" strip (`clip-path` bertahap) di halaman hasil, transisi fade antarhalaman.
   Seluruhnya CSS; JS hanya untuk sinkronisasi dengan proses kamera. `prefers-reduced-motion` mematikan animasi non-esensial.
-- Font memakai Google Fonts. Untuk event **offline**, pasang kedua font di OS komputer booth (atau lihat komentar di `pixel-core.css`);
-  tanpa itu tampil font monospace cadangan.
+- Font yang digunakan disertakan di `public/fonts`, sehingga tidak memerlukan Google Fonts atau koneksi internet.
 - Aset pixel-art (skyline, awan, bulan, bintang, 5 bingkai) dibuat prosedural; palet dari poster.
 
 ## 6. Integrasi LumaBooth
@@ -120,18 +117,13 @@ Lalu manual: buka `/` → Mulai → pilih template → izinkan kamera → ambil 
 
 ## 7. Status pengujian
 
-**Lulus (Chromium headless + kamera palsu, halaman Blade dirender kasar ke HTML statis + server tiruan):**
-countdown 3-2-1, flash, 4 foto + strip ganda, retake satu foto, panduan crop & rasio berkas = rasio slot (tanpa gepeng),
-upload FormData (4 file JPEG, header CSRF/Accept), gagal 500 (foto tetap ada), 419 → token disegarkan → terkirim,
-pesan error (izin ditolak, kamera dipakai, konteks tidak aman, tidak ada kamera, kamera dicabut), `pagehide` menghentikan track,
-Esc/Spasi, unggah manual, galeri (filter, cari, urut, dialog, keyboard, fokus kembali), layout 390/820/1366/1440 px tanpa overflow horizontal,
-pratinjau tata letak admin.
-
-**Belum dijalankan:** `php artisan route:list / migrate:status / test`, `php -l` (hanya pemeriksa kurung kasar yang dijalankan),
-komposisi gambar Intervention di server, QR code, login/CSRF Laravel sungguhan, kamera DSLR Canon, cetak 4R, Safari/iOS & Firefox.
+Pengujian backend dan browser tersedia di [panduan performa](docs/PERFORMANCE.md#verifikasi).
+Backend mencakup komposisi strip, alur sesi/test foto, antrean, dan endpoint digiCamControl/Camera Hub.
+Browser menguji DSLR langsung, webcam, WebRTC, fallback HTTP, dan pemulihan upload gagal menggunakan kamera/server tiruan.
+Uji perangkat DSLR dan printer asli tetap diperlukan sebelum acara.
 
 ## 8. Kendala yang masih tersisa
-- Kode PHP perlu diverifikasi di mesinmu (bagian 4); kemungkinan ada galat kecil yang hanya terlihat saat dijalankan.
+- Verifikasi konfigurasi XAMPP dan perangkat acara di mesin booth (bagian 4).
 - Pratinjau browser dan hasil server memakai geometri sama, tetapi tampilan akhir bingkai di server belum dibandingkan piksel demi piksel.
 - Akses kamera dari perangkat lain lewat HTTP biasa tetap diblokir browser (batasan browser, bukan bug).
 - Jumlah foto maksimal 4 per template (aturan validasi admin).
@@ -167,7 +159,7 @@ CORS / HTTP-HTTPS meski halaman dibuka lewat Cloudflare.
   setelah satu kali memotret agar penyesuaiannya mudah.
 - Ada jeda beberapa detik antara hitung mundur selesai dan foto muncul (pemotretan + transfer foto resolusi penuh).
 - Live view digiCamControl beresolusi rendah dan membuka jendela live view di laptop booth (boleh diminimalkan).
-- `php artisan serve` di Windows memproses satu permintaan pada satu waktu; untuk live view yang lebih lancar gunakan Apache XAMPP.
+- Launcher sudah memakai Apache khusus proyek agar capture tidak menahan request lain. `php artisan serve` di Windows hanya untuk pengembangan.
 - Foto resolusi penuh juga tersimpan di folder sesi digiCamControl pada laptop booth; bersihkan berkala.
 - Pembatas laju kini memakai pembatas bernama (`booth-process`, `login`, `digicam-*`). Sebelumnya `throttle:N,1` biasa berbagi satu
   penghitung per IP di semua rute sehingga bisa saling menghabiskan jatah.

@@ -254,7 +254,23 @@
     var liveBlobUrl = null;
     var isSendingFrame = false;
     var isFetchingLive = false;
+    var relayNeeded = false;
+    var isCheckingViewers = false;
+    var broadcastGeneration = 0;
+    var liveGeneration = 0;
+    var liveRequest = null;
+    var previewVersion = 0;
+    var sentPreviewVersion = -1;
     var signalUrl = "{{ route('camera.hub.signal') }}";
+
+    function hubFetch(url, options) {
+        options = options || {};
+        if (options.signal) return fetch(url, options);
+        var controller = new AbortController();
+        var timeout = setTimeout(function() { controller.abort(); }, url === cfg.digicam.capture_url ? 90000 : 15000);
+        return fetch(url, Object.assign({}, options, { signal: controller.signal }))
+            .finally(function() { clearTimeout(timeout); });
+    }
 
     function hasActivePeer() {
         var keys = Object.keys(peerConnections);
@@ -298,7 +314,7 @@
         badgeDcc.textContent = 'MENGECEK...';
         dccInfoBox.textContent = 'Menghubungi web server digiCamControl di port 5513...';
 
-        fetch(cfg.digicam.status_url, { credentials: 'same-origin', cache: 'no-store' })
+        hubFetch(cfg.digicam.status_url, { credentials: 'same-origin', cache: 'no-store' })
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (data.ok) {
@@ -378,7 +394,7 @@
             camSourceTag.style.display = 'block';
 
             // Nyalakan liveview di digiCamControl
-            return fetch(cfg.digicam.live_start_url, {
+            return hubFetch(cfg.digicam.live_start_url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'application/json' }
             })
@@ -431,6 +447,9 @@
     }
 
     function stopDigicamLivePolling() {
+        liveGeneration++;
+        if (liveRequest) liveRequest.abort();
+        liveRequest = null;
         liveOk = false;
         isFetchingLive = false;
         if (liveTimer) clearTimeout(liveTimer);
@@ -439,25 +458,44 @@
 
     function pumpDigicamFrame() {
         if (!liveOk || isFetchingLive) return;
+        if (isCapturing || (document.hidden && !hasActivePeer() && !relayNeeded)) {
+            liveTimer = setTimeout(pumpDigicamFrame, 250);
+            return;
+        }
         isFetchingLive = true;
+        var generation = liveGeneration;
+        var started = Date.now();
+        var request = new AbortController();
+        liveRequest = request;
+        var timeout = setTimeout(function() { request.abort(); }, 5000);
+        var failed = false;
 
-        fetch(cfg.digicam.liveview_url + '?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' })
+        hubFetch(cfg.digicam.liveview_url + '?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store', signal: request.signal })
             .then(function(res) {
                 if (!res.ok) throw new Error('Liveview ' + res.status);
                 return res.blob();
             })
             .then(function(blob) {
+                if (!liveOk || generation !== liveGeneration) return;
                 var url = URL.createObjectURL(blob);
                 if (liveBlobUrl) URL.revokeObjectURL(liveBlobUrl);
                 liveBlobUrl = url;
+                liveImg.onload = function() {
+                    if (!liveOk || generation !== liveGeneration) return;
+                    drawPreview(liveImg, liveImg.naturalWidth, liveImg.naturalHeight);
+                    previewVersion++;
+                };
                 liveImg.src = url;
                 resInfo.textContent = 'Resolusi: ' + (liveImg.naturalWidth || 640) + ' × ' + (liveImg.naturalHeight || 480);
             })
-            .catch(function(err) {})
+            .catch(function(err) { failed = true; })
             .then(function() {
+                clearTimeout(timeout);
+                if (generation !== liveGeneration) return;
                 isFetchingLive = false;
+                liveRequest = null;
                 if (liveOk) {
-                    var wait = Math.max(80, cfg.digicam.interval || 140);
+                    var wait = failed ? 1000 : Math.max(0, (cfg.digicam.interval || 120) - (Date.now() - started));
                     liveTimer = setTimeout(pumpDigicamFrame, wait);
                 }
             });
@@ -465,6 +503,8 @@
 
     // 6. Hentikan Kamera
     function stopCamera() {
+        broadcastGeneration++;
+        relayNeeded = false;
         stopDigicamLivePolling();
         stopWebRTCHost();
         if (streamTimer) clearTimeout(streamTimer);
@@ -472,7 +512,7 @@
         isSendingFrame = false;
 
         if (selSourceType.value === 'digicam') {
-            fetch(cfg.digicam.live_stop_url, {
+            hubFetch(cfg.digicam.live_stop_url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'application/json' }
             }).catch(function() {});
@@ -507,19 +547,19 @@
         updateStatsDisplay();
     }
 
-    // 7. WebRTC Host Broadcaster (Real-Time 30 FPS Peer-to-Peer)
+    // 7. WebRTC host: preview bitrate/resolution are independent of captured photos.
     function getActiveStream() {
         if (selSourceType.value === 'webcam') {
             return stream;
         }
         if (!dccStream && canvas && canvas.captureStream) {
-            dccStream = canvas.captureStream(25);
+            dccStream = canvas.captureStream(15);
         }
         return dccStream;
     }
 
     function startWebRTCHost() {
-        fetch(signalUrl, {
+        hubFetch(signalUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'register_host' })
@@ -544,17 +584,23 @@
     }
 
     function checkPendingViewers() {
-        if (!isBroadcasting) return;
-        fetch(signalUrl + '?action=check_viewers', { cache: 'no-store' })
+        if (!isBroadcasting || isCheckingViewers) return;
+        isCheckingViewers = true;
+        var generation = broadcastGeneration;
+        hubFetch(signalUrl + '?action=check_viewers', { cache: 'no-store' })
             .then(function(r) { return r.json(); })
             .then(function(data) {
+                if (!isBroadcasting || generation !== broadcastGeneration) return;
+                relayNeeded = !!data.relay_needed;
+                if (data.capture_id) handleKioskTriggerCapture(data.capture_id);
                 if (data && data.ok && data.viewers && data.viewers.length) {
                     data.viewers.forEach(function(viewerId) {
                         connectToViewer(viewerId);
                     });
                 }
             })
-            .catch(function() {});
+            .catch(function() {})
+            .then(function() { isCheckingViewers = false; });
     }
 
     function connectToViewer(viewerId) {
@@ -581,6 +627,8 @@
             updateStatsDisplay();
             if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
                 delete peerConnections[viewerId];
+                dc.close();
+                pc.close();
                 updateStatsDisplay();
             }
         };
@@ -590,7 +638,15 @@
         var activeStream = getActiveStream();
         if (activeStream) {
             activeStream.getTracks().forEach(function(t) {
-                pc.addTrack(t, activeStream);
+                var sender = pc.addTrack(t, activeStream);
+                var params = sender.getParameters();
+                params.encodings = params.encodings || [{}];
+                params.encodings[0].maxBitrate = 1500000;
+                params.encodings[0].maxFramerate = 20;
+                if (selSourceType.value === 'webcam') {
+                    params.encodings[0].scaleResolutionDownBy = Math.max(1, video.videoWidth / 960);
+                }
+                sender.setParameters(params).catch(function() {});
             });
         }
 
@@ -598,7 +654,7 @@
             .then(function(offer) { return pc.setLocalDescription(offer); })
             .then(function() { return waitForIceComplete(pc); })
             .then(function() {
-                return fetch(signalUrl, {
+                return hubFetch(signalUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -614,6 +670,8 @@
             .catch(function(err) {
                 console.warn('WebRTC offer error:', err);
                 delete peerConnections[viewerId];
+                dc.close();
+                pc.close();
             });
     }
 
@@ -637,11 +695,19 @@
 
     function pollViewerAnswer(viewerId, pc, tries) {
         tries = tries !== undefined ? tries : 25;
-        if (tries <= 0 || !isBroadcasting || !peerConnections[viewerId]) return;
+        var connection = peerConnections[viewerId];
+        if (!connection || connection.pc !== pc) return;
+        if (tries <= 0 || !isBroadcasting) {
+            delete peerConnections[viewerId];
+            connection.dc.close();
+            pc.close();
+            return;
+        }
 
-        fetch(signalUrl + '?action=get_answer&viewer_id=' + encodeURIComponent(viewerId), { cache: 'no-store' })
+        hubFetch(signalUrl + '?action=get_answer&viewer_id=' + encodeURIComponent(viewerId), { cache: 'no-store' })
             .then(function(r) { return r.json(); })
             .then(function(d) {
+                if (!peerConnections[viewerId] || peerConnections[viewerId].pc !== pc) return;
                 if (d && d.ok && d.answer) {
                     var answerDesc = new RTCSessionDescription(JSON.parse(d.answer));
                     return pc.setRemoteDescription(answerDesc).then(function() {
@@ -706,8 +772,13 @@
     // 9. Kirim Frame Live View ke /camera-hub/push (Binary Blob Tanpa Base64)
     function sendLiveFrame() {
         if (!isBroadcasting || isSendingFrame) return;
+        if (!relayNeeded || isCapturing) {
+            scheduleNextPush(250);
+            return;
+        }
 
         var source = selSourceType.value;
+        var generation = broadcastGeneration;
         var srcW = 0, srcH = 0;
 
         if (source === 'digicam') {
@@ -715,6 +786,10 @@
             srcH = liveImg.naturalHeight || 480;
             if (!liveImg.complete || !srcW) {
                 scheduleNextPush(100);
+                return;
+            }
+            if (sentPreviewVersion === previewVersion) {
+                scheduleNextPush(60);
                 return;
             }
         } else {
@@ -726,34 +801,20 @@
             }
         }
 
-        // Skala ringan untuk transmisi buffer live view (~480px)
-        var previewW = 480;
-        var previewH = Math.round(previewW * (srcH / srcW));
-        canvas.width = previewW;
-        canvas.height = previewH;
-
-        ctx.save();
-        if (chkMirror.checked) {
-            ctx.translate(previewW, 0);
-            ctx.scale(-1, 1);
-        }
-        if (source === 'digicam') {
-            ctx.drawImage(liveImg, 0, 0, previewW, previewH);
-        } else {
-            ctx.drawImage(video, 0, 0, previewW, previewH);
-        }
-        ctx.restore();
+        if (source !== 'digicam') drawPreview(video, srcW, srcH);
 
         isSendingFrame = true;
+        var sendingVersion = previewVersion;
 
         canvas.toBlob(function(blob) {
+            if (generation !== broadcastGeneration) return;
             if (!blob || !isBroadcasting) {
                 isSendingFrame = false;
                 scheduleNextPush(100);
                 return;
             }
 
-            fetch("{{ route('camera.hub.push') }}", {
+            hubFetch("{{ route('camera.hub.push') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'image/jpeg'
@@ -762,6 +823,8 @@
             })
             .then(function(res) { return res.json(); })
             .then(function(data) {
+                if (generation !== broadcastGeneration) return;
+                sentPreviewVersion = sendingVersion;
                 frameCount++;
                 updateStatsDisplay();
 
@@ -772,11 +835,24 @@
             })
             .catch(function(err) {})
             .then(function() {
+                if (generation !== broadcastGeneration) return;
                 isSendingFrame = false;
-                var hasP2P = hasActivePeer();
-                scheduleNextPush(hasP2P ? 140 : 75);
+                scheduleNextPush(120);
             });
         }, 'image/jpeg', 0.50);
+    }
+
+    // Shared by WebRTC and HTTP: draw each DSLR frame once, without JPEG encoding for P2P.
+    function drawPreview(image, width, height) {
+        if (!width || !height) return;
+        var previewW = 480;
+        var previewH = Math.round(previewW * height / width);
+        if (canvas.width !== previewW) canvas.width = previewW;
+        if (canvas.height !== previewH) canvas.height = previewH;
+        ctx.save();
+        if (chkMirror.checked) { ctx.translate(previewW, 0); ctx.scale(-1, 1); }
+        ctx.drawImage(image, 0, 0, previewW, previewH);
+        ctx.restore();
     }
 
     // 10. Tangani Sinyal Trigger dari Bilik User
@@ -896,8 +972,8 @@
 
         if (source === 'digicam') {
             // Potret dengan Canon DSLR resolusi tinggi via digiCamControl
-            // Biarkan frame liveview terakhir tetap mengalir tanpa diputus paksa
-            fetch(cfg.digicam.capture_url, {
+            stopDigicamLivePolling();
+            hubFetch(cfg.digicam.capture_url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'image/jpeg, application/json' }
             })
@@ -906,8 +982,6 @@
                 return res.blob();
             })
             .then(function(rawBlob) {
-                // Kompresi cerdas di browser admin: ukuran turun dari ~12MB menjadi ~400KB (2048px @ 0.88).
-                // Kualitas DSLR tetap sangat tajam untuk cetak photostrip, transmisi ke bilik user instan (<0.3 detik)!
                 return optimizeSnapshotBlob(rawBlob, 2048, 0.88);
             })
             .then(function(blob) {
@@ -921,10 +995,12 @@
             })
             .then(function() {
                 // Pastikan live view tetap aktif di digiCamControl
-                fetch(cfg.digicam.live_start_url, {
+                hubFetch(cfg.digicam.live_start_url, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': cfg.csrf }
-                }).catch(function() {});
+                }).catch(function() {}).then(function() {
+                    if (isBroadcasting) startDigicamLivePolling();
+                });
 
                 finishCapture();
             });
@@ -981,16 +1057,19 @@
             var fd = new FormData();
             fd.append('snapshot', blobOrDataUrl, 'snapshot.jpg');
             if (captureId) fd.append('capture_id', captureId);
-            return fetch("{{ route('camera.hub.snapshot.push') }}", {
+            return hubFetch("{{ route('camera.hub.snapshot.push') }}", {
                 method: 'POST',
                 headers: {
                     'X-Capture-Id': captureId || ''
                 },
                 body: fd
+            }).then(function(res) {
+                if (!res.ok) throw new Error('Gagal mengirim foto (HTTP ' + res.status + ')');
+                return res;
             });
         }
 
-        return fetch("{{ route('camera.hub.snapshot.push') }}", {
+        return hubFetch("{{ route('camera.hub.snapshot.push') }}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1021,7 +1100,7 @@
         if (source === 'digicam') {
             stopDigicamLivePolling();
 
-            fetch(cfg.digicam.capture_url, {
+            hubFetch(cfg.digicam.capture_url, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': cfg.csrf, 'Accept': 'image/jpeg, application/json' }
             })
@@ -1043,7 +1122,7 @@
                 alert('Test Jepret Gagal: ' + (err.message || err));
             })
             .then(function() {
-                fetch(cfg.digicam.live_start_url, {
+                hubFetch(cfg.digicam.live_start_url, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': cfg.csrf }
                 }).catch(function() {});
@@ -1104,6 +1183,16 @@
     }
     btnCloseModal.addEventListener('click', closeModal);
     btnCloseModal2.addEventListener('click', closeModal);
+    window.addEventListener('pagehide', function() {
+        stopDigicamLivePolling();
+        stopWebRTCHost();
+        isBroadcasting = false;
+        broadcastGeneration++;
+        clearTimeout(streamTimer);
+        if (stream) stream.getTracks().forEach(function(track) { track.stop(); });
+        if (dccStream) dccStream.getTracks().forEach(function(track) { track.stop(); });
+        if (liveBlobUrl) URL.revokeObjectURL(liveBlobUrl);
+    });
 
     function escapeHtml(str) {
         if (!str) return '';

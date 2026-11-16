@@ -455,22 +455,25 @@
     });
     hubPc = pc;
 
-    pc.ontrack = function (e) {
-      if (e.streams && e.streams[0]) {
-        video.srcObject = e.streams[0];
-        video.play().catch(function () {});
-        hubWebrtcActive = true;
-        live.ok = true;
-        applySourceUI();
+    function useHubVideo() {
+      if (hubPc !== pc || pc.connectionState !== 'connected' || !video.videoWidth || video.readyState < 2) return;
+      hubWebrtcActive = true;
+      live.ok = true;
+      applySourceUI();
+      vf.style.setProperty('--vf-ar', (video.videoWidth / video.videoHeight).toFixed(4));
+      updateGuide(nextTarget());
+      if (mode === 'init') mode = 'ready';
+      render();
+    }
 
-        video.onloadedmetadata = function () {
-          if (video.videoWidth > 0 && video.videoHeight > 0) {
-            vf.style.setProperty('--vf-ar', (video.videoWidth / video.videoHeight).toFixed(4));
-            updateGuide(nextTarget());
-            mode = 'ready';
-            render();
-          }
-        };
+    pc.ontrack = function (e) {
+      if (hubPc === pc && e.streams && e.streams[0]) {
+        video.srcObject = e.streams[0];
+        // Receiving an SDP track does not mean video packets are arriving yet.
+        // Keep HTTP preview available until the video actually plays.
+        video.onplaying = useHubVideo;
+        video.onloadeddata = useHubVideo;
+        if (!document.hidden && mode !== 'uploading') video.play().catch(function () {});
       }
     };
 
@@ -480,7 +483,9 @@
     };
 
     pc.onconnectionstatechange = function () {
-      if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+      if (hubPc !== pc) return;
+      if (pc.connectionState === 'connected') useHubVideo();
+      if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed' || pc.connectionState === 'closed') {
         hubWebrtcActive = false;
         applySourceUI();
       }
@@ -578,10 +583,13 @@
       try { hubAbortController.abort(); } catch (e) {}
     }
     hubAbortController = new AbortController();
+    var request = hubAbortController;
+    var frameTimeout = setTimeout(function () { request.abort(); }, 5000);
 
-    return fetch(url, { credentials: 'same-origin', cache: 'no-store', signal: hubAbortController.signal })
+    return fetch(url, { credentials: 'same-origin', cache: 'no-store', signal: request.signal })
       .then(function (r) { if (!r.ok) throw new Error('liveview ' + r.status); return r.blob(); })
-      .then(setLiveBlob);
+      .then(function (blob) { if (!request.signal.aborted) return setLiveBlob(blob); })
+      .finally(function () { clearTimeout(frameTimeout); });
   }
 
   // Live view dibuka butuh waktu; coba beberapa kali sebelum menyerah.
@@ -605,7 +613,7 @@
     vf.classList.remove('is-mirrored');
     btnMirror.setAttribute('aria-pressed', 'false');
 
-    // Mulai WebRTC P2P langsung untuk 30 FPS instan
+    // Try WebRTC while retaining HTTP preview until video is playable.
     startHubWebRTC();
 
     return fetch(hub.status_url, { credentials: 'same-origin', cache: 'no-store' })
@@ -642,16 +650,24 @@
     pumpLive();
   }
   function stopLive() {
-    live.on = false; live.busy = false;
+    live.on = false;
+    live.generation = (live.generation || 0) + 1;
+    live.busy = false;
+    if (hubAbortController) hubAbortController.abort();
     clearTimeout(live.timer); live.timer = null;
   }
-  function pauseLive() { live.paused = true; }
+  function pauseLive() {
+    live.paused = true;
+    clearTimeout(live.timer);
+    if (hubAbortController) hubAbortController.abort();
+  }
   function resumeLive() {
     live.paused = false; live.fails = 0;
-    if (live.on && !live.busy) pumpLive();
+    clearTimeout(live.timer);
+    if (live.on && !live.busy && !document.hidden) pumpLive();
   }
   function pumpLive() {
-    if (!live.on || live.paused) return;
+    if (!live.on || live.paused || document.hidden) return;
 
     if (source === 'hub' && hubWebrtcActive) {
       live.timer = setTimeout(pumpLive, 1000);
@@ -660,15 +676,18 @@
 
     if (live.busy) return;
     live.busy = true;
+    var generation = live.generation || 0;
     var t0 = Date.now();
     fetchLiveFrame()
-      .then(function () { live.fails = 0; })
+      .then(function () { if (generation === (live.generation || 0)) live.fails = 0; })
       .catch(function (err) {
+        if (generation !== (live.generation || 0)) return;
         if (err && err.name !== 'AbortError') {
           live.fails++;
         }
       })
       .then(function () {
+        if (generation !== (live.generation || 0)) return;
         live.busy = false;
         if (!live.on || live.paused) return;
         if (live.fails >= 12) { live.on = false; onLiveLost(); return; }
@@ -773,57 +792,58 @@
       .then(function (b) { finish(); return b; }, function (err) { finish(); throw err; });
   }
 
-  function pollHubSnapshot(cid, retries, delay) {
+  function pollHubSnapshot(cid, retries, delay, signal) {
     delay = delay || 120;
+    if (signal && signal.aborted) return Promise.reject(new DOMException('Aborted', 'AbortError'));
     return fetch(hub.snapshot_url + '?capture_id=' + encodeURIComponent(cid) + '&t=' + Date.now(), {
-      credentials: 'same-origin', cache: 'no-store'
+      credentials: 'same-origin', cache: 'no-store', signal: signal
     }).then(function (res) {
       if (res.ok) return res.blob();
       if (retries <= 1) throw new Error('Kamera admin tidak merespons foto.');
       return sleep(delay).then(function () {
-        return pollHubSnapshot(cid, retries - 1, Math.min(delay + 40, 350));
+        return pollHubSnapshot(cid, retries - 1, Math.min(delay + 100, 750), signal);
       });
     });
   }
 
   function waitForHubSnapshot(cid) {
     return new Promise(function (resolve, reject) {
-      var isResolved = false;
+      var settled = false;
+      var notified = false;
+      var polling = new AbortController();
+      var download = new AbortController();
+      var fallbackTimer;
+      var deadline = setTimeout(function () { finish(new Error('Kamera admin tidak merespons foto.')); }, 90000);
+
+      function finish(err, blob) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(deadline);
+        clearTimeout(fallbackTimer);
+        polling.abort();
+        download.abort();
+        delete hubSnapshotListeners[cid];
+        if (err) reject(err); else resolve(blob);
+      }
 
       function onReady() {
-        if (isResolved) return;
-        isResolved = true;
-        delete hubSnapshotListeners[cid];
-        fetch(hub.snapshot_url + '?capture_id=' + encodeURIComponent(cid) + '&t=' + Date.now(), {
-          credentials: 'same-origin', cache: 'no-store'
-        })
-          .then(function (res) {
-            if (res.ok) return res.blob();
-            return pollHubSnapshot(cid, 25, 120);
-          })
-          .then(resolve)
-          .catch(reject);
+        if (settled || notified) return;
+        notified = true;
+        clearTimeout(fallbackTimer);
+        polling.abort();
+        pollHubSnapshot(cid, 12, 250, download.signal)
+          .then(function (blob) { finish(null, blob); })
+          .catch(function (err) { finish(err); });
       }
 
       hubSnapshotListeners[cid] = onReady;
 
-      // Jalankan polling paralel sebagai fallback bila WebRTC DataChannel belum tersambung
-      sleep(180).then(function () {
-        if (isResolved) return;
-        return pollHubSnapshot(cid, 35, 150);
-      }).then(function (blob) {
-        if (!isResolved && blob) {
-          isResolved = true;
-          delete hubSnapshotListeners[cid];
-          resolve(blob);
-        }
-      }).catch(function (err) {
-        if (!isResolved) {
-          isResolved = true;
-          delete hubSnapshotListeners[cid];
-          reject(err);
-        }
-      });
+      // Give the DataChannel a chance to notify; retain polling for lost notifications.
+      fallbackTimer = setTimeout(function () {
+        pollHubSnapshot(cid, 120, 250, polling.signal)
+          .then(function (blob) { if (!notified) finish(null, blob); })
+          .catch(function (err) { if (!notified) finish(err); });
+      }, hubDc && hubDc.readyState === 'open' ? 1500 : 250);
     });
   }
 
@@ -1198,6 +1218,8 @@
   function upload() {
     if (!allFilled() || mode !== 'ready') return;
     mode = 'uploading';
+    pauseLive();
+    video.pause();
     render();
     loader.hidden = false;
     loaderText.textContent = 'Menyusun foto ke dalam template…';
@@ -1218,6 +1240,8 @@
       console.error('Upload gagal:', r);
       loader.hidden = true;
       mode = hasSource() ? 'ready' : 'error';
+      resumeLive();
+      if (video.srcObject) video.play().catch(function () {});
       render();
       PB.toast(failMessage(r && r.res ? r : null), 'error', 8000);
     });
@@ -1303,7 +1327,16 @@
       }
     }
   });
-  document.addEventListener('visibilitychange', function () { if (document.hidden && ctl) ctl.abort(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      if (ctl) ctl.abort();
+      pauseLive();
+      video.pause();
+    } else if (mode !== 'uploading') {
+      resumeLive();
+      if (video.srcObject) video.play().catch(function () {});
+    }
+  });
   window.addEventListener('pagehide', function () {
     stopStream();
     shots.forEach(function (s) { if (s) URL.revokeObjectURL(s.url); });
@@ -1319,7 +1352,9 @@
   updateGuide(0);
   render();
 
-  if (hub && !savedSrc) {
+  // A laptop connected to the DSLR can use the direct bridge, without a second browser relay.
+  var localBooth = ['localhost', '127.0.0.1', '[::1]'].indexOf(location.hostname) !== -1;
+  if (hub && !savedSrc && !(localBooth && dcc)) {
     fetch(hub.status_url, { cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (d) {

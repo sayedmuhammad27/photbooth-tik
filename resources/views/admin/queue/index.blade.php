@@ -269,15 +269,17 @@
 
     // Real-time Polling setiap 1500ms (1.5 detik)
     function fetchLiveData(forceUpdate) {
-        if (isPolling) return;
+        if (isPolling || (document.hidden && !forceUpdate)) return;
         isPolling = true;
+        var controller = new AbortController();
+        var timeout = setTimeout(function() { controller.abort(); }, 10000);
 
         var url = liveUrl + '?status=' + encodeURIComponent(currentFilter) + '&page=' + encodeURIComponent(currentPage) + '&t=' + Date.now();
         if (lastStateHash && !forceUpdate) {
             url += '&hash=' + encodeURIComponent(lastStateHash);
         }
 
-        fetch(url, { credentials: 'same-origin', cache: 'no-store' })
+        fetch(url, { credentials: 'same-origin', cache: 'no-store', signal: controller.signal })
             .then(function(res) {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 return res.json();
@@ -346,11 +348,14 @@
             })
             .catch(function(err) {
                 isPolling = false;
-            });
+            }).finally(function() { clearTimeout(timeout); });
     }
 
     // Jalankan polling setiap 1500ms (1.5 detik)
     setInterval(fetchLiveData, 1500);
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) fetchLiveData();
+    });
 
     // Tangani Aksi Tabel Tanpa Full Page Reload (Mulai Foto, Panggil, Selesai, Lewati, Reset)
     document.addEventListener('submit', function(e) {

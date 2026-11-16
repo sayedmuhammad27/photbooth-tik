@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Drivers\Gd\Driver;
-use Intervention\Image\ImageManager;
+use App\Services\StripComposer;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Throwable;
 
@@ -94,7 +93,7 @@ class SessionController extends Controller
      * Foto sudah dipotong sesuai rasio slot oleh browser; server memotong ulang (cover)
      * ke ukuran slot tepat sehingga tidak pernah ada foto yang digepengkan.
      */
-    public function process(Request $request, Template $template): JsonResponse
+    public function process(Request $request, Template $template, StripComposer $composer): JsonResponse
     {
         abort_unless($template->is_active, 404);
 
@@ -118,28 +117,7 @@ class SessionController extends Controller
         $written = [];
 
         try {
-            $width = Template::CANVAS_WIDTH;
-            $height = Template::CANVAS_HEIGHT;
-
-            $manager = new ImageManager(new Driver());
-            $canvas = $manager->create($width, $height)->fill($template->bg_color ?: '#131947');
-
-            foreach ($template->normalizedSlots() as $slot) {
-                $file = $files[$slot['photo']] ?? null;
-                if ($file === null) {
-                    continue;
-                }
-                $photo = $manager->read($file->getRealPath())->cover($slot['width'], $slot['height']);
-                $canvas->place($photo, 'top-left', $slot['x'], $slot['y']);
-            }
-
-            if ($template->frame_asset && $disk->exists($template->frame_asset)) {
-                $frame = $manager->read($disk->path($template->frame_asset));
-                if ($frame->width() !== $width || $frame->height() !== $height) {
-                    $frame = $frame->resize($width, $height);
-                }
-                $canvas->place($frame, 'top-left', 0, 0);
-            }
+            $canvas = $composer->compose($template, $files);
 
             $finalPath = "results/{$token}_final.jpg";
             $disk->put($finalPath, (string) $canvas->toJpeg(92));

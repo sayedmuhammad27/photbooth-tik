@@ -7,11 +7,36 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class CameraHubAndTestPhotoTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_relay_runs_only_while_an_http_viewer_needs_it(): void
+    {
+        $this->getJson('/camera-hub/signal?action=check_viewers')
+            ->assertOk()->assertJson(['relay_needed' => false]);
+
+        $this->get('/camera-hub/frame');
+        $this->getJson('/camera-hub/signal?action=check_viewers')
+            ->assertOk()->assertJson(['relay_needed' => true]);
+
+        $this->travel(5)->seconds();
+        $this->getJson('/camera-hub/signal?action=check_viewers')
+            ->assertOk()->assertJson(['relay_needed' => false]);
+    }
+
+    public function test_capture_trigger_is_delivered_by_heartbeat_without_a_frame_upload(): void
+    {
+        $id = $this->postJson('/camera-hub/trigger')->assertOk()->json('capture_id');
+        $response = $this->getJson('/camera-hub/signal?action=check_viewers')->assertOk();
+        $response->assertJson(['capture_id' => $id, 'relay_needed' => false]);
+        $this->assertEmpty($response->headers->getCookies());
+        $this->assertNull(Cache::get('camera_hub_trigger_capture'));
+        $this->getJson('/camera-hub/signal?action=check_viewers')->assertJson(['capture_id' => null]);
+    }
 
     public function test_camera_hub_admin_can_access_broadcaster_page(): void
     {

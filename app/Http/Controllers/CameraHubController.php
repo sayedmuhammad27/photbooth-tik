@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -49,12 +48,12 @@ class CameraHubController extends Controller
         if (str_contains($contentType, 'image/') || str_contains($contentType, 'application/octet-stream')) {
             $binary = $request->getContent();
             if ($binary && strlen($binary) > 200) {
-                @file_put_contents($filePath, $binary);
+                @file_put_contents($filePath, $binary, LOCK_EX);
             }
         } elseif ($request->hasFile('frame')) {
             $file = $request->file('frame');
             if ($file && $file->isValid()) {
-                @copy($file->getRealPath(), $filePath);
+                @file_put_contents($filePath, file_get_contents($file->getRealPath()), LOCK_EX);
             }
         } else {
             // 2. Fallback Base64 JSON
@@ -63,7 +62,7 @@ class CameraHubController extends Controller
                 $parts = explode(',', $frame, 2);
                 if (isset($parts[1])) {
                     $binary = base64_decode($parts[1]);
-                    @file_put_contents($filePath, $binary);
+                    @file_put_contents($filePath, $binary, LOCK_EX);
                 }
             }
         }
@@ -90,14 +89,17 @@ class CameraHubController extends Controller
             session_write_close();
         }
 
+        // Only HTTP viewers renew this lease. WebRTC viewers stop requesting frames.
+        // Throttle the cache write rather than writing once per frame.
+        $lastRequest = Cache::get('camera_hub_relay_requested_at', 0);
+        if (microtime(true) - $lastRequest >= 1) {
+            Cache::put('camera_hub_relay_requested_at', microtime(true), 4);
+        }
+
         $filePath = storage_path('framework/cache/hub_frame.jpg');
 
         if (file_exists($filePath) && (time() - filemtime($filePath) < 10)) {
-            return response()->file($filePath, [
-                'Content-Type'  => 'image/jpeg',
-                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-                'Pragma'        => 'no-cache',
-            ]);
+            return $this->imageResponse($filePath);
         }
 
         return response()->json(['message' => 'Kamera admin tidak sedang menyiarkan.'], 503);
@@ -157,9 +159,9 @@ class CameraHubController extends Controller
             if ($binary && strlen($binary) > 50) {
                 if ($captureId) {
                     $path = $dir . '/snap_' . $captureId . '.jpg';
-                    @file_put_contents($path, $binary);
+                    @file_put_contents($path, $binary, LOCK_EX);
                 }
-                @file_put_contents($dir . '/snap_latest.jpg', $binary);
+                @file_put_contents($dir . '/snap_latest.jpg', $binary, LOCK_EX);
                 $saved = true;
             }
         } elseif ($request->hasFile('snapshot')) {
@@ -167,9 +169,9 @@ class CameraHubController extends Controller
             if ($file && $file->isValid()) {
                 if ($captureId) {
                     $path = $dir . '/snap_' . $captureId . '.jpg';
-                    @copy($file->getRealPath(), $path);
+                    @file_put_contents($path, file_get_contents($file->getRealPath()), LOCK_EX);
                 }
-                @copy($file->getRealPath(), $dir . '/snap_latest.jpg');
+                @file_put_contents($dir . '/snap_latest.jpg', file_get_contents($file->getRealPath()), LOCK_EX);
                 $saved = true;
             }
         } else {
@@ -181,9 +183,9 @@ class CameraHubController extends Controller
                 if ($binary && strlen($binary) > 50) {
                     if ($captureId) {
                         $path = $dir . '/snap_' . $captureId . '.jpg';
-                        @file_put_contents($path, $binary);
+                        @file_put_contents($path, $binary, LOCK_EX);
                     }
-                    @file_put_contents($dir . '/snap_latest.jpg', $binary);
+                    @file_put_contents($dir . '/snap_latest.jpg', $binary, LOCK_EX);
                     $saved = true;
                 }
             }
@@ -230,10 +232,7 @@ class CameraHubController extends Controller
         if ($captureId) {
             $path = $dir . '/snap_' . $captureId . '.jpg';
             if (file_exists($path) && filesize($path) > 50) {
-                return response()->file($path, [
-                    'Content-Type'  => 'image/jpeg',
-                    'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-                ]);
+                return $this->imageResponse($path);
             }
 
             return response()->json(['message' => 'Foto belum siap.'], 404);
@@ -242,17 +241,14 @@ class CameraHubController extends Controller
         // Fallback hanya berlaku jika request sama sekali tidak membawa parameter capture_id
         $latestPath = $dir . '/snap_latest.jpg';
         if (file_exists($latestPath) && (time() - filemtime($latestPath) < 60) && filesize($latestPath) > 50) {
-            return response()->file($latestPath, [
-                'Content-Type'  => 'image/jpeg',
-                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-            ]);
+            return $this->imageResponse($latestPath);
         }
 
         return response()->json(['message' => 'Foto belum siap.'], 404);
     }
 
     /**
-     * Sinyal WebRTC Peer-to-Peer untuk streaming video real-time 30 FPS tanpa membebani server PHP.
+     * Sinyal WebRTC; video dikirim antar browser tanpa relay JPEG melalui PHP.
      */
     public function signal(Request $request): JsonResponse
     {
@@ -272,7 +268,13 @@ class CameraHubController extends Controller
                 // Admin memeriksa apakah ada bilik user yang baru bergabung meminta koneksi video
                 Cache::put('webrtc_host_active', now()->timestamp, now()->addSeconds(15));
                 $viewers = Cache::get('webrtc_pending_viewers', []);
-                return response()->json(['ok' => true, 'viewers' => array_values($viewers)]);
+                return response()->json([
+                    'ok' => true,
+                    'viewers' => array_values($viewers),
+                    'relay_needed' => Cache::has('camera_hub_relay_requested_at'),
+                    // Keep capture control alive even when JPEG uploads are idle.
+                    'capture_id' => Cache::pull('camera_hub_trigger_capture'),
+                ]);
 
             case 'join':
                 // Bilik user bergabung dan meminta stream video dari host
@@ -353,6 +355,26 @@ class CameraHubController extends Controller
             'snapshot_url'   => route('camera.hub.snapshot'),
             'signal_url'     => route('camera.hub.signal'),
             'digicam_active' => (bool) config('photobooth.digicam.enabled'),
+        ]);
+    }
+
+    private function imageResponse(string $path): Response
+    {
+        // Readers must share the writer's lock now that Apache serves requests concurrently.
+        return response()->stream(function () use ($path) {
+            $file = fopen($path, 'rb');
+            if ($file === false) { return; }
+            try {
+                if (flock($file, LOCK_SH)) {
+                    fpassthru($file);
+                    flock($file, LOCK_UN);
+                }
+            } finally {
+                fclose($file);
+            }
+        }, 200, [
+            'Content-Type' => 'image/jpeg',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
         ]);
     }
 }

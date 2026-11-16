@@ -51,7 +51,12 @@ Route::post('/queue/verify', [QueueController::class, 'verify'])->name('queue.ve
 // ==========================================
 // KAMERA HUB (AKSES KAMERA ADMIN DARI BILIK USER)
 // ==========================================
-Route::prefix('camera-hub')->name('camera.hub.')->group(function () {
+Route::prefix('camera-hub')->name('camera.hub.')->withoutMiddleware([
+    \Illuminate\Session\Middleware\StartSession::class,
+    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+    // These endpoints were already CSRF-exempt; also skip the session-backed cookie writer.
+    \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+])->group(function () {
     Route::post('/push', [CameraHubController::class, 'pushFrame'])->name('push');
     Route::get('/frame', [CameraHubController::class, 'getFrame'])->name('frame');
     Route::post('/trigger', [CameraHubController::class, 'triggerCapture'])->name('trigger');
