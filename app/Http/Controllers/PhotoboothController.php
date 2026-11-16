@@ -23,8 +23,10 @@ class PhotoboothController extends Controller
 
         $waitingCount = QueueTicket::today()->waiting()->count();
         $totalToday = QueueTicket::today()->count();
+        $previewTemplates = Template::active()->ordered()->take(3)->get();
+        $totalTemplates = Template::active()->count();
 
-        return view('welcome', compact('setting', 'activeTicket', 'waitingCount', 'totalToday'));
+        return view('welcome', compact('setting', 'activeTicket', 'waitingCount', 'totalToday', 'previewTemplates', 'totalTemplates'));
     }
 
     /** Galeri template: hanya template aktif; filter & pencarian berjalan di browser. */

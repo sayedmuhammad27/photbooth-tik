@@ -12,6 +12,9 @@
             </span>
             <a href="{{ route('home') }}" class="welcome__nav-item is-active">Beranda</a>
             <a href="{{ route('photobooth.setup') }}" class="welcome__nav-item">Template</a>
+            <a href="#fitur" class="welcome__nav-item">Fitur</a>
+            <a href="#panduan" class="welcome__nav-item">Alur Foto</a>
+            <a href="#lokasi" class="welcome__nav-item">Lokasi</a>
             <a href="{{ route('test.photo.setup') }}" class="welcome__nav-item">Uji Coba</a>
             <a href="{{ route('login') }}" class="welcome__nav-item">Admin</a>
         </nav>
@@ -20,7 +23,7 @@
         <header class="welcome__header">
             <p class="welcome__kicker reveal">EXPO WISUDA JURUSAN TIK 2026</p>
             <h1 class="welcome__title reveal">CAPTURE YOUR MOMENTS.</h1>
-            <p class="welcome__sub reveal">Abadikan momen terbaikmu bersama Photbooth TIK. Ambil nomor antrean, pilih bingkai foto favorit, dan bawa pulang kenangan wisudamu.</p>
+            <p class="welcome__sub reveal">Abadikan momen kelulusan terbaikmu bersama Photobooth TIK. Ambil tiket antrean digital, pilih bingkai foto eksklusif, dan simpan kenangan wisudamu langsung ke smartphone.</p>
 
             <!-- Baris Status Antrean Hari Ini -->
             <div class="queue-kiosk-bar reveal" aria-label="Status Antrean Hari Ini">
@@ -33,17 +36,21 @@
                     <span>Antrean Menunggu: </span>
                     <strong id="kiosk-waiting-count" class="queue-kiosk-val">{{ $waitingCount }}</strong> orang
                 </div>
+                <div class="queue-kiosk-divider" aria-hidden="true">•</div>
+                <div class="queue-kiosk-item">
+                    <span class="badge badge--lamp" style="font-size:11px;padding:2px 8px">Stan Aktif</span>
+                </div>
             </div>
         </header>
 
         <!-- Dynamic Live Queue Session Banner (Muncul bila antrean disetujui admin) -->
-        <div id="live-queue-container" style="width:min(100%, 820px);margin:0 auto">
+        <div id="live-queue-container" style="width:min(100%, 840px);margin:0 auto">
             @if($activeTicket && $activeTicket->status === 'in_session')
                 <div class="queue-banner queue-banner--session reveal is-in">
                     <span class="queue-banner__tag">@include('partials.icon', ['name' => 'star']) GILIRAN SESI FOTO SEKARANG @include('partials.icon', ['name' => 'star'])</span>
                     <div class="queue-banner__num">ANTREAN #{{ $activeTicket->queue_number }}</div>
                     <div class="queue-banner__name">{{ $activeTicket->name }}</div>
-                    <p style="color:var(--color-muted);font-size:var(--fs-sm)">
+                    <p style="color:var(--color-sand);font-size:var(--fs-sm)">
                         Admin telah menyetujui dan memulai sesimu. Silakan masuk ke bilik foto sekarang.
                     </p>
                     <div class="queue-banner__action">
@@ -57,7 +64,7 @@
                     <span class="queue-banner__tag">@include('partials.icon', ['name' => 'megaphone']) PANGGILAN ANTREAN</span>
                     <div class="queue-banner__num">ANTREAN #{{ $activeTicket->queue_number }}</div>
                     <div class="queue-banner__name">{{ $activeTicket->name }}</div>
-                    <p style="color:var(--color-muted);font-size:var(--fs-sm)">
+                    <p style="color:var(--color-sand);font-size:var(--fs-sm)">
                         Silakan bersiap menuju bilik foto. Petugas admin akan segera memulai sesi fotomu.
                     </p>
                 </div>
@@ -74,7 +81,7 @@
                     </div>
                     <span class="kiosk-action-card__badge">PENGUNJUNG BARU</span>
                     <h2 class="kiosk-action-card__title">Ambil Nomor Antrean</h2>
-                    <p class="kiosk-action-card__desc">Dapatkan nomor antrean digital untuk sesi fotomu di Expo Wisuda 2026.</p>
+                    <p class="kiosk-action-card__desc">Dapatkan nomor tiket antrean digital langsung untuk sesi fotomu di Expo Wisuda 2026.</p>
                 </div>
                 <button type="button" class="btn btn--primary btn--block kiosk-action-card__btn" id="btn-menu-take-ticket">
                     @include('partials.icon', ['name' => 'ticket']) AMBIL NOMOR TIKET
@@ -90,7 +97,7 @@
                     </div>
                     <span class="kiosk-action-card__badge kiosk-action-card__badge--ready">SUDAH MEMILIKI NOMOR</span>
                     <h2 class="kiosk-action-card__title">Masuk Bilik Foto</h2>
-                    <p class="kiosk-action-card__desc">Nomor antreanmu sudah dipanggil? Masuk ke bilik dan pilih template favoritmu.</p>
+                    <p class="kiosk-action-card__desc">Nomor antreanmu sudah disetujui atau dipanggil? Masuk ke bilik dan pilih template favoritmu.</p>
                 </div>
                 <button type="button" class="btn btn--ghost btn--block kiosk-action-card__btn" id="btn-menu-start-photo">
                     @include('partials.icon', ['name' => 'camera']) MULAI FOTO SEKARANG
@@ -117,28 +124,292 @@
             </a>
         </div>
 
-        <!-- 4 Langkah Alur Mudah Photobooth -->
-        <div class="welcome__steps-bar reveal" aria-label="Alur Penggunaan">
-            <div class="welcome__step-item">
-                <span class="welcome__step-num">01</span>
-                <span class="welcome__step-text">Ambil Tiket</span>
+        <!-- ======================================================== -->
+        <!-- SECTION 1: GALERI PRATINJAU BINGKAI WISUDA               -->
+        <!-- ======================================================== -->
+        <section class="welcome__section welcome__section--templates reveal" id="template-showcase" aria-labelledby="templates-heading">
+            <div class="welcome__section-header">
+                <span class="welcome__section-kicker">PILIHAN TATA LETAK & BINGKAI</span>
+                <h2 class="welcome__section-title" id="templates-heading">BINGKAI KHUSUS EXPO WISUDA 2026</h2>
+                <p class="welcome__section-sub">Setiap momen wisuda layak diabadikan dengan tata letak yang sempurna. Pilih format favoritmu dari strip klasik hingga kolase polaroid modern.</p>
             </div>
-            <div class="welcome__step-arrow" aria-hidden="true">&rsaquo;</div>
-            <div class="welcome__step-item">
-                <span class="welcome__step-num">02</span>
-                <span class="welcome__step-text">Pilih Template</span>
+
+            <div class="welcome__template-grid">
+                @if(isset($previewTemplates) && $previewTemplates->isNotEmpty())
+                    @foreach($previewTemplates as $tpl)
+                        <div class="welcome__template-card">
+                            <div class="welcome__template-preview">
+                                @if($tpl->frame_url)
+                                    <img src="{{ $tpl->frame_url }}" alt="{{ $tpl->name }}" loading="lazy">
+                                @else
+                                    <div class="welcome__template-placeholder">
+                                        <div class="welcome__template-strip-sim">
+                                            @for($i = 0; $i < min($tpl->slot_count, 3); $i++)
+                                                <div class="welcome__template-slot-sim"></div>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                @endif
+                                <span class="welcome__template-badge">{{ $tpl->slot_count }} Pose Foto</span>
+                            </div>
+                            <div class="welcome__template-info">
+                                <h3 class="welcome__template-name">{{ $tpl->name }}</h3>
+                                <p class="welcome__template-desc">{{ Str::limit($tpl->description ?: 'Bingkai eksklusif edisi wisuda TIK dengan komposisi warna harmonis.', 90) }}</p>
+                                <a href="{{ route('photobooth.setup') }}" class="btn btn--sm btn--ghost welcome__template-btn">
+                                    Pilih Bingkai Ini
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <!-- Fallback Desain Standar Bila Database Template Kosong -->
+                    <div class="welcome__template-card">
+                        <div class="welcome__template-preview">
+                            <div class="welcome__template-placeholder">
+                                <div class="welcome__template-strip-sim">
+                                    <div class="welcome__template-slot-sim"></div>
+                                    <div class="welcome__template-slot-sim"></div>
+                                    <div class="welcome__template-slot-sim"></div>
+                                </div>
+                            </div>
+                            <span class="welcome__template-badge">3 Pose Foto</span>
+                        </div>
+                        <div class="welcome__template-info">
+                            <h3 class="welcome__template-name">Strip Vertikal Klasik</h3>
+                            <p class="welcome__template-desc">Format strip legendaris berisi tiga pose vertikal. Pilihan favorit wisudawan berfoto bersama sahabat tercinta.</p>
+                            <a href="{{ route('photobooth.setup') }}" class="btn btn--sm btn--ghost welcome__template-btn">
+                                Pilih Bingkai Ini
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="welcome__template-card">
+                        <div class="welcome__template-preview">
+                            <div class="welcome__template-placeholder">
+                                <div class="welcome__template-strip-sim welcome__template-strip-sim--duo">
+                                    <div class="welcome__template-slot-sim"></div>
+                                    <div class="welcome__template-slot-sim"></div>
+                                </div>
+                            </div>
+                            <span class="welcome__template-badge">2 Pose Foto</span>
+                        </div>
+                        <div class="welcome__template-info">
+                            <h3 class="welcome__template-name">Duo Polaroid Minimalis</h3>
+                            <p class="welcome__template-desc">Komposisi dua frame seimbang bergaya polaroid bersih, ideal untuk foto berpasangan atau portrait wisudawan solo.</p>
+                            <a href="{{ route('photobooth.setup') }}" class="btn btn--sm btn--ghost welcome__template-btn">
+                                Pilih Bingkai Ini
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="welcome__template-card">
+                        <div class="welcome__template-preview">
+                            <div class="welcome__template-placeholder">
+                                <div class="welcome__template-strip-sim welcome__template-strip-sim--grid">
+                                    <div class="welcome__template-slot-sim"></div>
+                                    <div class="welcome__template-slot-sim"></div>
+                                    <div class="welcome__template-slot-sim"></div>
+                                    <div class="welcome__template-slot-sim"></div>
+                                </div>
+                            </div>
+                            <span class="welcome__template-badge">4 Pose Foto</span>
+                        </div>
+                        <div class="welcome__template-info">
+                            <h3 class="welcome__template-name">Kolase Grid Wisuda</h3>
+                            <p class="welcome__template-desc">Empat slot foto dalam tata letak kotak simetris. Sempurna untuk mengabadikan keceriaan satu rombongan tim.</p>
+                            <a href="{{ route('photobooth.setup') }}" class="btn btn--sm btn--ghost welcome__template-btn">
+                                Pilih Bingkai Ini
+                            </a>
+                        </div>
+                    </div>
+                @endif
             </div>
-            <div class="welcome__step-arrow" aria-hidden="true">&rsaquo;</div>
-            <div class="welcome__step-item">
-                <span class="welcome__step-num">03</span>
-                <span class="welcome__step-text">Pose di Bilik</span>
+
+            <div class="welcome__section-action">
+                <a href="{{ route('photobooth.setup') }}" class="btn btn--primary btn--md">
+                    @include('partials.icon', ['name' => 'palette'])
+                    <span>LIHAT SEMUA BINGKAI ({{ isset($totalTemplates) && $totalTemplates > 0 ? $totalTemplates : '3+' }})</span>
+                </a>
             </div>
-            <div class="welcome__step-arrow" aria-hidden="true">&rsaquo;</div>
-            <div class="welcome__step-item">
-                <span class="welcome__step-num">04</span>
-                <span class="welcome__step-text">Unduh via QR</span>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- SECTION 2: FITUR UNGGULAN BILIK FOTO                      -->
+        <!-- ======================================================== -->
+        <section class="welcome__section welcome__section--features reveal" id="fitur" aria-labelledby="features-heading">
+            <div class="welcome__section-header">
+                <span class="welcome__section-kicker">PENGALAMAN FOTO TERBAIK</span>
+                <h2 class="welcome__section-title" id="features-heading">KEUNGGULAN BILIK FOTO KAMI</h2>
+                <p class="welcome__section-sub">Sistem bilik foto terintegrasi yang dirancang untuk kenyamanan pengunjung stan dan hasil foto berkelas.</p>
             </div>
-        </div>
+
+            <div class="welcome__feature-grid">
+                <div class="welcome__feature-card">
+                    <div class="welcome__feature-icon" aria-hidden="true">
+                        @include('partials.icon', ['name' => 'camera', 'size' => 28])
+                    </div>
+                    <h3 class="welcome__feature-title">Kamera Jernih & Layar Bilik</h3>
+                    <p class="welcome__feature-desc">Tangkapan tajam beresolusi tinggi dengan pratinjau monitor tanpa jeda agar ekspresi dan posisimu selalu tepat sebelum hitungan mundur usai.</p>
+                </div>
+
+                <div class="welcome__feature-card">
+                    <div class="welcome__feature-icon" aria-hidden="true">
+                        @include('partials.icon', ['name' => 'palette', 'size' => 28])
+                    </div>
+                    <h3 class="welcome__feature-title">Bingkai Khusus Wisuda 2026</h3>
+                    <p class="welcome__feature-desc">Koleksi tata letak visual orisinal bertema kelulusan dan teknologi hasil kreasi mahasiswa Jurusan TIK dengan warna kontras seimbang.</p>
+                </div>
+
+                <div class="welcome__feature-card">
+                    <div class="welcome__feature-icon" aria-hidden="true">
+                        @include('partials.icon', ['name' => 'phone', 'size' => 28])
+                    </div>
+                    <h3 class="welcome__feature-title">Unduh Cepat Lewat Scan QR</h3>
+                    <p class="welcome__feature-desc">Setelah sesi pemotretan selesai, kode QR instan akan muncul di layar. Cukup pindai menggunakan kamera ponsel untuk menyimpan berkas resolusi tinggi.</p>
+                </div>
+
+                <div class="welcome__feature-card">
+                    <div class="welcome__feature-icon" aria-hidden="true">
+                        @include('partials.icon', ['name' => 'printer', 'size' => 28])
+                    </div>
+                    <h3 class="welcome__feature-title">Cetak Fisik di Lokasi Stan</h3>
+                    <p class="welcome__feature-desc">Tersedia opsi cetak strip fisik langsung di stan expo menggunakan kertas foto berkualitas untuk kenang-kenangan yang bisa kamu bawa pulang.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- SECTION 3: ALUR PENGGUNAAN KIOSK (4 LANGKAH MUDAH)       -->
+        <!-- ======================================================== -->
+        <section class="welcome__section welcome__section--guide reveal" id="panduan" aria-labelledby="guide-heading">
+            <div class="welcome__section-header">
+                <span class="welcome__section-kicker">PETUNJUK KUNJUNGAN</span>
+                <h2 class="welcome__section-title" id="guide-heading">4 LANGKAH MUDAH BERFOTO</h2>
+                <p class="welcome__section-sub">Dari registrasi antrean hingga membawa pulang cetak foto, seluruh alur berjalan cepat dan tertata rapi.</p>
+            </div>
+
+            <div class="welcome__step-grid">
+                <div class="welcome__step-card">
+                    <span class="welcome__step-card-num">01</span>
+                    <h3 class="welcome__step-card-title">Ambil Tiket Digital</h3>
+                    <p class="welcome__step-card-desc">Buka website di smartphone atau sentuh tombol Ambil Tiket di kiosk stan untuk mendapatkan nomor antrean digitalmu.</p>
+                </div>
+
+                <div class="welcome__step-card">
+                    <span class="welcome__step-card-num">02</span>
+                    <h3 class="welcome__step-card-title">Pantau Panggilan Stan</h3>
+                    <p class="welcome__step-card-desc">Perhatikan layar monitor stan atau cek status antrean di beranda website ini untuk mengetahui nomor yang sedang dilayani.</p>
+                </div>
+
+                <div class="welcome__step-card">
+                    <span class="welcome__step-card-num">03</span>
+                    <h3 class="welcome__step-card-title">Masuk Bilik & Bergaya</h3>
+                    <p class="welcome__step-card-desc">Saat nomormu dipanggil, masuk ke bilik, pilih desain bingkai favorit pada layar sentuh, lalu bersiap untuk setiap pose.</p>
+                </div>
+
+                <div class="welcome__step-card">
+                    <span class="welcome__step-card-num">04</span>
+                    <h3 class="welcome__step-card-title">Pindai QR & Ambil Foto</h3>
+                    <p class="welcome__step-card-desc">Pindai kode QR hasil foto langsung ke galeri ponselmu dan ambil cetakan fisik foto strip di meja operator stan.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- SECTION 4: INFORMASI STAN & OPERASIONAL                   -->
+        <!-- ======================================================== -->
+        <section class="welcome__section welcome__section--info reveal" id="lokasi" aria-labelledby="location-heading">
+            <div class="welcome__section-header">
+                <span class="welcome__section-kicker">INFORMASI OPERASIONAL</span>
+                <h2 class="welcome__section-title" id="location-heading">LOKASI STAN & JADWAL OPERASIONAL</h2>
+                <p class="welcome__section-sub">Kunjungi bilik foto kami selama rangkaian perayaan Expo Wisuda Kampus berlangsung.</p>
+            </div>
+
+            <div class="welcome__info-grid">
+                <div class="welcome__info-card">
+                    <div class="welcome__info-head">
+                        <div class="welcome__info-icon" aria-hidden="true">
+                            @include('partials.icon', ['name' => 'map-pin', 'size' => 24])
+                        </div>
+                        <div>
+                            <span class="welcome__info-tag">LOKASI STAN</span>
+                            <h3 class="welcome__info-title">Stan Bilik Jurusan TIK</h3>
+                        </div>
+                    </div>
+                    <ul class="welcome__info-list">
+                        <li>
+                            <strong style="color:var(--color-cream)">Gedung:</strong>
+                            <span>Hall Utama Gedung Serbaguna Kampus</span>
+                        </li>
+                        <li>
+                            <strong style="color:var(--color-cream)">Posisi Stan:</strong>
+                            <span>Area Expo Teknologi & Kreatif Jurusan TIK</span>
+                        </li>
+                        <li>
+                            <strong style="color:var(--color-cream)">Fasilitas:</strong>
+                            <span>Bilik Privat, Pencahayaan Softbox Studio, & Monitor Sentuh</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="welcome__info-card">
+                    <div class="welcome__info-head">
+                        <div class="welcome__info-icon" aria-hidden="true">
+                            @include('partials.icon', ['name' => 'clock', 'size' => 24])
+                        </div>
+                        <div>
+                            <span class="welcome__info-tag">WAKTU LAYANAN</span>
+                            <h3 class="welcome__info-title">Jadwal Operasional</h3>
+                        </div>
+                    </div>
+                    <ul class="welcome__info-list">
+                        <li>
+                            <strong style="color:var(--color-cream)">Jam Buka:</strong>
+                            <span>08.30 sampai 16.30 WIB (Sepanjang Acara Wisuda)</span>
+                        </li>
+                        <li>
+                            <strong style="color:var(--color-cream)">Pendampingan:</strong>
+                            <span>Operator stan siap mendampingi sesi pemotretan Anda</span>
+                        </li>
+                        <li>
+                            <strong style="color:var(--color-cream)">Status Hari Ini:</strong>
+                            <span class="badge badge--lamp" style="display:inline-block">Melayani {{ $totalToday }} Sesi Hari Ini</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- FOOTER LANDING PAGE                                       -->
+        <!-- ======================================================== -->
+        <footer class="welcome__footer reveal" role="contentinfo">
+            <div class="welcome__footer-top">
+                <div class="welcome__footer-brand">
+                    <div class="welcome__footer-title">PHOTOBOOTH TIK</div>
+                    <p class="welcome__footer-desc">Aplikasi bilik foto digital resmi Expo Wisuda Jurusan Teknik Informatika & Komputer 2026. Merayakan kelulusan dan inovasi karya mahasiswa.</p>
+                </div>
+                <div class="welcome__footer-links">
+                    <span class="welcome__footer-links-title">Navigasi Cepat</span>
+                    <div class="welcome__footer-nav">
+                        <a href="{{ route('home') }}">Beranda</a>
+                        <a href="{{ route('photobooth.setup') }}">Galeri Template</a>
+                        <a href="#fitur">Fitur Unggulan</a>
+                        <a href="#panduan">Alur Berfoto</a>
+                        <a href="{{ route('test.photo.setup') }}">Uji Coba Kamera</a>
+                        <a href="{{ route('login') }}">Masuk Admin</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="welcome__footer-bottom">
+                <p class="welcome__footer-copy">© 2026 Jurusan Teknik Informatika & Komputer. Hak cipta dilindungi.</p>
+                <div class="welcome__footer-status">
+                    <span class="welcome__footer-dot" aria-hidden="true"></span>
+                    <span>Sistem Kiosk Siap Beroperasi</span>
+                </div>
+            </div>
+        </footer>
     </main>
 </div>
 

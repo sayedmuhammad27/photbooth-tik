@@ -128,7 +128,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 1040px;
+  max-width: 1140px;
   margin: 0 auto;
   padding: clamp(24px, 4vh, 44px) var(--sp-4) clamp(48px, 8vh, 80px);
   text-align: center;
@@ -488,6 +488,400 @@
 .welcome__admin:hover {
   color: var(--white);
   border-color: var(--white);
+}
+
+/* =====================================================================
+   LANDING PAGE USER SECTIONS (TEMPLATES, FITUR, PANDUAN, LOKASI, FOOTER)
+   ===================================================================== */
+.welcome__section {
+  width: 100%;
+  margin-top: clamp(40px, 7vh, 80px);
+  text-align: center;
+}
+.welcome__section-header {
+  max-width: 760px;
+  margin: 0 auto clamp(24px, 4vh, 36px);
+}
+.welcome__section-kicker {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: clamp(.7rem, 1.4vw, .85rem);
+  font-weight: 800;
+  letter-spacing: .2em;
+  color: var(--color-sand);
+  margin-bottom: var(--sp-2);
+}
+.welcome__section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.8vw, 2.6rem);
+  font-weight: 900;
+  letter-spacing: .06em;
+  line-height: 1.15;
+  color: var(--color-cream);
+  margin: 0 0 var(--sp-3);
+  text-transform: uppercase;
+}
+.welcome__section-sub {
+  font-family: var(--font-body);
+  font-size: clamp(.95rem, 1.6vw, 1.125rem);
+  color: var(--color-sand);
+  line-height: 1.6;
+  margin: 0 auto;
+  max-width: 640px;
+}
+
+/* --- Section 1: Template Showcase --- */
+.welcome__template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(16px, 2.5vw, 28px);
+  margin-bottom: var(--sp-6);
+  width: 100%;
+}
+.welcome__template-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(23, 7, 10, 0.94);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  transition: transform var(--dur-fast), border-color var(--dur-fast), box-shadow var(--dur-fast);
+  text-align: left;
+}
+.welcome__template-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-sand);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 20px rgba(121, 13, 22, 0.35);
+}
+.welcome__template-preview {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: #080203;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: var(--sp-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.welcome__template-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.welcome__template-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.welcome__template-strip-sim {
+  width: 84px;
+  height: 190px;
+  background: rgba(229, 211, 175, 0.05);
+  border: 2px solid rgba(229, 211, 175, 0.3);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+.welcome__template-strip-sim--duo {
+  height: 150px;
+}
+.welcome__template-strip-sim--grid {
+  width: 130px;
+  height: 150px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.welcome__template-slot-sim {
+  flex: 1;
+  background: rgba(121, 13, 22, 0.4);
+  border: 1px dashed rgba(229, 211, 175, 0.45);
+  border-radius: 4px;
+}
+.welcome__template-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 10px;
+  background: rgba(121, 13, 22, 0.88);
+  color: var(--color-sand);
+  border: 1px solid rgba(229, 211, 175, 0.4);
+  border-radius: var(--radius-pill);
+}
+.welcome__template-info {
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+}
+.welcome__template-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  color: var(--color-cream);
+  letter-spacing: .05em;
+  margin: 0 0 6px;
+}
+.welcome__template-desc {
+  font-size: var(--fs-xs);
+  color: var(--color-sand);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-4);
+  flex: 1;
+}
+.welcome__template-btn {
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+}
+.welcome__section-action {
+  display: flex;
+  justify-content: center;
+}
+
+/* --- Section 2: Features Grid --- */
+.welcome__feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: clamp(16px, 2vw, 24px);
+  width: 100%;
+}
+.welcome__feature-card {
+  text-align: left;
+  padding: clamp(20px, 3vh, 26px) clamp(16px, 2.5vw, 22px);
+  background: rgba(23, 7, 10, 0.88);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  transition: transform var(--dur-fast), border-color var(--dur-fast);
+}
+.welcome__feature-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(229, 211, 175, 0.45);
+}
+.welcome__feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  background: rgba(121, 13, 22, 0.35);
+  border: 1px solid rgba(229, 211, 175, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--color-sand);
+  margin-bottom: var(--sp-3);
+}
+.welcome__feature-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  color: var(--color-cream);
+  letter-spacing: .05em;
+  margin: 0 0 8px;
+}
+.welcome__feature-desc {
+  font-size: var(--fs-xs);
+  color: var(--color-sand);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* --- Section 3: 4 Step Cards --- */
+.welcome__step-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: clamp(14px, 2vw, 20px);
+  width: 100%;
+}
+.welcome__step-card {
+  text-align: left;
+  padding: var(--sp-5) var(--sp-4);
+  background: rgba(23, 7, 10, 0.88);
+  border: 1px solid var(--border-subtle);
+  border-top: 3px solid var(--color-burgundy);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.welcome__step-card-num {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 900;
+  color: var(--color-sand);
+  margin-bottom: 6px;
+}
+.welcome__step-card-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  color: var(--color-cream);
+  letter-spacing: .05em;
+  margin: 0 0 8px;
+}
+.welcome__step-card-desc {
+  font-size: var(--fs-xs);
+  color: var(--color-sand);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* --- Section 4: Info Grid --- */
+.welcome__info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: clamp(16px, 2.5vw, 24px);
+  width: 100%;
+}
+.welcome__info-card {
+  text-align: left;
+  padding: clamp(22px, 3vh, 30px);
+  background: rgba(23, 7, 10, 0.94);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+.welcome__info-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px dashed var(--border-subtle);
+}
+.welcome__info-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(121, 13, 22, 0.35);
+  border: 1px solid rgba(229, 211, 175, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--color-sand);
+}
+.welcome__info-tag {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: var(--color-sand);
+  margin-bottom: 2px;
+}
+.welcome__info-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  color: var(--color-cream);
+  margin: 0;
+}
+.welcome__info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+  font-size: var(--fs-xs);
+  color: var(--color-sand);
+}
+
+/* --- Section 5: Footer --- */
+.welcome__footer {
+  width: 100%;
+  margin-top: clamp(48px, 9vh, 96px);
+  padding-top: clamp(28px, 4.5vh, 40px);
+  border-top: 1px solid var(--border-subtle);
+  text-align: left;
+}
+.welcome__footer-top {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: clamp(20px, 4vw, 44px);
+  margin-bottom: var(--sp-5);
+}
+.welcome__footer-brand {
+  max-width: 480px;
+}
+.welcome__footer-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 900;
+  color: var(--color-cream);
+  letter-spacing: .08em;
+  margin-bottom: 8px;
+}
+.welcome__footer-desc {
+  font-size: var(--fs-xs);
+  color: var(--color-sand);
+  line-height: 1.6;
+  margin: 0;
+}
+.welcome__footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.welcome__footer-links-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--color-sand);
+  letter-spacing: .08em;
+}
+.welcome__footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+.welcome__footer-nav a {
+  font-size: var(--fs-xs);
+  color: var(--color-sand);
+  text-decoration: none;
+  transition: color var(--dur-fast);
+}
+.welcome__footer-nav a:hover {
+  color: var(--color-cream);
+  text-decoration: underline;
+}
+.welcome__footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: var(--sp-4);
+  border-top: 1px dashed var(--border-subtle);
+  font-size: 11px;
+  color: var(--color-sand);
+}
+.welcome__footer-copy {
+  margin: 0;
+}
+.welcome__footer-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #86efac;
+  font-weight: 600;
+}
+.welcome__footer-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+@media (max-width: 768px) {
+  .welcome__footer-top {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Modal Tiket Antrean */
