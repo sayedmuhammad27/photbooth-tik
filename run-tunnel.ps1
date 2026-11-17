@@ -176,8 +176,8 @@ if ($detectedUrl) {
     Write-Host " * Pengunjung / Operator juga bisa akses langsung lewat Wi-Fi: http://${lanIp}:8000" -ForegroundColor White
     Write-Host " * Admin dapat membuka Kamera Hub di laptop ini untuk siaran." -ForegroundColor White
     Write-Host ""
-    Write-Host "Membuka photobooth di browser..." -ForegroundColor DarkGray
-    Start-Process "http://localhost:8000"
+    Write-Host "Membuka halaman Kamera Hub Admin di browser..." -ForegroundColor DarkGray
+    Start-Process "http://localhost:8000/admin/camera-hub"
     Write-Host ""
     Write-Host "Tekan Ctrl+C untuk menutup tunnel." -ForegroundColor DarkGray
 } else {
@@ -185,7 +185,7 @@ if ($detectedUrl) {
     Write-Host "Namun server Jaringan Lokal & Localhost tetap aktif:" -ForegroundColor Cyan
     Write-Host " -> http://${lanIp}:8000 (Jaringan Lokal / Wi-Fi)" -ForegroundColor Yellow
     Write-Host " -> http://localhost:8000 (Laptop ini)" -ForegroundColor Cyan
-    Start-Process "http://localhost:8000"
+    Start-Process "http://localhost:8000/admin/camera-hub"
 }
 
 # Tunggu cloudflared berjalan

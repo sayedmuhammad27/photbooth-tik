@@ -143,8 +143,8 @@ Write-Host " 2. QR Code pada hasil foto OTOMATIS mengarah ke: http://${lanIp}:80
 Write-Host " 3. Pengunjung dapat scan QR code untuk langsung melihat & mengunduh foto." -ForegroundColor White
 Write-Host " 4. Admin dapat mengoperasikan Kamera Hub di laptop ini untuk siaran." -ForegroundColor White
 Write-Host ""
-Write-Host "Membuka photobooth di browser..." -ForegroundColor DarkGray
-Start-Process "http://localhost:8000"
+Write-Host "Membuka halaman Kamera Hub Admin di browser..." -ForegroundColor DarkGray
+Start-Process "http://localhost:8000/admin/camera-hub"
 Write-Host ""
 Write-Host "Layanan Photobooth sedang berjalan di latar belakang." -ForegroundColor Green
 Write-Host "Tekan Enter untuk menutup jendela ini (layanan tetap aktif di background)..." -ForegroundColor White

@@ -2,6 +2,7 @@
 
 Laravel 12, JavaScript browser, GD/Intervention, dan digiCamControl tetap digunakan.
 Tidak ada migrasi database atau perubahan ukuran hasil cetak (1200 × 1800, JPEG kualitas 92).
+Tampilan, stylesheet, font, dan halaman awal launcher tetap mengikuti versi sebelum optimasi (`b10057f`). Launcher membuka Kamera Hub Admin seperti semula.
 
 ## Pemakaian
 
@@ -27,7 +28,7 @@ Gunakan `scripts/stop-booth-server.ps1` untuk menghentikan hanya Apache photoboo
 - Polling snapshot dihentikan ketika notifikasi foto siap diterima, agar foto tidak diunduh dua kali. Timeout dan retry tetap tersedia.
 - Slot dengan foto dan ukuran sama menggunakan ulang hasil crop. Urutan tumpukan slot dan overlay template tetap dipertahankan.
 - Endpoint relay tidak lagi membaca/menulis session setiap frame. Lock file melindungi pembacaan preview/snapshot ketika request berjalan bersamaan.
-- Font yang dipakai berasal dari folder `public/fonts`; stylesheet Google Fonts yang tidak terpakai dihapus. Polling antrean tidak bertumpuk dan berhenti ketika tab tersembunyi.
+- Polling antrean tidak bertumpuk dan berhenti ketika tab tersembunyi.
 
 ## Verifikasi
 
