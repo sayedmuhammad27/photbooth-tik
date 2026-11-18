@@ -65,20 +65,42 @@ class QueueController extends Controller
     /**
      * Endpoint status publik untuk real-time update di layar awal (Welcome / Kiosk).
      */
-    public function status(): JsonResponse
+    public function status(Request $request): JsonResponse
     {
         $setting = QueueSetting::forToday();
 
         // Cari tiket yang sedang aktif masuk ke sesi foto atau sedang dipanggil
         $activeTicket = QueueTicket::today()
+            ->with('template')
             ->whereIn('status', ['in_session', 'called'])
             ->orderByRaw("CASE WHEN status = 'in_session' THEN 1 WHEN status = 'called' THEN 2 ELSE 3 END")
             ->orderBy('queue_number')
             ->first();
 
-        // Hitung total dan sisa yang menunggu
-        $waitingCount = QueueTicket::today()->waiting()->count();
-        $totalToday = QueueTicket::today()->count();
+        // Hitung total dan sisa yang menunggu dalam 1 query agregat
+        $counts = QueueTicket::today()
+            ->selectRaw("COUNT(*) as total_count, SUM(CASE WHEN status = 'waiting' THEN 1 ELSE 0 END) as waiting_count")
+            ->first();
+        $waitingCount = (int) ($counts?->waiting_count ?? 0);
+        $totalToday = (int) ($counts?->total_count ?? 0);
+
+        $stateHash = md5(implode('|', [
+            (int) $setting->is_open,
+            (int) $setting->current_serving,
+            $waitingCount,
+            $totalToday,
+            $activeTicket?->id ?? '',
+            $activeTicket?->status ?? '',
+            $activeTicket?->template_id ?? '',
+            (int) ($activeTicket?->template?->is_active ?? 0),
+        ]));
+
+        if ($request->filled('hash') && $request->query('hash') === $stateHash) {
+            return response()->json([
+                'unchanged'  => true,
+                'state_hash' => $stateHash,
+            ]);
+        }
 
         // Link langsung mulai foto untuk antrean aktif
         $sessionUrl = null;
@@ -98,6 +120,8 @@ class QueueController extends Controller
         }
 
         return response()->json([
+            'unchanged'       => false,
+            'state_hash'      => $stateHash,
             'is_open'         => (bool) $setting->is_open,
             'current_serving' => (int) $setting->current_serving,
             'waiting_count'   => $waitingCount,

@@ -23,8 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Paksa link CSS/JS menggunakan HTTPS di production atau bila APP_URL memakai HTTPS
-        if (app()->environment('production') || str_contains((string) config('app.url'), 'https')) {
+        // Paksa HTTPS hanya bila APP_URL memakai HTTPS. Lewat Cloudflare Tunnel skema HTTPS sudah
+        // terdeteksi dari header X-Forwarded-Proto (trustProxies), sehingga akses http://localhost
+        // dan Wi-Fi/LAN tetap berjalan walau APP_ENV=production.
+        if (str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
 

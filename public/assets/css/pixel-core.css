@@ -15,6 +15,7 @@
   font-family: 'Stark';
   src: local('Stark'),
        local('Stark Regular'),
+       url('/fonts/Stark.woff2') format('woff2'),
        url('/fonts/Stark.otf') format('opentype');
   font-weight: 100 900;
   font-style: normal;
@@ -26,8 +27,8 @@
   src: local('Lanterosy Sans Serif'),
        local('LanterosySansSerif'),
        local('Lanterosy'),
-       url('/fonts/Lanterosy.ttf') format('truetype'),
-       url('/fonts/LanterosySansSerifFont.ttf') format('truetype');
+       url('/fonts/Lanterosy.woff2') format('woff2'),
+       url('/fonts/Lanterosy.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -38,59 +39,11 @@
   src: local('Lanterosy Sans Serif'),
        local('LanterosySansSerif'),
        local('Lanterosy'),
-       url('/fonts/Lanterosy.ttf') format('truetype'),
-       url('/fonts/LanterosySansSerifFont.ttf') format('truetype');
+       url('/fonts/Lanterosy.woff2') format('woff2'),
+       url('/fonts/Lanterosy.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
-}
-
-@font-face {
-  font-family: 'Bayside';
-  src: local('Bayside Demo'),
-       local('BaysideDemoRegular'),
-       local('Bayside'),
-       url('/fonts/BaysideFont-Regular-Demo.otf') format('opentype');
-  font-weight: 400 600 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Bayside';
-  src: local('Bayside Condensed Demo'),
-       local('BaysideCondensedDemo'),
-       url('/fonts/BaysideFont-Condensed-Demo.otf') format('opentype');
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Bayside';
-  src: local('Bayside Ultra Condensed Demo'),
-       local('BaysideUltraCondensedDemo'),
-       url('/fonts/BaysideFont-UltraCondensed-Demo.otf') format('opentype');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Mecaros';
-  src: local('Mecaros'),
-       url('/fonts/Mecaros.woff2') format('woff2'),
-       url('/fonts/Mecaros.ttf') format('truetype');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Akira Expanded';
-  src: local('Akira Expanded'), local('AkiraExpanded-SuperBold'), local('Akira Expanded Bold'), local('Akira');
-  font-display: swap;
-  font-weight: 700 900;
 }
 
 :root {
@@ -229,7 +182,7 @@ body::before {
       rgba(15, 4, 6, 0.90) 45%,
       rgba(15, 4, 6, 0.97) 100%
     ),
-    url('/images/retro-wavy-bg.png');
+    url('/images/retro-wavy-bg.webp');
   background-position: center top;
   background-size: cover;
   background-repeat: no-repeat;
@@ -372,10 +325,9 @@ p { margin: 0; }
 /* Tombol Ghost / Sekunder: Border Warm Sand (#E5D3AF) dengan teks Cream (#F5EFE1) */
 .btn--ghost,
 .btn--secondary {
-  background: rgba(229, 211, 175, 0.05);
+  background: rgba(229, 211, 175, 0.06);
   border: 1px solid var(--color-sand);
   color: var(--color-cream);
-  backdrop-filter: blur(8px);
 }
 .btn--ghost:hover,
 .btn--secondary:hover {
@@ -541,7 +493,7 @@ p { margin: 0; }
 .toast.is-leaving { animation: toast-out var(--dur) var(--ease-out) both; }
 
 /* ---------- Loader & Skeleton ---------- */
-.loader { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: var(--sp-5); background: rgba(0, 0, 0, 0.92); backdrop-filter: blur(8px); animation: fade-in var(--dur) var(--ease-out) both; }
+.loader { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: var(--sp-5); background: rgba(0, 0, 0, 0.94); animation: fade-in var(--dur) var(--ease-out) both; }
 .loader__box { width: min(100%, 420px); text-align: center; }
 .loader__title { font-size: var(--fs-d-lg); color: var(--white); margin-bottom: var(--sp-3); }
 .loader__text { color: var(--white-muted); margin-bottom: var(--sp-5); min-height: 3em; }
@@ -587,8 +539,7 @@ body.is-leaving { opacity: 0; transition: opacity 160ms ease-in; }
   font-weight: 800;
   letter-spacing: .06em;
   color: var(--color-sand);
-  background: rgba(23, 7, 10, 0.90);
-  backdrop-filter: blur(12px);
+  background: rgba(23, 7, 10, 0.94);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   cursor: pointer;

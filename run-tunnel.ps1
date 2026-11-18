@@ -47,9 +47,13 @@ foreach ($c in $xamppCandidates) {
     }
 }
 
-# 1. Jalankan MySQL (mysqld.exe) jika belum aktif
+# 1. Jalankan MySQL (mysqld.exe) jika belum aktif. Dilewati bila aplikasi memakai SQLite.
+$envFile = Join-Path $PSScriptRoot ".env"
+$usesSqlite = (Test-Path $envFile) -and (Select-String -Path $envFile -Pattern '^\s*DB_CONNECTION\s*=\s*sqlite' -Quiet)
 $mysqlPort = Get-NetTCPConnection -LocalPort 3306 -State Listen -ErrorAction SilentlyContinue
-if (-not $mysqlPort) {
+if ($usesSqlite) {
+    Write-Host "[1/5] Database SQLite dipakai, MySQL tidak perlu dinyalakan." -ForegroundColor Green
+} elseif (-not $mysqlPort) {
     Write-Host "[1/5] Menyalakan MySQL (mysqld.exe)..." -ForegroundColor Yellow
     $mysqlBat = if ($xamppDir) { Join-Path $xamppDir "mysql_start.bat" } else { $null }
     $mysqlExe = if ($xamppDir) { Join-Path $xamppDir "mysql\bin\mysqld.exe" } else { $null }
@@ -122,7 +126,23 @@ try {
 
 # 5. Hubungkan ke Cloudflare Tunnel
 Write-Host "[5/5] Menghubungkan ke Cloudflare Tunnel..." -ForegroundColor Yellow
-$cfExe = Join-Path $PSScriptRoot "cloudflared.exe"
+# Cari cloudflared: folder project dulu, lalu PATH, lalu lokasi instalasi standar.
+$cfExe = $null
+$cfCandidates = @(
+    (Join-Path $PSScriptRoot "cloudflared.exe"),
+    ((Get-Command cloudflared -ErrorAction SilentlyContinue | Select-Object -First 1).Source),
+    "C:\Program Files (x86)\cloudflared\cloudflared.exe",
+    "C:\Program Files\cloudflared\cloudflared.exe"
+)
+foreach ($c in $cfCandidates) {
+    if ($c -and (Test-Path -LiteralPath $c)) { $cfExe = $c; break }
+}
+if (-not $cfExe) {
+    Write-Host "   -> cloudflared tidak ditemukan. Pasang dengan: winget install Cloudflare.cloudflared" -ForegroundColor Red
+    Write-Host "   -> Server lokal tetap aktif: http://${lanIp}:8000 dan http://localhost:8000" -ForegroundColor Cyan
+    exit 1
+}
+Write-Host "   -> Memakai $cfExe" -ForegroundColor DarkGray
 
 # Hentikan proses cloudflared lama jika ada agar tidak terjadi konflik port / tunnel
 $oldCf = Get-Process -Name "cloudflared" -ErrorAction SilentlyContinue

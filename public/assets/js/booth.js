@@ -1232,7 +1232,7 @@
           try { sessionStorage.setItem('pb_fullscreen_wanted', '1'); } catch (_) {}
         }
         document.body.classList.add('is-leaving');
-        setTimeout(function () { location.href = r.data.redirect; }, PB.reduceMotion() ? 0 : 500);
+        location.href = r.data.redirect;
         return;
       }
       throw r;

@@ -131,6 +131,16 @@ class TestPhotoController extends Controller
                 ],
             ]);
 
+            // Bersihkan file test lama (> 2 jam) secara berkala agar disk tidak menumpuk
+            if (random_int(1, 10) === 1) {
+                $cutoff = time() - 7200;
+                foreach ($disk->files('results') as $existingFile) {
+                    if (str_starts_with(basename($existingFile), 'test_') && $disk->lastModified($existingFile) < $cutoff) {
+                        $disk->delete($existingFile);
+                    }
+                }
+            }
+
             return response()->json([
                 'redirect' => route('test.photo.result', $token),
             ]);

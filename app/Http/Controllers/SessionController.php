@@ -367,8 +367,11 @@ class SessionController extends Controller
             }
         }
 
-        // 2. Cek cache
+        // 2. Cek cache (termasuk cache negatif 'none' agar tidak berulang spawn PowerShell saat offline)
         $cached = cache('server_lan_ip');
+        if ($cached === 'none') {
+            return null;
+        }
         if ($cached && filter_var($cached, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $this->isLanIp($cached)) {
             return $cached;
         }
@@ -389,7 +392,14 @@ class SessionController extends Controller
         } catch (\Throwable $t) {
         }
 
-        // 4. Deteksi di Windows lewat PowerShell
+        // 4. Cek cepat lewat hostname PHP (tanpa spawn proses shell)
+        $hostIp = @gethostbyname((string) @gethostname());
+        if ($hostIp && filter_var($hostIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $this->isLanIp($hostIp)) {
+            cache(['server_lan_ip' => $hostIp], 300);
+            return $hostIp;
+        }
+
+        // 5. Deteksi di Windows lewat PowerShell
         if (DIRECTORY_SEPARATOR === '\\') {
             try {
                 $output = @shell_exec('powershell -NoProfile -Command "(Get-NetRoute -DestinationPrefix \'0.0.0.0/0\' -ErrorAction SilentlyContinue | Sort-Object RouteMetric | Select-Object -First 1 | Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object IPAddress -notmatch \'169\.254\').IPAddress"');
@@ -406,6 +416,8 @@ class SessionController extends Controller
             } catch (\Throwable $t) {
             }
         }
+
+        cache(['server_lan_ip' => 'none'], 60);
 
         return null;
     }

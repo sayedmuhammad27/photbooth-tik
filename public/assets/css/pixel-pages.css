@@ -140,8 +140,7 @@
   align-items: center;
   gap: var(--sp-2);
   padding: 6px 18px;
-  background: rgba(21, 23, 19, 0.88);
-  backdrop-filter: blur(14px);
+  background: rgba(21, 23, 19, 0.94);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
@@ -245,8 +244,7 @@
   width: min(94vw, 760px);
   margin: var(--sp-4) auto var(--sp-5);
   padding: var(--sp-5) var(--sp-5);
-  background: rgba(21, 23, 19, 0.95);
-  backdrop-filter: blur(14px);
+  background: rgba(21, 23, 19, 0.96);
   border: 1px solid var(--color-crimson);
   border-radius: var(--radius-lg);
   box-shadow: 0 12px 36px rgba(214, 48, 58, 0.35);
@@ -314,8 +312,7 @@
   justify-content: space-between;
   text-align: left;
   padding: clamp(24px, 4vh, 32px) clamp(20px, 3vw, 28px);
-  background: rgba(23, 7, 10, 0.94);
-  backdrop-filter: blur(14px);
+  background: rgba(23, 7, 10, 0.95);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
@@ -436,8 +433,7 @@
   justify-content: center;
   gap: clamp(8px, 2vw, 18px);
   padding: 12px 24px;
-  background: rgba(23, 7, 10, 0.88);
-  backdrop-filter: blur(8px);
+  background: rgba(23, 7, 10, 0.94);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   margin-top: var(--sp-2);
@@ -893,8 +889,7 @@
   color: var(--white);
 }
 .queue-modal::backdrop {
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.92);
 }
 .ticket-card {
   background: var(--bg-surface);
@@ -933,8 +928,7 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(10, 10, 10, 0.9);
-  backdrop-filter: blur(14px);
+  background: rgba(10, 10, 10, 0.95);
   border-bottom: 1px solid var(--border-subtle);
   padding: var(--sp-3) var(--sp-5) var(--sp-2);
 }
@@ -1084,7 +1078,7 @@
   overflow: auto;
 }
 .tmodal[open] { animation: pop-in var(--dur-slow) var(--ease-out) both; }
-.tmodal::backdrop { background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(8px); }
+.tmodal::backdrop { background: rgba(0, 0, 0, 0.92); }
 .tmodal__grid {
   display: grid;
   grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
@@ -1172,8 +1166,7 @@
   gap: var(--sp-2);
   padding: var(--sp-5);
   text-align: center;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.88);
 }
 .vf__wait strong {
   font-family: var(--font-display);
@@ -1222,8 +1215,7 @@
   align-items: center;
   gap: var(--sp-3);
   padding: 12px 22px;
-  background: rgba(14, 14, 14, 0.95);
-  backdrop-filter: blur(12px);
+  background: rgba(14, 14, 14, 0.96);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-elevated);
@@ -1371,8 +1363,7 @@
    ADMIN
    ===================================================================== */
 .adm-bar {
-  background: rgba(10, 10, 10, 0.92);
-  backdrop-filter: blur(14px);
+  background: rgba(10, 10, 10, 0.96);
   border-bottom: 1px solid var(--border-subtle);
   position: sticky;
   top: 0;
@@ -1541,8 +1532,7 @@
 .auth__card {
   width: min(100%, 460px);
   margin: 0 auto;
-  background: rgba(23, 7, 10, 0.94);
-  backdrop-filter: blur(16px);
+  background: rgba(23, 7, 10, 0.96);
   border: 1px solid var(--border-subtle);
   border-top: 4px solid var(--color-burgundy);
   border-radius: var(--radius-lg);

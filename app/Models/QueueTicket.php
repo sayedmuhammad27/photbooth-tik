@@ -43,10 +43,13 @@ class QueueTicket extends Model
 
     /* ---------- Scopes ---------- */
 
-    /** Antrian hari ini saja. */
+    /** Antrian hari ini saja (rentang timestamp agar ramah index). */
     public function scopeToday($query)
     {
-        return $query->whereDate('created_at', today());
+        $start = today()->startOfDay();
+
+        return $query->where('created_at', '>=', $start)
+            ->where('created_at', '<', $start->copy()->addDay());
     }
 
     /** Hanya yang masih menunggu. */

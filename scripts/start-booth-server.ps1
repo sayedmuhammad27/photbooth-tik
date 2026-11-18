@@ -24,9 +24,23 @@ $apachePath = (Join-Path $XamppDir 'apache').Replace('\', '/')
 $phpPath = (Join-Path $XamppDir 'php').Replace('\', '/')
 $publicPath = (Join-Path $projectDir 'public').Replace('\', '/')
 $runtimePath = $runtimeDir.Replace('\', '/')
+$xamppPhpIni = Join-Path $XamppDir 'php\php.ini'
+$runtimePhpIni = Join-Path $runtimeDir 'php.ini'
+$phpIniDir = $phpPath
+if (Test-Path -LiteralPath $xamppPhpIni) {
+    $iniText = [IO.File]::ReadAllText($xamppPhpIni)
+    $iniText = $iniText -replace '(?m)^;\s*extension=pdo_sqlite\b', 'extension=pdo_sqlite'
+    $iniText = $iniText -replace '(?m)^;\s*extension=sqlite3\b', 'extension=sqlite3'
+    [IO.File]::WriteAllText($runtimePhpIni, $iniText, [Text.UTF8Encoding]::new($false))
+    $phpIniDir = $runtimePath
+}
 $loadFiles = @('libcrypto-3-x64.dll', 'libssl-3-x64.dll', 'nghttp2.dll', 'libssh2.dll', 'brotlicommon.dll', 'brotlidec.dll', 'php8ts.dll', 'libpq.dll', 'libsqlite3.dll') | ForEach-Object {
     if (Test-Path -LiteralPath (Join-Path $XamppDir "php\$_")) { 'LoadFile "' + $phpPath + '/' + $_ + '"' }
 }
+# Gzip text assets (CSS/JS/HTML/JSON) when the XAMPP build ships mod_deflate; JPEG frames are left untouched.
+$compressionModules = @('filter', 'deflate') | Where-Object {
+    Test-Path -LiteralPath (Join-Path $XamppDir "apache\modules\mod_$_.so")
+} | ForEach-Object { "LoadModule ${_}_module modules/mod_$_.so" }
 $config = @"
 ServerRoot "$apachePath"
 Listen ${BindAddress}:$Port
@@ -42,9 +56,10 @@ LoadModule dir_module modules/mod_dir.so
 LoadModule mime_module modules/mod_mime.so
 LoadModule rewrite_module modules/mod_rewrite.so
 LoadModule headers_module modules/mod_headers.so
+$($compressionModules -join "`n")
 $($loadFiles -join "`n")
 LoadModule php_module "$phpPath/php8apache2_4.dll"
-PHPIniDir "$phpPath"
+PHPIniDir "$phpIniDir"
 TypesConfig conf/mime.types
 DirectoryIndex index.php
 DocumentRoot "$publicPath"
@@ -67,9 +82,16 @@ AcceptFilter http none
 <FilesMatch "\.php$">
     SetHandler application/x-httpd-php
 </FilesMatch>
-<FilesMatch "\.(css|js|woff2?|ttf|otf|png|jpe?g|svg|ico)$">
+<FilesMatch "\.(css|js|woff2?|ttf|otf|png|jpe?g|webp|svg|ico)$">
     Header set Cache-Control "public, max-age=86400"
 </FilesMatch>
+<IfModule mod_mime.c>
+    AddType image/webp .webp
+    AddType font/woff2 .woff2
+</IfModule>
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/plain application/javascript text/javascript application/json image/svg+xml application/manifest+json font/otf font/ttf
+</IfModule>
 "@
 [IO.File]::WriteAllText($configFile, $config, [Text.UTF8Encoding]::new($false))
 & $httpd -t -f $configFile

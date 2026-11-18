@@ -60,11 +60,11 @@
     els.forEach(function (el) { io.observe(el); });
   };
 
-  /* ---------- Transisi halaman (fade singkat, tidak menghalangi navigasi) ---------- */
+  /* ---------- Status navigasi (pertahankan layar penuh tanpa menahan klik link) ---------- */
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     var a = e.target.closest ? e.target.closest('a[href]') : null;
-    if (!a || PB.reduceMotion()) return;
+    if (!a) return;
     if ((a.target && a.target !== '_self') || a.hasAttribute('download') || a.hasAttribute('data-no-transition')) return;
     var url;
     try { url = new URL(a.href, location.href); } catch (_) { return; }
@@ -76,9 +76,7 @@
       try { sessionStorage.setItem('pb_fullscreen_wanted', '1'); } catch (_) {}
     }
 
-    e.preventDefault();
     document.body.classList.add('is-leaving');
-    setTimeout(function () { location.href = a.href; }, 170);
   });
   window.addEventListener('pageshow', function () { document.body.classList.remove('is-leaving'); });
 

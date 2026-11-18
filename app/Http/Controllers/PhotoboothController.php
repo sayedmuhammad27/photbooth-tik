@@ -21,10 +21,17 @@ class PhotoboothController extends Controller
             ->orderBy('queue_number')
             ->first();
 
-        $waitingCount = QueueTicket::today()->waiting()->count();
-        $totalToday = QueueTicket::today()->count();
-        $previewTemplates = Template::active()->ordered()->take(3)->get();
-        $totalTemplates = Template::active()->count();
+        $queueCounts = QueueTicket::today()
+            ->selectRaw("COUNT(*) as total_count, SUM(CASE WHEN status = 'waiting' THEN 1 ELSE 0 END) as waiting_count")
+            ->first();
+        $waitingCount = (int) ($queueCounts?->waiting_count ?? 0);
+        $totalToday = (int) ($queueCounts?->total_count ?? 0);
+
+        $activeTemplates = Template::active()
+            ->ordered()
+            ->get(['id', 'name', 'description', 'frame_asset', 'slot_count']);
+        $previewTemplates = $activeTemplates->take(3);
+        $totalTemplates = $activeTemplates->count();
 
         return view('welcome', compact('setting', 'activeTicket', 'waitingCount', 'totalToday', 'previewTemplates', 'totalTemplates'));
     }

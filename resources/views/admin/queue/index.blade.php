@@ -267,7 +267,7 @@
     var lastTotalCount = parseInt(statTotal ? statTotal.textContent : '0', 10) || 0;
     var isPolling = false;
 
-    // Real-time Polling setiap 1500ms (1.5 detik)
+    // Real-time Polling setiap 3000ms (3 detik)
     function fetchLiveData(forceUpdate) {
         if (isPolling || (document.hidden && !forceUpdate)) return;
         isPolling = true;
@@ -351,8 +351,8 @@
             }).finally(function() { clearTimeout(timeout); });
     }
 
-    // Jalankan polling setiap 1500ms (1.5 detik)
-    setInterval(fetchLiveData, 1500);
+    // Jalankan polling setiap 3000ms (3 detik)
+    setInterval(fetchLiveData, 3000);
     document.addEventListener('visibilitychange', function() {
         if (!document.hidden) fetchLiveData();
     });
@@ -383,8 +383,10 @@
             formData.append(e.submitter.name, e.submitter.value);
         }
 
-        fetch(form.action, {
-            method: form.method || 'POST',
+        // Pakai getAttribute: tombol bernama "action" menimpa properti form.action
+        // (jadi RadioNodeList) sehingga URL request rusak.
+        fetch(form.getAttribute('action'), {
+            method: form.getAttribute('method') || 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
@@ -392,12 +394,20 @@
             body: formData
         })
         .then(function(res) {
-            return res.json().catch(function() { return {}; });
+            return res.json().catch(function() { return {}; }).then(function(data) {
+                data.__ok = res.ok && data.success !== false;
+                return data;
+            });
         })
         .then(function(data) {
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.style.opacity = '1';
+            }
+            if (!data.__ok) {
+                showToast('GAGAL', data.message || 'Aksi tidak dapat diproses. Coba lagi.');
+                fetchLiveData(true);
+                return;
             }
             if (isManualForm) {
                 var inputName = document.getElementById('manual-name');

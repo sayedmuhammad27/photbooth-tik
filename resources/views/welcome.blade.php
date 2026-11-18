@@ -790,14 +790,18 @@
     var queuePolling = false;
     var queueRequest = null;
     var lastQueueTicket = null;
+    var lastQueueHash = null;
     function pollQueueStatus() {
         if (document.hidden || queuePolling) return;
         queuePolling = true;
         queueRequest = new AbortController();
         var timeout = setTimeout(function() { queueRequest.abort(); }, 10000);
-        fetch("{{ route('queue.status') }}", { signal: queueRequest.signal })
+        var statusUrl = "{{ route('queue.status') }}" + (lastQueueHash ? ('?hash=' + encodeURIComponent(lastQueueHash)) : '');
+        fetch(statusUrl, { signal: queueRequest.signal })
             .then(function(res) { return res.json(); })
             .then(function(data) {
+                if (data.unchanged) return;
+                if (data.state_hash) lastQueueHash = data.state_hash;
                 if (kioskServing) kioskServing.textContent = '#' + (data.current_serving || '-');
                 if (kioskWaiting) kioskWaiting.textContent = data.waiting_count;
 

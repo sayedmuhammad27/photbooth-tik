@@ -21,18 +21,24 @@ class QueueController extends Controller
     {
         $setting = QueueSetting::forToday();
 
-        // Statistik antrean hari ini
+        // Statistik antrean hari ini dalam 1 query GROUP BY
+        $counts = QueueTicket::today()
+            ->select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
         $stats = [
-            'total'      => QueueTicket::today()->count(),
-            'waiting'    => QueueTicket::today()->waiting()->count(),
-            'in_session' => QueueTicket::today()->inSession()->count(),
-            'called'     => QueueTicket::today()->called()->count(),
-            'completed'  => QueueTicket::today()->where('status', 'completed')->count(),
-            'skipped'    => QueueTicket::today()->where('status', 'skipped')->count(),
+            'total'      => (int) $counts->sum(),
+            'waiting'    => (int) ($counts['waiting'] ?? 0),
+            'in_session' => (int) ($counts['in_session'] ?? 0),
+            'called'     => (int) ($counts['called'] ?? 0),
+            'completed'  => (int) ($counts['completed'] ?? 0),
+            'skipped'    => (int) ($counts['skipped'] ?? 0),
         ];
 
         // Tiket yang sedang dalam sesi foto atau sedang dipanggil
         $currentTicket = QueueTicket::today()
+            ->with('template')
             ->whereIn('status', ['in_session', 'called'])
             ->orderByRaw("CASE WHEN status = 'in_session' THEN 1 WHEN status = 'called' THEN 2 ELSE 3 END")
             ->orderBy('queue_number')
@@ -342,6 +348,7 @@ class QueueController extends Controller
         ];
 
         $currentTicket = QueueTicket::today()
+            ->with('template')
             ->whereIn('status', ['in_session', 'called'])
             ->orderByRaw("CASE WHEN status = 'in_session' THEN 1 WHEN status = 'called' THEN 2 ELSE 3 END")
             ->orderBy('queue_number')

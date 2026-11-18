@@ -152,7 +152,7 @@
 </div>
 
 <!-- Modal Pratinjau Test Foto -->
-<div id="modal-test-preview" class="modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(6,21,24,0.85);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:20px">
+<div id="modal-test-preview" class="modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(6,21,24,0.92);z-index:9999;align-items:center;justify-content:center;padding:20px">
     <div class="px-box px-box--pad" style="max-width:680px;width:100%;max-height:90vh;display:flex;flex-direction:column;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius-lg)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--border-subtle);padding-bottom:8px">
             <h3 style="font-size:var(--fs-d-xs);color:var(--concrete);margin:0">@include('partials.icon', ['name' => 'camera']) HASIL TEST JEPRET KAMERA</h3>
@@ -566,7 +566,7 @@
         }).catch(function() {});
 
         if (webrtcTimer) clearInterval(webrtcTimer);
-        webrtcTimer = setInterval(checkPendingViewers, 1000);
+        webrtcTimer = setInterval(checkPendingViewers, 2000);
     }
 
     function stopWebRTCHost() {
@@ -1076,15 +1076,6 @@
                 'X-Capture-Id': captureId || ''
             },
             body: JSON.stringify({ snapshot: blobOrDataUrl, capture_id: captureId })
-        });
-    }
-
-    function blobToDataUrl(blob) {
-        return new Promise(function(resolve, reject) {
-            var reader = new FileReader();
-            reader.onloadend = function() { resolve(reader.result); };
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
         });
     }
 
