@@ -32,7 +32,9 @@ class TemplateSeeder extends Seeder
             $frame = database_path('seeders/data/frames/' . $row['frame_file']);
             $stored = null;
             if (is_file($frame)) {
-                $stored = 'templates/seed-' . $row['slug'] . '.png';
+                $stored = str_starts_with($row['slug'], 'snaptik-')
+                    ? 'templates/' . $row['slug'] . '.png'
+                    : 'templates/seed-' . $row['slug'] . '.png';
                 $disk->put($stored, (string) file_get_contents($frame));
             }
 

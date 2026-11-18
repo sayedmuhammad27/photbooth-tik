@@ -1,5 +1,475 @@
 [
   {
+    "slug": "snaptik-stamp-burgundy",
+    "name": "SNAPTIK Stamp Burgundy",
+    "description": "Dua strip prangko berlatar marun elegan dengan 3 slot foto ganda.",
+    "category": "strip",
+    "tags": [
+      "strip",
+      "3 foto",
+      "snaptik",
+      "prangko",
+      "wisuda",
+      "maroon"
+    ],
+    "slot_count": 3,
+    "bg_color": "#5E1218",
+    "sort_order": 1,
+    "frame_file": "snaptik-stamp-burgundy.png",
+    "layout_config": [
+      {
+        "x": 106,
+        "y": 85,
+        "width": 379,
+        "height": 412,
+        "photo": 0
+      },
+      {
+        "x": 713,
+        "y": 85,
+        "width": 380,
+        "height": 412,
+        "photo": 0
+      },
+      {
+        "x": 106,
+        "y": 631,
+        "width": 379,
+        "height": 411,
+        "photo": 1
+      },
+      {
+        "x": 713,
+        "y": 631,
+        "width": 380,
+        "height": 411,
+        "photo": 1
+      },
+      {
+        "x": 106,
+        "y": 1178,
+        "width": 379,
+        "height": 411,
+        "photo": 2
+      },
+      {
+        "x": 713,
+        "y": 1178,
+        "width": 380,
+        "height": 411,
+        "photo": 2
+      }
+    ]
+  },
+  {
+    "slug": "snaptik-retro-ticket",
+    "name": "SNAPTIK Retro Ticket",
+    "description": "Dua strip tiket retro bertema karcis expo dengan 2 slot foto luas.",
+    "category": "strip",
+    "tags": [
+      "strip",
+      "2 foto",
+      "snaptik",
+      "ticket",
+      "vintage",
+      "retro"
+    ],
+    "slot_count": 2,
+    "bg_color": "#9E744A",
+    "sort_order": 2,
+    "frame_file": "snaptik-retro-ticket.png",
+    "layout_config": [
+      {
+        "x": 25,
+        "y": 95,
+        "width": 513,
+        "height": 625,
+        "photo": 0
+      },
+      {
+        "x": 663,
+        "y": 95,
+        "width": 514,
+        "height": 625,
+        "photo": 0
+      },
+      {
+        "x": 25,
+        "y": 776,
+        "width": 513,
+        "height": 626,
+        "photo": 1
+      },
+      {
+        "x": 663,
+        "y": 776,
+        "width": 514,
+        "height": 626,
+        "photo": 1
+      }
+    ]
+  },
+  {
+    "slug": "snaptik-f1-racing",
+    "name": "SNAPTIK F1 Racing Edition",
+    "description": "Strip bertema balap Formula 1 kontras merah hitam berisi 3 pose foto.",
+    "category": "strip",
+    "tags": [
+      "strip",
+      "3 foto",
+      "snaptik",
+      "f1",
+      "racing",
+      "scuderia"
+    ],
+    "slot_count": 3,
+    "bg_color": "#0C0C0C",
+    "sort_order": 3,
+    "frame_file": "snaptik-f1-racing.png",
+    "layout_config": [
+      {
+        "x": 36,
+        "y": 225,
+        "width": 541,
+        "height": 385,
+        "photo": 0
+      },
+      {
+        "x": 625,
+        "y": 279,
+        "width": 541,
+        "height": 385,
+        "photo": 0
+      },
+      {
+        "x": 36,
+        "y": 679,
+        "width": 541,
+        "height": 385,
+        "photo": 1
+      },
+      {
+        "x": 625,
+        "y": 733,
+        "width": 542,
+        "height": 385,
+        "photo": 1
+      },
+      {
+        "x": 36,
+        "y": 1134,
+        "width": 541,
+        "height": 384,
+        "photo": 2
+      },
+      {
+        "x": 625,
+        "y": 1188,
+        "width": 541,
+        "height": 385,
+        "photo": 2
+      }
+    ]
+  },
+  {
+    "slug": "snaptik-little-moments",
+    "name": "SNAPTIK Little Moments",
+    "description": "Desain playful retro checkered dengan bingkai awan estetik 3 pose foto.",
+    "category": "strip",
+    "tags": [
+      "strip",
+      "3 foto",
+      "snaptik",
+      "checkered",
+      "cute",
+      "retro"
+    ],
+    "slot_count": 3,
+    "bg_color": "#9C182F",
+    "sort_order": 4,
+    "frame_file": "snaptik-little-moments.png",
+    "layout_config": [
+      {
+        "x": 0,
+        "y": 13,
+        "width": 571,
+        "height": 430,
+        "photo": 0
+      },
+      {
+        "x": 630,
+        "y": 13,
+        "width": 570,
+        "height": 430,
+        "photo": 0
+      },
+      {
+        "x": 0,
+        "y": 478,
+        "width": 571,
+        "height": 430,
+        "photo": 1
+      },
+      {
+        "x": 630,
+        "y": 478,
+        "width": 570,
+        "height": 430,
+        "photo": 1
+      },
+      {
+        "x": 0,
+        "y": 937,
+        "width": 571,
+        "height": 429,
+        "photo": 2
+      },
+      {
+        "x": 630,
+        "y": 937,
+        "width": 570,
+        "height": 429,
+        "photo": 2
+      }
+    ]
+  },
+  {
+    "slug": "snaptik-denim-polka",
+    "name": "SNAPTIK Denim & Polka",
+    "description": "Kombinasi tekstur denim kasual dan polkadot merah ceria dengan 2 pose foto.",
+    "category": "strip",
+    "tags": [
+      "strip",
+      "2 foto",
+      "snaptik",
+      "denim",
+      "polka",
+      "navy"
+    ],
+    "slot_count": 2,
+    "bg_color": "#8B141D",
+    "sort_order": 5,
+    "frame_file": "snaptik-denim-polka.png",
+    "layout_config": [
+      {
+        "x": 41,
+        "y": 27,
+        "width": 531,
+        "height": 729,
+        "photo": 0
+      },
+      {
+        "x": 632,
+        "y": 180,
+        "width": 531,
+        "height": 729,
+        "photo": 0
+      },
+      {
+        "x": 41,
+        "y": 794,
+        "width": 531,
+        "height": 729,
+        "photo": 1
+      },
+      {
+        "x": 632,
+        "y": 947,
+        "width": 531,
+        "height": 730,
+        "photo": 1
+      }
+    ]
+  },
+  {
+    "slug": "snaptik-digicam-y2k",
+    "name": "SNAPTIK Digicam Y2K",
+    "description": "Mockup kamera digital saku klasik Y2K dan denim vintage berisi 3 pose foto.",
+    "category": "strip",
+    "tags": [
+      "strip",
+      "3 foto",
+      "snaptik",
+      "digicam",
+      "y2k",
+      "vintage"
+    ],
+    "slot_count": 3,
+    "bg_color": "#5D0E16",
+    "sort_order": 6,
+    "frame_file": "snaptik-digicam-y2k.png",
+    "layout_config": [
+      {
+        "x": 76,
+        "y": 119,
+        "width": 432,
+        "height": 300,
+        "photo": 0
+      },
+      {
+        "x": 657,
+        "y": 51,
+        "width": 511,
+        "height": 379,
+        "photo": 0
+      },
+      {
+        "x": 20,
+        "y": 496,
+        "width": 536,
+        "height": 404,
+        "photo": 1
+      },
+      {
+        "x": 643,
+        "y": 495,
+        "width": 539,
+        "height": 406,
+        "photo": 1
+      },
+      {
+        "x": 32,
+        "y": 965,
+        "width": 511,
+        "height": 379,
+        "photo": 2
+      },
+      {
+        "x": 690,
+        "y": 1013,
+        "width": 433,
+        "height": 301,
+        "photo": 2
+      }
+    ]
+  },
+  {
+    "slug": "snaptik-vintage-lace-stars",
+    "name": "SNAPTIK Vintage Stars & Lace",
+    "description": "Bingkai renda bunga dan bintang merah dengan kamera vintage 3 pose foto.",
+    "category": "strip",
+    "tags": [
+      "strip",
+      "3 foto",
+      "snaptik",
+      "vintage",
+      "stars",
+      "lace",
+      "polaroid"
+    ],
+    "slot_count": 3,
+    "bg_color": "#FAF0ED",
+    "sort_order": 7,
+    "frame_file": "snaptik-vintage-lace-stars.png",
+    "layout_config": [
+      {
+        "x": 60,
+        "y": 208,
+        "width": 487,
+        "height": 372,
+        "photo": 0
+      },
+      {
+        "x": 664,
+        "y": 208,
+        "width": 487,
+        "height": 372,
+        "photo": 0
+      },
+      {
+        "x": 60,
+        "y": 658,
+        "width": 487,
+        "height": 372,
+        "photo": 1
+      },
+      {
+        "x": 664,
+        "y": 658,
+        "width": 486,
+        "height": 372,
+        "photo": 1
+      },
+      {
+        "x": 60,
+        "y": 1106,
+        "width": 487,
+        "height": 370,
+        "photo": 2
+      },
+      {
+        "x": 664,
+        "y": 1106,
+        "width": 487,
+        "height": 370,
+        "photo": 2
+      }
+    ]
+  },
+  {
+    "slug": "snaptik-royal-baroque",
+    "name": "SNAPTIK Royal Baroque Frame",
+    "description": "Bingkai lukisan emas barok dan kertas usang berlatar beludru marun 3 pose foto.",
+    "category": "strip",
+    "tags": [
+      "strip",
+      "3 foto",
+      "snaptik",
+      "gold",
+      "baroque",
+      "luxury",
+      "antique"
+    ],
+    "slot_count": 3,
+    "bg_color": "#5A1218",
+    "sort_order": 8,
+    "frame_file": "snaptik-royal-baroque.png",
+    "layout_config": [
+      {
+        "x": 88,
+        "y": 124,
+        "width": 416,
+        "height": 267,
+        "photo": 0
+      },
+      {
+        "x": 634,
+        "y": 222,
+        "width": 557,
+        "height": 396,
+        "photo": 0
+      },
+      {
+        "x": 14,
+        "y": 486,
+        "width": 558,
+        "height": 396,
+        "photo": 1
+      },
+      {
+        "x": 630,
+        "y": 644,
+        "width": 557,
+        "height": 396,
+        "photo": 1
+      },
+      {
+        "x": 11,
+        "y": 902,
+        "width": 557,
+        "height": 395,
+        "photo": 2
+      },
+      {
+        "x": 704,
+        "y": 1147,
+        "width": 415,
+        "height": 268,
+        "photo": 2
+      }
+    ]
+  },
+  {
     "slug": "night-city-strip",
     "name": "Night City Strip",
     "description": "Dua strip identik berisi 4 foto. Gunting di tengah dan bagikan ke teman.",
@@ -12,7 +482,7 @@
     ],
     "slot_count": 4,
     "bg_color": "#131947",
-    "sort_order": 1,
+    "sort_order": 11,
     "frame_file": "night-city-strip.png",
     "layout_config": [
       {
@@ -86,7 +556,7 @@
     ],
     "slot_count": 4,
     "bg_color": "#131947",
-    "sort_order": 2,
+    "sort_order": 12,
     "frame_file": "night-city-grid.png",
     "layout_config": [
       {
@@ -132,7 +602,7 @@
     ],
     "slot_count": 3,
     "bg_color": "#131947",
-    "sort_order": 3,
+    "sort_order": 13,
     "frame_file": "moonlight-trio.png",
     "layout_config": [
       {
@@ -192,7 +662,7 @@
     ],
     "slot_count": 2,
     "bg_color": "#131947",
-    "sort_order": 4,
+    "sort_order": 14,
     "frame_file": "duo-skyline.png",
     "layout_config": [
       {
@@ -224,7 +694,7 @@
     ],
     "slot_count": 1,
     "bg_color": "#131947",
-    "sort_order": 5,
+    "sort_order": 15,
     "frame_file": "poster-tunggal.png",
     "layout_config": [
       {
