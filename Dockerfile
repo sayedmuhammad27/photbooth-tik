@@ -1,7 +1,7 @@
 FROM php:8.2-apache
 
 # Set metadata
-LABEL maintainer="Photobooth TIK"
+LABEL maintainer="SnapTik"
 
 # Install system dependencies & build tools
 RUN apt-get update && apt-get install -y --no-install-recommends \

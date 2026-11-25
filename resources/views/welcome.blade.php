@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Photobooth TIK : Expo Wisuda Jurusan TIK 2026')
+@section('title', 'SnapTik : Expo Wisuda Jurusan TIK 2026')
 
 @section('content')
 <div class="scene">
@@ -8,7 +8,7 @@
         <!-- Top Pill Navigation Bar (Creative Agency Style) -->
         <nav class="welcome__nav-pill reveal" aria-label="Navigasi Utama">
             <span class="welcome__nav-brand">
-                PHOTOBOOTH TIK
+                SNAPTIK
             </span>
             <a href="{{ route('home') }}" class="welcome__nav-item is-active">Beranda</a>
             <a href="{{ route('photobooth.setup') }}" class="welcome__nav-item">Template</a>
@@ -23,7 +23,7 @@
         <header class="welcome__header">
             <p class="welcome__kicker reveal">EXPO WISUDA JURUSAN TIK 2026</p>
             <h1 class="welcome__title reveal">CAPTURE YOUR MOMENTS.</h1>
-            <p class="welcome__sub reveal">Abadikan momen kelulusan terbaikmu bersama Photobooth TIK. Ambil tiket antrean digital, pilih bingkai foto eksklusif, dan simpan kenangan wisudamu langsung ke smartphone.</p>
+            <p class="welcome__sub reveal">Abadikan momen kelulusan terbaikmu bersama SnapTik. Ambil tiket antrean digital, pilih bingkai foto eksklusif, dan simpan kenangan wisudamu langsung ke smartphone.</p>
 
             <!-- Baris Status Antrean Hari Ini -->
             <div class="queue-kiosk-bar reveal" aria-label="Status Antrean Hari Ini">
@@ -386,8 +386,8 @@
         <footer class="welcome__footer reveal" role="contentinfo">
             <div class="welcome__footer-top">
                 <div class="welcome__footer-brand">
-                    <div class="welcome__footer-title">PHOTOBOOTH TIK</div>
-                    <p class="welcome__footer-desc">Aplikasi bilik foto digital resmi Expo Wisuda Jurusan Teknik Informatika & Komputer 2026. Merayakan kelulusan dan inovasi karya mahasiswa.</p>
+                    <div class="welcome__footer-title">SNAPTIK</div>
+                    <p class="welcome__footer-desc">Aplikasi bilik foto digital resmi SnapTik Expo Wisuda Jurusan Teknik Informatika & Komputer 2026. Merayakan kelulusan dan inovasi karya mahasiswa.</p>
                 </div>
                 <div class="welcome__footer-links">
                     <span class="welcome__footer-links-title">Navigasi Cepat</span>
@@ -443,7 +443,7 @@
         <!-- Tampilan 2: Karcis Tiket yang Berhasil Diambil -->
         <div id="ticket-result-view" hidden>
             <div class="ticket-card__header">
-                <span class="badge badge--lamp" style="margin-bottom:6px">PHOTOBOOTH TIK EXPO 2026</span>
+                <span class="badge badge--lamp" style="margin-bottom:6px">SNAPTIK EXPO 2026</span>
                 <p style="font-size:var(--fs-xs);color:var(--color-sand)">TIKET ANTREAN FOTO</p>
             </div>
 
@@ -751,7 +751,7 @@
                 'h2{margin:0 0 4px;font-size:18px}.num{font-size:42px;font-weight:bold;margin:10px 0}' +
                 '.line{border-bottom:1px dashed #000;margin:10px 0}.info{font-size:12px;text-align:left}' +
                 '</style></head><body>' +
-                '<h2>PHOTOBOOTH TIK</h2><p style="font-size:11px;margin:0">Expo Wisuda Jurusan TIK 2026</p>' +
+                '<h2>SNAPTIK</h2><p style="font-size:11px;margin:0">Expo Wisuda Jurusan TIK 2026</p>' +
                 '<div class="line"></div>' +
                 '<div style="font-size:12px">NOMOR ANTREAN</div>' +
                 '<div class="num">#' + t.queue_number + '</div>' +

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Kamera Bilik (Siaran Perangkat Admin) : Admin Photobooth TIK')
+@section('title', 'Kamera Bilik (Siaran Perangkat Admin) : Admin SnapTik')
 
 @section('content')
 <div class="adm-head">

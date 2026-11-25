@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Masuk Admin : Photobooth TIK')
+@section('title', 'Masuk Admin : SnapTik')
 
 @section('inline_errors', '1')
 

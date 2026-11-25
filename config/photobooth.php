@@ -4,7 +4,7 @@ return [
 
     /*
     | Ukuran kanvas hasil akhir (cetak 4R, 300 dpi). Dipakai server saat
-    | menyusun strip dan oleh pratinjau di browser — jangan diubah sepihak.
+    | menyusun strip dan oleh pratinjau di browser (jangan diubah sepihak).
     */
     'canvas' => [
         'width'  => 1200,

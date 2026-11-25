@@ -1,4 +1,4 @@
-/* PHOTOBOOTH TIK : gallery.js
+/* SNAPTIK : gallery.js
    Diadaptasi dari engine/gallery.js LumaBooth: kategori, pencarian, urutan, kartu preview.
    Data berasal dari database Laravel (JSON di #templates-data), bukan templates-db.js statis. */
 (function () {

@@ -1,4 +1,4 @@
-DIREKTORI FONT RESMI - PHOTOBOOTH TIK
+DIREKTORI FONT RESMI - SNAPTIK
 ======================================
 1. Font Lanterosy Sans Serif (Font Display / Judul Besar & Branding):
    - Lanterosy.ttf / LanterosySansSerifFont.ttf

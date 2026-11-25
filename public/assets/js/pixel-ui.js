@@ -1,4 +1,4 @@
-/* PHOTOBOOTH TIK : pixel-ui.js
+/* SNAPTIK : pixel-ui.js
    Utilitas UI bersama: toast, reveal bertahap, transisi halaman halus. Tanpa dependensi. */
 (function () {
   'use strict';

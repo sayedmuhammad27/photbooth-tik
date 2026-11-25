@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pilih Template : Photobooth TIK')
+@section('title', 'Pilih Template : SnapTik')
 
 @section('content')
 <header class="gallery-head">

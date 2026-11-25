@@ -33,7 +33,7 @@ if (-not $lanIp) { $lanIp = "127.0.0.1" }
 Set-Content -Path $localIpFile -Value $lanIp -NoNewline -Force
 
 Write-Host "===================================================================" -ForegroundColor Cyan
-Write-Host "       PHOTOBOOTH TIK - ALL-IN-ONE SYSTEM LAUNCHER (AUTO)          " -ForegroundColor Cyan
+Write-Host "            SNAPTIK - ALL-IN-ONE SYSTEM LAUNCHER (AUTO)            " -ForegroundColor Cyan
 Write-Host "===================================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -215,7 +215,7 @@ for ($i = 0; $i -lt 35; $i++) {
 Write-Host ""
 if ($detectedUrl) {
     Write-Host "===================================================================" -ForegroundColor Green
-    Write-Host "        SEMUA LAYANAN PHOTOBOOTH TIK BERHASIL DINYALAKAN!          " -ForegroundColor Green
+    Write-Host "             SEMUA LAYANAN SNAPTIK BERHASIL DINYALAKAN!           " -ForegroundColor Green
     Write-Host "===================================================================" -ForegroundColor Green
     Write-Host ""
     Write-Host " [ONLINE URL - PENGUNJUNG]    : $detectedUrl" -ForegroundColor Yellow

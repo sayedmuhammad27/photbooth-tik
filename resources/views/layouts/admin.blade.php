@@ -2,13 +2,13 @@
 <html lang="id">
 <head>
     @include('partials.head')
-    <title>@yield('title', 'Admin : Photobooth TIK')</title>
+    <title>@yield('title', 'Admin : SnapTik')</title>
     <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
     <header class="adm-bar">
         <div class="adm-bar__in">
-            <a class="adm-logo" href="{{ route('admin.dashboard') }}">PHOTOBOOTH TIK</a>
+            <a class="adm-logo" href="{{ route('admin.dashboard') }}">SNAPTIK</a>
             <nav class="adm-nav" aria-label="Menu admin">
                 <a href="{{ route('admin.dashboard') }}" @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif>Ringkasan</a>
                 <a href="{{ route('admin.queue.index') }}" @if(request()->routeIs('admin.queue.*')) aria-current="page" @endif>Antrean</a>

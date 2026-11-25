@@ -32,7 +32,7 @@ if (-not $lanIp) { $lanIp = "127.0.0.1" }
 Set-Content -Path $localIpFile -Value $lanIp -NoNewline -Force
 
 Write-Host "===================================================================" -ForegroundColor Cyan
-Write-Host "       PHOTOBOOTH TIK - MODE JARINGAN LOKAL (OFFLINE / WI-FI)      " -ForegroundColor Cyan
+Write-Host "            SNAPTIK - MODE JARINGAN LOKAL (OFFLINE / WI-FI)        " -ForegroundColor Cyan
 Write-Host "===================================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -183,7 +183,7 @@ if (-not $laravelPort -or $needRestart) {
 
 Write-Host ""
 Write-Host "===================================================================" -ForegroundColor Green
-Write-Host "      PHOTOBOOTH TIK - MODE JARINGAN LOKAL SIAP DIGUNAKAN!         " -ForegroundColor Green
+Write-Host "           SNAPTIK - MODE JARINGAN LOKAL SIAP DIGUNAKAN!          " -ForegroundColor Green
 Write-Host "===================================================================" -ForegroundColor Green
 Write-Host ""
 Write-Host " [JARINGAN LOKAL - HP/TABLET] : http://$lanIp:8000" -ForegroundColor Yellow
@@ -209,7 +209,7 @@ Write-Host ""
 Write-Host "Membuka halaman Kamera Hub Admin di browser..." -ForegroundColor DarkGray
 Start-Process "http://localhost:8000/admin/camera-hub"
 Write-Host ""
-Write-Host "Layanan Photobooth sedang berjalan di latar belakang." -ForegroundColor Green
+Write-Host "Layanan SnapTik sedang berjalan di latar belakang." -ForegroundColor Green
 Write-Host "Tekan Enter untuk menutup jendela ini (layanan tetap aktif di background)..." -ForegroundColor White
 Write-Host "Tip: Untuk mematikan semua layanan, jalankan matikan-semua.bat." -ForegroundColor Cyan
 try {

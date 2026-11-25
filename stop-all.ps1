@@ -1,5 +1,5 @@
 Write-Host "===================================================================" -ForegroundColor Red
-Write-Host "         PHOTOBOOTH TIK - MEMATIKAN SEMUA LAYANAN...               " -ForegroundColor Red
+Write-Host "              SNAPTIK - MEMATIKAN SEMUA LAYANAN...                 " -ForegroundColor Red
 Write-Host "===================================================================" -ForegroundColor Red
 Write-Host ""
 

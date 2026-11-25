@@ -1,4 +1,4 @@
-# Photobooth TIK — Expo Wisuda Jurusan TIK 2026
+# SnapTik : Expo Wisuda Jurusan TIK 2026
 
 Aplikasi photobooth berbasis Laravel 12: pilih template → izinkan kamera → hitung mundur → foto →
 tinjau/ulangi → strip disusun di server (4R, 1200×1800) → unduh atau ambil lewat QR code.

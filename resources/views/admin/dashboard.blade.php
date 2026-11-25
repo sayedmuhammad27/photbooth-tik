@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Ringkasan : Admin Photobooth TIK')
+@section('title', 'Ringkasan : Admin SnapTik')
 
 @section('content')
 <div class="adm-head">
     <div>
         <h1>RINGKASAN</h1>
-        <p>Aktivitas photobooth Expo Wisuda Jurusan TIK 2026.</p>
+        <p>Aktivitas bilik foto SnapTik Expo Wisuda Jurusan TIK 2026.</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
         <a class="btn btn--primary btn--sm" href="{{ route('admin.queue.index') }}">@include('partials.icon', ['name' => 'ticket']) Kelola Antrean</a>

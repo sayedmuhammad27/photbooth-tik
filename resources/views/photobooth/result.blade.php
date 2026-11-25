@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Hasil Foto : Photobooth TIK')
+@section('title', 'Hasil Foto : SnapTik')
 
 @section('content')
 <div class="result">

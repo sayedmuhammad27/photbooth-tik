@@ -1,4 +1,4 @@
-/* PHOTOBOOTH TIK : booth.js
+/* SNAPTIK : booth.js
    Mesin kamera. Alur dan interaksi diadaptasi dari engine/booth.js LumaBooth
    (countdown, flash, retake per slot, preview strip) lalu dihubungkan ke Laravel:
    foto dikirim sebagai file (FormData) ke SessionController@process dan
